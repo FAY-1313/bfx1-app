@@ -94,7 +94,7 @@ export default function ToneDetailPage({
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
               {style && (
-                <span style={{ padding: '2px 8px', borderRadius: 6, background: C.brand, color: '#170B03', fontSize: 11, fontWeight: 800, fontFamily: C.font }}>{style}</span>
+                <span style={{ padding: '2px 8px', borderRadius: 6, background: C.brand, color: '#3b281c', fontSize: 11, fontWeight: 800, fontFamily: C.font }}>{style}</span>
               )}
               <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', fontFamily: C.font }}>{ampName(tone)}</span>
             </div>
@@ -132,7 +132,7 @@ export default function ToneDetailPage({
           <div style={{ fontSize: 11, fontWeight: 800, color: C.text3, fontFamily: C.font, letterSpacing: '0.1em', marginBottom: 9 }}>{zh ? '风格与标签' : 'Style & tags'}</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             {style
-              ? <span style={{ height: 24, padding: '0 10px', borderRadius: 7, background: C.brand, color: '#170B03', fontSize: 11, fontWeight: 800, fontFamily: C.font, display: 'inline-flex', alignItems: 'center' }}>{style}</span>
+              ? <span style={{ height: 24, padding: '0 10px', borderRadius: 7, background: C.brand, color: '#3b281c', fontSize: 11, fontWeight: 800, fontFamily: C.font, display: 'inline-flex', alignItems: 'center' }}>{style}</span>
               : <span style={{ fontSize: 11, color: C.text3, fontFamily: C.font }}>{zh ? '未标注风格' : 'No style set'}</span>}
             {(tone.tags || []).map((tg) => (
               <span key={tg} style={{
@@ -187,10 +187,10 @@ export default function ToneDetailPage({
         <button onClick={onTrial} style={{
           flex: 1, height: 46, borderRadius: 13, border: 'none', cursor: 'pointer',
           background: connected ? C.brand : 'rgba(240,111,33,0.16)',
-          color: connected ? '#170B03' : C.brand, fontSize: 13, fontWeight: 800, fontFamily: C.font,
+          color: connected ? '#3b281c' : C.brand, fontSize: 13, fontWeight: 800, fontFamily: C.font,
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, letterSpacing: '0.03em',
         }}>
-          <IconPlay size={13} color={connected ? '#170B03' : C.brand} />
+          <IconPlay size={13} color={connected ? '#3b281c' : C.brand} />
           {connected ? (zh ? '试用这个音色' : 'Try this tone') : (zh ? '连上设备再试用' : 'Connect a device first')}
         </button>
 

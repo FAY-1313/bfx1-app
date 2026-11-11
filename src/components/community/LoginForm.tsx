@@ -136,10 +136,13 @@ export default function LoginForm({
         onClick={doSubmit}
         disabled={loading}
         style={{
-          width: '100%', height: 46, borderRadius: 13, border: 'none',
+          width: '100%', height: 46, borderRadius: 13,
           cursor: loading ? 'default' : 'pointer',
-          background: canSubmit ? C.brand : 'rgba(240,111,33,0.22)',
-          color: canSubmit ? '#170B03' : 'rgba(240,111,33,0.75)',
+          /* ★ 2026-11-11：禁用态原来是「深橙底 + 半透明橙字」，在深空灰底上糊成一团、
+             看不出按钮不可点 —— 改成中性灰底 + 明确灰字 */
+          background: canSubmit ? C.brand : 'rgba(255,255,255,0.06)',
+          color: canSubmit ? '#2a1b0c' : '#9aa3b2',
+          border: canSubmit ? 'none' : '1px solid rgba(255,255,255,0.10)',
           fontSize: 13, fontWeight: 800, fontFamily: C.font, letterSpacing: '0.05em',
           transition: 'background .15s',
         }}

@@ -346,7 +346,7 @@ export default function FavoritesPanel({
   return (
     <div style={embedded
       ? { flex: 1, minHeight: 0, position: 'relative', display: 'flex', flexDirection: 'column' }
-      : { position: 'fixed', inset: '0 0 64px 0', background: '#1a1b1f', zIndex: 51, display: 'flex', flexDirection: 'column' }}>
+      : { position: 'fixed', inset: '0 0 64px 0', background: '#2d2f34', zIndex: 51, display: 'flex', flexDirection: 'column' }}>
       {!embedded && (
         <>
           {/* Header */}

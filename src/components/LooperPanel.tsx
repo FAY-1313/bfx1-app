@@ -980,7 +980,7 @@ export default function LooperPanel({ bpm, setBpm, active, visible }: LooperPane
                     background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)',
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                      <span style={{ width: 20, height: 20, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: '#0e0f12', background: 'rgb(120,220,255)', fontFamily: '"Barlow-Regular_2",sans-serif', flexShrink: 0 }}>{slot}</span>
+                      <span style={{ width: 20, height: 20, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: '#27292f', background: 'rgb(120,220,255)', fontFamily: '"Barlow-Regular_2",sans-serif', flexShrink: 0 }}>{slot}</span>
                       {meta ? (
                         <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
                           {renamingSlot === slot ? (
@@ -988,7 +988,7 @@ export default function LooperPanel({ bpm, setBpm, active, visible }: LooperPane
                               <input autoFocus value={slotNameVal}
                                 onChange={e => setSlotNameVal(e.target.value)}
                                 onKeyDown={e => { if (e.key === 'Enter') commitSlotName(slot); }}
-                                style={{ flex: 1, height: 20, borderRadius: 4, border: '1px solid rgba(120,220,255,0.5)', background: '#12141a', color: '#fff', fontSize: 11, padding: '0 5px', fontFamily: '"Barlow-Regular_2",sans-serif', minWidth: 0 }}
+                                style={{ flex: 1, height: 20, borderRadius: 4, border: '1px solid rgba(120,220,255,0.5)', background: '#252831', color: '#fff', fontSize: 11, padding: '0 5px', fontFamily: '"Barlow-Regular_2",sans-serif', minWidth: 0 }}
                               />
                               <button onClick={() => commitSlotName(slot)} style={{ height: 20, padding: '0 7px', borderRadius: 4, cursor: 'pointer', background: 'rgba(120,220,255,0.15)', border: '1px solid rgba(120,220,255,0.45)', color: '#7fd8ff', fontSize: 10.5, fontFamily: '"Barlow-Regular_2",sans-serif' }}>{t('btn.ok')}</button>
                             </div>

@@ -713,7 +713,7 @@ export default function RecorderPanel({ active, visible }: RecorderPanelProps) {
                       <input autoFocus value={renameVal} onChange={e => setRenameVal(e.target.value)}
                         onKeyDown={e => { if (e.key === 'Enter') commitRename(); if (e.key === 'Escape') setRenaming(null); }}
                         onClick={e => e.stopPropagation()}
-                        style={{ flex: 1, minWidth: 0, height: 22, borderRadius: 4, border: '1px solid rgba(255,80,120,0.4)', background: '#12141a', color: '#fff', fontSize: 11, padding: '0 6px', fontFamily: '"Barlow-Regular_2",sans-serif' }} />
+                        style={{ flex: 1, minWidth: 0, height: 22, borderRadius: 4, border: '1px solid rgba(255,80,120,0.4)', background: '#252831', color: '#fff', fontSize: 11, padding: '0 6px', fontFamily: '"Barlow-Regular_2",sans-serif' }} />
                     ) : (
                       <span onClick={e => e.stopPropagation()}
                         style={{ flex: 1, minWidth: 0, fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.85)', fontFamily: '"Barlow-Regular_2",sans-serif', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -754,7 +754,7 @@ export default function RecorderPanel({ active, visible }: RecorderPanelProps) {
               {renaming?.kind === 'proj' && renaming.id === cur.id ? (
                 <input autoFocus value={renameVal} onChange={e => setRenameVal(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter') commitRename(); if (e.key === 'Escape') setRenaming(null); }}
-                  style={{ flex: 1, minWidth: 0, height: 24, borderRadius: 4, border: '1px solid rgba(255,80,120,0.4)', background: '#12141a', color: '#fff', fontSize: 11, padding: '0 6px', fontFamily: '"Barlow-Regular_2",sans-serif' }} />
+                  style={{ flex: 1, minWidth: 0, height: 24, borderRadius: 4, border: '1px solid rgba(255,80,120,0.4)', background: '#252831', color: '#fff', fontSize: 11, padding: '0 6px', fontFamily: '"Barlow-Regular_2",sans-serif' }} />
               ) : (
                 <span onClick={() => { setRenaming({ kind: 'proj', id: cur.id }); setRenameVal(cur.name); }}
                   style={{ fontSize: 11, fontWeight: 800, color: 'rgba(255,255,255,0.9)', fontFamily: '"Barlow-Regular_2",sans-serif', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', cursor: 'pointer' }}>
@@ -804,7 +804,7 @@ export default function RecorderPanel({ active, visible }: RecorderPanelProps) {
                     {renaming?.kind === 'lane' && renaming.id === lane.id ? (
                       <input autoFocus value={renameVal} onChange={e => setRenameVal(e.target.value)}
                         onKeyDown={e => { if (e.key === 'Enter') commitRename(); if (e.key === 'Escape') setRenaming(null); }}
-                        style={{ flex: 1, minWidth: 0, height: 24, borderRadius: 4, border: '1px solid rgba(255,80,120,0.4)', background: '#12141a', color: '#fff', fontSize: 11, padding: '0 6px', fontFamily: '"Barlow-Regular_2",sans-serif' }} />
+                        style={{ flex: 1, minWidth: 0, height: 24, borderRadius: 4, border: '1px solid rgba(255,80,120,0.4)', background: '#252831', color: '#fff', fontSize: 11, padding: '0 6px', fontFamily: '"Barlow-Regular_2",sans-serif' }} />
                     ) : (
                       <span onClick={() => { setRenaming({ kind: 'lane', id: lane.id }); setRenameVal(lane.name); }}
                         style={{ flex: 1, minWidth: 0, fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.85)', fontFamily: '"Barlow-Regular_2",sans-serif', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', cursor: 'pointer' }}>

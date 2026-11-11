@@ -17,9 +17,9 @@ import {
 
 const ORANGE = '#F06F21';
 const CARD_BG = 'rgba(28,29,33,0.97)';
-const LINE = '#2E3440';
+const LINE = '#454b55';
 const TEXT = '#EDEFF3';
-const TEXT2 = '#9BA3B2';
+const TEXT2 = '#c2c9d6';
 const FONT = '"Barlow-Regular_2",sans-serif';
 
 interface Props {
@@ -177,7 +177,7 @@ export default function HwGuidePanel({ open, tutorial = false, onClose, lang = '
 
   return (
     <div style={{
-      position: 'fixed', inset: 0, zIndex: 60, background: '#0B0D11',
+      position: 'fixed', inset: 0, zIndex: 60, background: '#24262b',
       display: 'flex', flexDirection: 'column', fontFamily: FONT, color: TEXT,
     }}>
       {/* 顶部栏 */}

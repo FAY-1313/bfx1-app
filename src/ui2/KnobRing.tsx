@@ -290,7 +290,7 @@ export default function KnobRing({
       <svg width={size} height={size} viewBox={`0 0 ${VB} ${VB}`} style={{ display: 'block', position: 'relative', zIndex: 1, transition: 'transform .16s cubic-bezier(.34,1.56,.64,1)' }}>
         <defs>
           <linearGradient id={`${uid}b`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#454c58" /><stop offset=".48" stopColor="#2b3039" /><stop offset="1" stopColor="#2E3440" />
+            <stop offset="0" stopColor="#454c58" /><stop offset=".48" stopColor="#2b3039" /><stop offset="1" stopColor="#454b55" />
           </linearGradient>
           <linearGradient id={`${uid}s`} x1="0" y1="0" x2=".85" y2="1">
             <stop offset="0" stopColor={KNOB.hi} /><stop offset="1" stopColor={KNOB.low} />

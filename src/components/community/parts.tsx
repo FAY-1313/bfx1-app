@@ -3,7 +3,7 @@
  *
  * 设计口径（与 `社区与登录UI重构v2.html` 一致）：
  *  - 单品牌橙 #F06F21 是唯一动作色；金色 #DFA43C 只作「官方 / 过千热度」特权色
- *  - 三级文字：#F0F2F5 / #9BA3B2 / #7C8494
+ *  - 三级文字：#F0F2F5 / #c2c9d6 / #7C8494
  *  - 字号：卡片名 13.5 / 次级 11 / 标签 9.5 / 徽章 8.5 —— 不再出现 7px 那种看不清的字
  *  - 所有可点区域 ≥ 42px 高（列表行 56+），拇指够得到
  */
@@ -12,7 +12,7 @@ import { SURF, TXT, BRAND, GOLD } from '../../ui2/tokens';
 
 /**
  * ★★ v3.83（7.3 色板双轨合并）：本对象不再自带色值，全部从 `ui2/tokens` 派生。
- * 之前这里和 tokens.ts 各写一份（`#F0F2F5` vs `#F2F4F8`、`#15181E` vs `#14171D`），
+ * 之前这里和 tokens.ts 各写一份（`#F0F2F5` vs `#F2F4F8`、`#2a2e37` vs `#31343b`），
  * 两边各自演化 → 社区一套色、首页一套色。现在只有 tokens 一处真值。
  */
 export const C = {
@@ -143,7 +143,7 @@ export function StyleChip({ label, active, onClick }: { label: string; active?: 
     <button onClick={onClick} style={{
       height: 26, padding: '0 11px', borderRadius: 7, cursor: 'pointer', flexShrink: 0,
       background: active ? C.brand : 'rgba(255,255,255,0.045)',
-      border: `1px solid ${active ? C.brand : C.line}`, color: active ? '#140B04' : C.text2,
+      border: `1px solid ${active ? C.brand : C.line}`, color: active ? '#3b291c' : C.text2,
       fontSize: 11, fontWeight: 750, fontFamily: C.font,
     }}>{label}</button>
   );

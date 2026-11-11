@@ -147,7 +147,7 @@ function MiniKnob({
         role="slider" aria-label={label} aria-valuenow={Math.round(t * 100)}
         style={{
           width: size, height: size, borderRadius: '50%', position: 'relative', touchAction: 'none',
-          background: 'radial-gradient(circle at 36% 28%, #454C57 0%, #23272E 48%, #14171B 100%)',
+          background: 'radial-gradient(circle at 36% 28%, #454C57 0%, #23272E 48%, #2b3036 100%)',
           border: '1px solid #343B46', boxShadow: 'inset 0 1px 0 rgba(255,255,255,.09), 0 3px 7px rgba(0,0,0,.5)',
           cursor: disabled ? 'default' : 'grab', flexShrink: 0,
         }}
@@ -287,7 +287,7 @@ function Band({
           数值同源（PEQ_GAIN_ZERO 120 / 0.2 dB/LSB），所以和首页箱头读数逐字一致。 */}
       <div style={{
         fontSize: 9.5, fontWeight: 700, lineHeight: 1, letterSpacing: 0,
-        color: Math.abs(db) < 0.05 ? '#9BA3B2' : db > 0 ? '#8FD18A' : '#E08B6A',
+        color: Math.abs(db) < 0.05 ? '#c2c9d6' : db > 0 ? '#8FD18A' : '#E08B6A',
       }}>{fmtDb(db)}</div>
 
       {/* 推子 —— ★ v3.79：0 dB 参考线按真实行程（idx 120/180 = 33.3%）定位，
@@ -299,7 +299,7 @@ function Band({
         <div style={{ height: 66, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
           <KnobRing norm={Math.max(0, Math.min(1, (db + 9) / 18))} size={40} mode="display" ariaLabel={toneName ?? ''} />
           <span style={{
-            fontSize: 10.5, lineHeight: 1.1, color: '#9BA3B2', maxWidth: '100%',
+            fontSize: 10.5, lineHeight: 1.1, color: '#c2c9d6', maxWidth: '100%',
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
           }}>{toneName ?? ''}</span>
         </div>
@@ -371,7 +371,7 @@ function Band({
             position: 'absolute', top: '100%', marginTop: 2, zIndex: 60,
             /* 紧凑列给下拉一个最小宽度并向左溢出，避免 38px 里挤 6 个选项 */
             ...(compact ? { left: 0, minWidth: 104 } : { left: 0, right: 0 }),
-            background: '#1B1F26', border: `1px solid ${accent}77`, borderRadius: 7,
+            background: '#2a2f37', border: `1px solid ${accent}77`, borderRadius: 7,
             boxShadow: '0 8px 22px rgba(0,0,0,.65)', overflow: 'hidden',
           }}>
             {UI_TYPES.map((t) => (
@@ -380,7 +380,7 @@ function Band({
                 style={{
                   height: 21, display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: 10.5, fontWeight: 700, letterSpacing: .4, cursor: 'pointer',
-                  color: t.id === ui.id ? '#0E1116' : '#C7CDD8',
+                  color: t.id === ui.id ? '#242a33' : '#C7CDD8',
                   background: t.id === ui.id ? accent : 'transparent',
                 }}>{t.label}</div>
             ))}
@@ -419,7 +419,7 @@ function Card({ title, sub, accent, children }: {
   return (
     <div style={{
       borderRadius: 13, padding: '7px 7px 8px',
-      background: 'linear-gradient(165deg, #191D24, #12151A)',
+      background: 'linear-gradient(165deg, #2a2f37, #252a31)',
       border: '1px solid #232934',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '1px 4px 6px' }}>
@@ -571,7 +571,7 @@ export default function DebugPanelV2({
     return (
       <div key={m.id} style={{
         borderRadius: 12, padding: '8px 9px',
-        background: 'linear-gradient(165deg, #1A1E26, #12151A)', border: '1px solid #2A3140',
+        background: 'linear-gradient(165deg, #2a2e37, #252a31)', border: '1px solid #2A3140',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 7 }}>
           <span style={{ width: 5, height: 5, borderRadius: 2, background: accent }} />
@@ -583,7 +583,7 @@ export default function DebugPanelV2({
             color: live ? '#E8B860' : '#C7B4FF',
           }}>{live ? '可调' : '已锁定'}</span>
           <div onPointerUp={() => del(m)} style={{ marginLeft: 'auto', fontSize: 10.5, color: '#8A93A1', padding: '3px 7px', borderRadius: 6, border: '1px solid #333B49' }}>删除</div>
-          <div onPointerUp={() => applyCustom(m)} style={{ fontSize: 10.5, color: '#0E1116', fontWeight: 700, padding: '3px 8px', borderRadius: 6, background: accent }}>加载</div>
+          <div onPointerUp={() => applyCustom(m)} style={{ fontSize: 10.5, color: '#242a33', fontWeight: 700, padding: '3px 8px', borderRadius: 6, background: accent }}>加载</div>
         </div>
         {/* ★★ v3.85（用户要求「四个箱头旋钮使用和箱头一样的旋钮和文字注释，去掉现在的文字」）：
             原来这里是「名称 / 数值 / 2段·650Hz」三行纯文字，和首页箱头卡完全两套样子。
@@ -606,7 +606,7 @@ export default function DebugPanelV2({
                 }}>{kd.read}</span>
                 <KnobRing norm={kd.norm} size={28} mode="display" ariaLabel={k.label} />
                 <span style={{
-                  fontSize: 10.5, lineHeight: 1.12, color: '#9BA3B2',
+                  fontSize: 10.5, lineHeight: 1.12, color: '#c2c9d6',
                   whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%',
                 }}>{k.label}</span>
                 {/* ★★ v3.86（用户 2026-10-27 明确「不显示」）：段位小字整块去掉，
@@ -622,13 +622,13 @@ export default function DebugPanelV2({
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 320, display: 'flex', flexDirection: 'column',
-      background: '#16191F', color: '#E6EAF0',
+      background: '#2a2e37', color: '#E6EAF0',
       fontFamily: '"Barlow-Regular_2", -apple-system, "PingFang SC", sans-serif',
     }}>
       {/* 顶栏 */}
       <div style={{
         height: 46, flexShrink: 0, display: 'flex', alignItems: 'center', gap: 8,
-        padding: '0 10px', borderBottom: '1px solid #262C36', background: '#1B1F26',
+        padding: '0 10px', borderBottom: '1px solid #262C36', background: '#2a2f37',
       }}>
         <div onPointerUp={onClose} role="button" aria-label="返回" style={{ width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 19, color: '#C6CCD6', cursor: 'pointer' }}>‹</div>
         <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15 }}>
@@ -643,14 +643,14 @@ export default function DebugPanelV2({
               height: 30, padding: '0 11px', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 4,
               fontSize: 11, fontWeight: 700, letterSpacing: .3, cursor: tab === 'custom' ? 'default' : 'pointer',
               background: tab === 'custom' ? 'rgba(255,255,255,.04)' : 'rgba(240,111,33,.16)',
-              border: `1px solid ${tab === 'custom' ? '#2E3440' : 'rgba(240,111,33,.55)'}`,
+              border: `1px solid ${tab === 'custom' ? '#454b55' : 'rgba(240,111,33,.55)'}`,
               color: tab === 'custom' ? '#8B93A2' : '#FFB981',
             }}>⤓ 导出</div>
         </div>
       </div>
 
       {/* 页签 */}
-      <div style={{ flexShrink: 0, display: 'flex', height: 38, background: '#1B1F26', borderBottom: '1px solid #262C36' }}>
+      <div style={{ flexShrink: 0, display: 'flex', height: 38, background: '#2a2f37', borderBottom: '1px solid #262C36' }}>
         {([['od', '过载'], ['amp', '箱头'], ['custom', '自定义']] as const).map(([k, lb]) => (
           <div key={k} onPointerUp={() => setTab(k)} role="tab" aria-selected={tab === k}
             style={{
@@ -774,7 +774,7 @@ export default function DebugPanelV2({
                     flex: 1, height: 30, borderRadius: 9, display: 'flex', alignItems: 'center',
                     justifyContent: 'center', gap: 5, cursor: 'pointer',
                     fontSize: 10.5, fontWeight: customKind === k ? 700 : 500, letterSpacing: .4,
-                    color: customKind === k ? '#0E1116' : '#8A93A1',
+                    color: customKind === k ? '#242a33' : '#8A93A1',
                     background: customKind === k ? ac : 'rgba(255,255,255,.035)',
                     border: `1px solid ${customKind === k ? ac : '#2A3140'}`,
                   }}>
@@ -791,7 +791,7 @@ export default function DebugPanelV2({
             {(customKind === 'od' ? odList : ampList).length === 0 ? (
               <div style={{
                 margin: '14px 3px', padding: '22px 14px', borderRadius: 12, textAlign: 'center',
-                border: '1px dashed rgba(255,255,255,.12)', fontSize: 10.5, color: '#9BA3B2', lineHeight: 1.8,
+                border: '1px dashed rgba(255,255,255,.12)', fontSize: 10.5, color: '#c2c9d6', lineHeight: 1.8,
               }}>
                 还没有自定义{customKind === 'od' ? '过载' : '箱头'}<br />
                 去「{customKind === 'od' ? '过载' : '箱头'}」页调好音色，点右上角「⤓ 导出」
@@ -827,45 +827,45 @@ export default function DebugPanelV2({
           style={{ position: 'absolute', inset: 0, zIndex: 20, background: 'rgba(4,5,7,.72)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
           <div style={{
             width: '100%', borderRadius: 16, padding: '15px 15px 13px',
-            background: 'linear-gradient(180deg,#1D2129,#161A20)', border: '1px solid #3E4653',
+            background: 'linear-gradient(180deg,#2a2e37,#2a2f37)', border: '1px solid #3E4653',
             boxShadow: '0 30px 80px rgba(0,0,0,.7)',
           }}>
             <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 3 }}>导出为自定义模块</div>
-            <div style={{ fontSize: 10.5, color: '#9BA3B2', marginBottom: 13 }}>
+            <div style={{ fontSize: 10.5, color: '#c2c9d6', marginBottom: 13 }}>
               固化为单块模块
             </div>
 
-            <div style={{ fontSize: 10.5, letterSpacing: 1, color: '#9BA3B2', marginBottom: 5 }}>模块名称</div>
+            <div style={{ fontSize: 10.5, letterSpacing: 1, color: '#c2c9d6', marginBottom: 5 }}>模块名称</div>
             <input
               value={name} onChange={(e) => setName(e.target.value)}
               style={{
-                width: '100%', height: 36, borderRadius: 10, background: '#0F1216',
-                border: '1px solid #2E3440', color: '#E6EAF0', fontSize: 12,
+                width: '100%', height: 36, borderRadius: 10, background: '#252a32',
+                border: '1px solid #454b55', color: '#E6EAF0', fontSize: 12,
                 padding: '0 11px', boxSizing: 'border-box', outline: 'none',
               }}
             />
 
-            <div style={{ fontSize: 10.5, letterSpacing: 1, color: '#9BA3B2', margin: '11px 0 5px' }}>生成类型</div>
+            <div style={{ fontSize: 10.5, letterSpacing: 1, color: '#c2c9d6', margin: '11px 0 5px' }}>生成类型</div>
             <div style={{ display: 'flex', gap: 7 }}>
               <div style={{
                 flex: 1, height: 32, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 11, fontWeight: 700,
                 background: tab === 'od' ? 'rgba(240,111,33,.16)' : 'rgba(255,255,255,.04)',
-                border: `1px solid ${tab === 'od' ? 'rgba(240,111,33,.55)' : '#2E3440'}`,
-                color: tab === 'od' ? '#FFB981' : '#9BA3B2',
+                border: `1px solid ${tab === 'od' ? 'rgba(240,111,33,.55)' : '#454b55'}`,
+                color: tab === 'od' ? '#FFB981' : '#c2c9d6',
               }}>过载模块</div>
               <div style={{
                 flex: 1, height: 32, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 11, fontWeight: 700,
                 background: tab === 'amp' ? 'rgba(232,184,96,.16)' : 'rgba(255,255,255,.04)',
-                border: `1px solid ${tab === 'amp' ? 'rgba(232,184,96,.55)' : '#2E3440'}`,
-                color: tab === 'amp' ? '#F0CE8A' : '#9BA3B2',
+                border: `1px solid ${tab === 'amp' ? 'rgba(232,184,96,.55)' : '#454b55'}`,
+                color: tab === 'amp' ? '#F0CE8A' : '#c2c9d6',
               }}>箱头模块</div>
             </div>
 
             <div style={{ display: 'flex', gap: 8, marginTop: 13 }}>
               <div onPointerUp={() => setExporting(false)} role="button"
-                style={{ flex: 1, height: 36, borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,.05)', border: '1px solid #2E3440', fontSize: 11, color: '#9AA4B2' }}>取消</div>
+                style={{ flex: 1, height: 36, borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,.05)', border: '1px solid #454b55', fontSize: 11, color: '#9AA4B2' }}>取消</div>
               <div onPointerUp={doExport} role="button"
                 style={{ flex: 1, height: 36, borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(240,111,33,.18)', border: '1px solid rgba(240,111,33,.55)', fontSize: 11, fontWeight: 700, color: '#FFB981' }}>导出</div>
             </div>

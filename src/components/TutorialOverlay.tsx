@@ -82,7 +82,7 @@ function TourCard({
       </div>
       {/* 语言切换器 (欢迎页) */}
       {step.lang && onSetLang && (
-        <div style={{ display: 'flex', gap: 4, marginTop: 14, background: '#1d1e22', border: '1px solid #3f4045', borderRadius: 999, padding: 3 }}>
+        <div style={{ display: 'flex', gap: 4, marginTop: 14, background: '#2e2f33', border: '1px solid #3f4045', borderRadius: 999, padding: 3 }}>
           {(['en', 'zh'] as const).map((l) => (
             <button key={l} onClick={() => onSetLang(l)} style={{
               flex: 1, padding: '6px 12px', borderRadius: 999, cursor: 'pointer',

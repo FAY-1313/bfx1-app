@@ -639,7 +639,7 @@ const reverb: ModuleConfig = {
   subModels: {
     guitar: [
       { id:'spring',name:'Spring',knobs:['DWELL','MIX'],color:'#3a3028',accentColor:'#d8b858'},
-      { id:'hall',name:'Hall',knobs:['DECAY','MIX','PRE','TONE'],color:'#2e3440',accentColor:'#6890c8'},
+      { id:'hall',name:'Hall',knobs:['DECAY','MIX','PRE','TONE'],color:'#454b55',accentColor:'#6890c8'},
       { id:'plate',name:'Plate',knobs:['DECAY','MIX','TONE'],color:'#3a3038',accentColor:'#c0a0c8'},
       { id:'room',name:'Room',knobs:['SIZE','MIX'],color:'#30383a',accentColor:'#60a0a8'},
       { id:'ambient',name:'Ambient',knobs:['DECAY','MIX','SPREAD'],color:'#2e2840',accentColor:'#8068d0'},

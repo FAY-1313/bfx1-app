@@ -438,7 +438,7 @@ export default function BluetoothPanel({
     <div style={{
       position: 'absolute', inset: 0, zIndex: 100,
       overflow: 'hidden', // v73：兜底 —— 任何内容都不许溢出面板去盖住底部 tab 栏
-      // ★ 底色改半透明，backdropFilter 才真正可见（原先是不透明 #1a1b1f，blur 白写）
+      // ★ 底色改半透明，backdropFilter 才真正可见（原先是不透明 #2d2f34，blur 白写）
       background: alpha(C.bg, 0.94),
       backdropFilter: 'blur(8px)',
       WebkitBackdropFilter: 'blur(8px)',

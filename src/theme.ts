@@ -20,7 +20,7 @@ export const theme = {
   knob: { sm: 46, md: 56, lg: 72 },
   toggle: { w: 46, h: 24 },
   color: {
-    bg: '#1a1b1f',       // 页面底
+    bg: '#2d2f34',       // 页面底
     panel: '#232428',    // 卡片/面板面
     raised: '#2a2b30',   // 悬浮/输入面
     border: '#3a3b40',   // 描边

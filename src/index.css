@@ -60,7 +60,7 @@
 :root {
   --fontSans: "Barlow-Regular_2";
   --radius: 0.75rem;
-  --background: #1a1b1f;
+  --background: #2d2f34;
   --foreground: #ececec;
   --card: #232428;
   --card-foreground: #f0f0f0;
@@ -84,7 +84,7 @@
   --chart-3: #4cc9f0;
   --chart-4: #e2c044;
   --chart-5: #b48cff;
-  --sidebar: #1f2024;
+  --sidebar: #2c2f36;
   --sidebar-foreground: #ececec;
   --sidebar-primary: #F06F21;
   --sidebar-primary-foreground: #ffffff;
@@ -102,12 +102,27 @@
   --bfx-orange: #F06F21;
   --bfx-cyan: #4cc9f0;
   --bfx-green: #3ddc84;
-  --bfx-bg: #1a1b1f;
-  --bfx-panel: #232428;
-  --bfx-raised: #2a2b30;
-  --bfx-border: #3a3b40;
-  --bfx-text: #ececec;
-  --bfx-text-dim: #9aa0a6;
+  --bfx-bg: #26282e;
+  --bfx-panel: #31343b;
+  --bfx-raised: #383c44;
+  --bfx-border: #4a505b;
+  --bfx-text: #eef1f6;
+  --bfx-text-dim: #b6becc;
+
+  /* ★ 2026-11-11：深空灰底板（原 #24262b 纯黑 → 用户要求可辨识、不刺眼） */
+  --bg-page: #24262b;
+  --bg-sheet: #2c2f36;
+  --bg-card: #31343b;
+  --line: #454b55;
+  --text-1: #eef1f6;
+  --text-2: #c2c9d6;
+  --text-3: #a4adbd;
+
+  /* 运行时由 utils/safeArea.ts 覆盖；未覆盖时退回 env() 实测值 */
+  --sa-top: env(safe-area-inset-top, 0px);
+  --sa-bottom: env(safe-area-inset-bottom, 0px);
+  --sa-left: env(safe-area-inset-left, 0px);
+  --sa-right: env(safe-area-inset-right, 0px);
 }
 
 @layer base {
@@ -116,7 +131,7 @@
   }
   body {
     @apply bg-background text-foreground font-sans;
-    background: #1a1b1f;
+    background: #2d2f34;
     -webkit-tap-highlight-color: transparent;
   }
 }
@@ -272,7 +287,7 @@ button:focus-visible,
 }
 /* 弹窗列表滚动条 */
 .bfx-scroll::-webkit-scrollbar { width: 4px; }
-.bfx-scroll::-webkit-scrollbar-thumb { background: #2E3440; border-radius: 999px; }
+.bfx-scroll::-webkit-scrollbar-thumb { background: #454b55; border-radius: 999px; }
 .bfx-scroll::-webkit-scrollbar-track { background: transparent; }
 
 /* ══════════ 面板切换过渡（★ 2026-10-17 用户反馈「切换跳帧闪动」）══════════
@@ -299,7 +314,7 @@ button:focus-visible,
   inset: 0;
   z-index: 55;
   pointer-events: none;
-  background: #0B0D11;
+  background: #24262b;
   animation: panelFlash 200ms cubic-bezier(.2,0,0,1) both;
 }
 @keyframes panelFlash {
@@ -317,18 +332,21 @@ html, body, #root {
   user-select: none;
 }
 
-/* ══════════ Android 15+ 强制全屏（edge-to-edge）安全区 ══════════
- * targetSdk 36 起系统强制 App 内容延伸到状态栏/导航栏下方，
- * 而本工程此前没有任何 env(safe-area-inset-*) —— 顶栏与底部 Dock 会被系统栏压住。
- * 这里把安全区 padding 放在 #root 上（Index 根容器已改 height:100%），
- * 这样 absolute 面板也不会盖住安全区。 */
+/* ══════════ 全屏安全区（iOS 灵动岛/刘海 + Android edge-to-edge）══════════
+ * ★ 2026-11-11：安全区改为「CSS 变量优先」。
+ *   utils/safeArea.ts 会在启动时把实测（或兜底）值写进 --sa-*，
+ *   这里用 var(--sa-*, env(...)) 兜底，避免 iOS 上 env() 偶发为 0
+ *   导致顶栏压到灵动岛、底部 Dock 被 Home 条盖住。
+ *   padding 放在 #root 上（Index 根容器 height:100%），
+ *   这样 absolute 面板也不会盖住安全区。 */
 html, body, #root { height: 100%; }
+html, body { background: var(--bg-page); }
 #root {
   box-sizing: border-box;
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
-  padding-left: env(safe-area-inset-left);
-  padding-right: env(safe-area-inset-right);
+  padding-top: var(--sa-top, 0px);
+  padding-bottom: var(--sa-bottom, 0px);
+  padding-left: var(--sa-left, 0px);
+  padding-right: var(--sa-right, 0px);
 }
 input, textarea, [contenteditable="true"] {
   -webkit-touch-callout: default;
@@ -383,7 +401,7 @@ input, textarea, [contenteditable="true"] {
   position: fixed;
   inset: 0;
   z-index: 9999;
-  background: #0d0d0f;
+  background: #24262b;
   display: flex;
   flex-direction: column;
   align-items: center;

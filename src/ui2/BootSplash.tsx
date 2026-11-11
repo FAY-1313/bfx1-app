@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
  * ★ 2026-10-17（用户要求）：开屏动画使用 B&F LOGO。
  *
  * 三层衔接，全程无白闪：
- *   原生 splash（深色 + 同位置 B&F）→ 本组件首帧（同底色 #0d0d0f、同构图）
+ *   原生 splash（深色 + 同位置 B&F）→ 本组件首帧（同底色 #24262b、同构图）
  *   → logo 放大淡入 + 扫光 + 细线展开 + BFX1 STUDIO 字标 → **持续跳动** + LOADING
  *   → 整层淡出进入主界面。
  *

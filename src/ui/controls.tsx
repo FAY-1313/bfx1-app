@@ -104,7 +104,7 @@ export function Select({ value, onChange, options, accent = 'rgba(255,255,255,0.
 }) {
   return (
     <select value={value} onChange={e => onChange(e.target.value)} style={{
-      background: '#1e1f23', color: accent,
+      background: '#2e2f33', color: accent,
       border: '1px solid rgba(255,255,255,0.14)', borderRadius: 6,
       padding: '5px 8px', fontSize: theme.fontSize.md, fontWeight: 700, letterSpacing: '0.08em',
       fontFamily: FONT, outline: 'none', maxWidth: '100%',
@@ -122,7 +122,7 @@ export function SegRow({ value, onChange, options, accent = '#fff' }: {
 }) {
   return (
     <div style={{
-      display: 'flex', gap: 3, background: '#1e1f23', borderRadius: 6, padding: 3,
+      display: 'flex', gap: 3, background: '#2e2f33', borderRadius: 6, padding: 3,
       border: '1px solid rgba(255,255,255,0.1)',
     }}>
       {options.map(o => {
@@ -258,7 +258,7 @@ export function DropMenu({ value, onChange, options, accent = 'rgba(255,255,255,
       <div ref={barRef} data-cmp="DropMenu" style={{
         position: 'relative', flexShrink: 0, minWidth: 0, opacity: disabled ? 0.45 : 1,
         borderRadius: 7, border: `1px solid ${open ? `${accent}88` : 'rgba(255,255,255,0.16)'}`,
-        background: '#1e1f23', transition: 'border-color 0.15s ease', pointerEvents: disabled ? 'none' : 'auto',
+        background: '#2e2f33', transition: 'border-color 0.15s ease', pointerEvents: disabled ? 'none' : 'auto',
       }}>
         <div onClick={() => setOpen(o => !o)} style={{
           display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer',

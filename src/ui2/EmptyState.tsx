@@ -38,7 +38,7 @@ export default function EmptyState({
           {icon}
         </div>
       )}
-      <div style={{ fontSize: 13, fontWeight: 700, color: '#9BA3B2', letterSpacing: '0.04em' }}>
+      <div style={{ fontSize: 13, fontWeight: 700, color: '#c2c9d6', letterSpacing: '0.04em' }}>
         {title}
       </div>
       {hint && (

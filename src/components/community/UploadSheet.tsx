@@ -321,7 +321,7 @@ export default function UploadSheet({
                   width: '100%', height: 46, borderRadius: 13, border: 'none',
                   cursor: canNext ? 'pointer' : 'default',
                   background: canNext ? C.brand : 'rgba(255,255,255,0.06)',
-                  color: canNext ? '#170B03' : C.text3, fontSize: 13, fontWeight: 800, fontFamily: C.font,
+                  color: canNext ? '#3b281c' : C.text3, fontSize: 13, fontWeight: 800, fontFamily: C.font,
                 }}
               >{canNext
                 ? (zh ? '下一步' : 'Next')
@@ -335,7 +335,7 @@ export default function UploadSheet({
                 width: '100%', height: 46, borderRadius: 13, border: 'none',
                 cursor: busy ? 'default' : 'pointer',
                 background: busy ? 'rgba(240,111,33,0.25)' : C.brand,
-                color: busy ? C.brand : '#170B03', fontSize: 13, fontWeight: 800, fontFamily: C.font,
+                color: busy ? C.brand : '#3b281c', fontSize: 13, fontWeight: 800, fontFamily: C.font,
               }}
             >{busy ? (zh ? '发布中…' : 'Publishing…') : (zh ? '发布' : 'Publish')}</button>
           )}

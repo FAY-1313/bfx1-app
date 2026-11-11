@@ -80,7 +80,7 @@ export default function StudioPanel({ visible, onClose, openTab, openTabSeq, onl
          顶边从屏幕 0 起 → 盖住 48px App 顶栏；底边留 64px → 比底栏 59 多 5px，露一条缝。
          与其它面板一致改成 absolute; inset:0，由宿主约束。 */
       position: 'absolute', inset: 0, zIndex: 51,
-      background: '#1a1b1f',
+      background: '#2d2f34',
       display: 'flex', flexDirection: 'column',
       opacity: visible ? 1 : 0,
       pointerEvents: visible ? 'auto' : 'none',
@@ -99,7 +99,7 @@ export default function StudioPanel({ visible, onClose, openTab, openTabSeq, onl
       {!onlyTab && (
       <div style={{
         flexShrink: 0, display: 'flex', gap: 5, padding: '8px 10px 9px',
-        background: '#1d1e22', borderBottom: '1px solid #2b2c30',
+        background: '#2e2f33', borderBottom: '1px solid #2b2c30',
       }}>
         {TABS.map(x => {
           const on = tab === x.id;

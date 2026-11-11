@@ -644,12 +644,12 @@ function PresetsPanel({ visible, onClose, presetRev, connectedDeviceId, register
        全屏铺满 + 垂直居中会上下各留 200px 空白，改成对话框卡片：外层只做半透明遮罩。 */
     /* ★ 2026-11-05（统一整改）：预设库与「我的音色库」同构，卡片改用 ModalCard ——
        中间内容区在 ModalBody 内滚动，底部「调音器 / 节拍器」永远可见。 */
-    <ModalCard zIndex={51} maxWidth={520} background="#14171D" borderColor="#2E3440" overlayStyle={{ animation: 'panelFade 0.18s ease-out' }}>
+    <ModalCard zIndex={51} maxWidth={520} background="#31343b" borderColor="#454b55" overlayStyle={{ animation: 'panelFade 0.18s ease-out' }}>
       {/* 加载档位: 全屏遮罩 */}
       {loading && (
         <div style={{ position: 'absolute', inset: 0, zIndex: 60, background: 'rgba(15,16,18,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
           <div style={{ width: 22, height: 22, border: '2px solid rgba(76,201,240,0.25)', borderTopColor: '#4cc9f0', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-          <span style={{ fontSize: 11, fontWeight: 600, color: '#9BA3B2', letterSpacing: '0.1em', fontFamily: '"Barlow-Regular_2",sans-serif' }}>{t('preset.loading')}</span>
+          <span style={{ fontSize: 11, fontWeight: 600, color: '#c2c9d6', letterSpacing: '0.1em', fontFamily: '"Barlow-Regular_2",sans-serif' }}>{t('preset.loading')}</span>
         </div>
       )}
       {/* Header */}
@@ -721,13 +721,13 @@ function PresetsPanel({ visible, onClose, presetRev, connectedDeviceId, register
                       width: '100%', height: 104, borderRadius: 12,
                       cursor: reachable ? 'pointer' : 'default',
                       background: isActive ? 'rgba(240,111,33,0.12)' : 'rgba(255,255,255,0.04)',
-                      border: isActive ? '1px solid #F06F21' : '1px solid #2E3440',
+                      border: isActive ? '1px solid #F06F21' : '1px solid #454b55',
                       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3,
                       transition: 'all 0.12s', overflow: 'hidden', padding: '0 4px',
                       opacity: dimmed ? 0.3 : 1,
                       filter: dimmed ? 'grayscale(1)' : 'none',
                     }}>
-                    <span style={{ fontSize: 15, fontWeight: 800, color: isActive ? '#F06F21' : '#9BA3B2', fontFamily: '"Barlow-Regular_2",sans-serif' }}>{curGroup.label}{CH_LETTER[slot - curGroup.slots[0]]}</span>
+                    <span style={{ fontSize: 15, fontWeight: 800, color: isActive ? '#F06F21' : '#c2c9d6', fontFamily: '"Barlow-Regular_2",sans-serif' }}>{curGroup.label}{CH_LETTER[slot - curGroup.slots[0]]}</span>
                     {/* ★★ v3.62（用户拍板）：预设名**不随语言切换** —— 存的是什么语言就显示什么语言 */}
                     {p?.name && <span style={{ fontSize: 11, color: isActive ? '#F06F21' : '#7C8494', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', padding: '0 3px' }}>{p.name}</span>}
                     {/* ★ v3.59（F5）：双向同步状态 —— 绿点 = 已同步，黄点 = 未同步。
@@ -2666,14 +2666,16 @@ export default function Index() {
         width: '100%', maxWidth: 480, height: '100%', margin: '0 auto',
         display: 'flex', flexDirection: 'column',
         overflow: 'hidden', position: 'relative',
-        /* ★ 2026-10-17：整页底板色可换（默认 #0a0c10，由顶栏空白处点击更换） */
+        /* ★ 2026-10-17：整页底板色可换（默认 #24262b，由顶栏空白处点击更换） */
         background: pageBg,
         transition: 'background .22s ease',
       }}
     >
       {/* Knob value floating display — 1s fade out */}
       <div style={{
-        position: 'fixed', top: '8%', left: '50%', transform: 'translateX(-50%)',
+        /* ★ 2026-11-11：fixed 元素不吃 #root 的 padding，
+           原来 top:8% 会压在灵动岛上 → 加上安全区偏移 */
+        position: 'fixed', top: 'calc(var(--sa-top, 0px) + 8%)', left: '50%', transform: 'translateX(-50%)',
         zIndex: 200, pointerEvents: 'none',
         opacity: knobDisplayVisible ? 1 : 0,
         transition: 'opacity 1s ease-out',
@@ -2718,8 +2720,8 @@ export default function Index() {
 
         {/* ── HEADER ── */}
         <header style={{
-          height: 48, background: '#1f2024',
-          borderBottom: '1px solid #2E3440',
+          height: 48, background: '#2c2f36',
+          borderBottom: '1px solid #454b55',
           // flex 行: BFX1 — 频谱(居中于 BFX1 与胶囊之间) — GUITAR/BASS胶囊 — 语言
           // 两侧弹性空档吸收语言切换宽度变化 → 切换零位移
           display: 'flex', alignItems: 'center',
@@ -2800,7 +2802,7 @@ export default function Index() {
               <div style={{
                 marginTop: 3, fontSize: 10.5, fontWeight: 800, letterSpacing: '0.1em',
                 fontFamily: '"Barlow-Regular_2", sans-serif',
-                color: '#7c8494', lineHeight: 1, whiteSpace: 'nowrap',
+                color: '#a4adbd', lineHeight: 1, whiteSpace: 'nowrap',
               }}>v{APP_VERSION}</div>
             </div>
           </div>
@@ -2852,18 +2854,18 @@ export default function Index() {
               position: 'relative',
               width: 34, height: 34, borderRadius: 12,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: debugMode ? 'rgba(240,111,33,0.14)' : '#1F2024',
-              border: `1px solid ${debugMode ? 'rgba(240,111,33,0.55)' : '#2E3440'}`,
+              background: debugMode ? 'rgba(240,111,33,0.14)' : '#2c2f36',
+              border: `1px solid ${debugMode ? 'rgba(240,111,33,0.55)' : '#454b55'}`,
               transition: 'all 0.15s ease',
             }}>
-              <BugIcon size={16} color={debugMode ? '#F06F21' : '#9BA3B2'} />
+              <BugIcon size={16} color={debugMode ? '#F06F21' : '#c2c9d6'} />
               {!tourSeen && (
                 <span style={{
                   position: 'absolute', top: -2, right: -2,
                   width: 7, height: 7, borderRadius: '50%',
                   background: '#F06F21',
                   boxShadow: '0 0 6px rgba(240,111,33,0.9)',
-                  border: '1.5px solid #1f2024',
+                  border: '1.5px solid #2c2f36',
                 }} />
               )}
             </span>
@@ -2887,13 +2889,13 @@ export default function Index() {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               /* ★ 2026-10-17（用户要求）：蓝牙连接态统一改为蓝色 —— 与蓝牙面板内的
                  设备图光晕 / 菜单高亮同色，不再出现"面板蓝、顶栏绿"的两套语义 */
-              background: btConnected ? 'rgba(91,200,245,0.14)' : '#1F2024',
-              border: `1px solid ${btConnected ? 'rgba(91,200,245,0.55)' : '#2E3440'}`,
+              background: btConnected ? 'rgba(91,200,245,0.14)' : '#2c2f36',
+              border: `1px solid ${btConnected ? 'rgba(91,200,245,0.55)' : '#454b55'}`,
               transition: 'all 0.15s ease',
             }}>
               {btConnected
                 ? <BluetoothIcon size={16} color="#5bc8f5" />
-                : <BluetoothOffIcon size={16} color="#9BA3B2" />}
+                : <BluetoothOffIcon size={16} color="#c2c9d6" />}
             </span>
           </button>
 
@@ -2919,11 +2921,11 @@ export default function Index() {
             <span style={{
               width: 34, height: 34, borderRadius: 12, flexShrink: 0,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: accountName ? 'rgba(240,111,33,0.14)' : '#1F2024',
-              border: `1px solid ${accountName ? 'rgba(240,111,33,0.55)' : '#2E3440'}`,
+              background: accountName ? 'rgba(240,111,33,0.14)' : '#2c2f36',
+              border: `1px solid ${accountName ? 'rgba(240,111,33,0.55)' : '#454b55'}`,
               transition: 'all 0.15s ease',
             }}>
-              <UserCircleIcon size={17} color={accountName ? '#F06F21' : '#9BA3B2'} />
+              <UserCircleIcon size={17} color={accountName ? '#F06F21' : '#c2c9d6'} />
             </span>
           </button>
         </header>
@@ -3127,7 +3129,7 @@ export default function Index() {
               position: 'absolute', right: 8, bottom: 46, zIndex: 7,
               display: 'flex', alignItems: 'center', gap: 10,
               padding: '10px 14px', borderRadius: 16,
-              background: 'rgba(28,29,33,0.97)', border: '1px solid #2E3440',
+              background: 'rgba(28,29,33,0.97)', border: '1px solid #454b55',
               boxShadow: '0 16px 48px rgba(0,0,0,0.65)',
               opacity: btConnected ? 1 : 0.4, transition: 'opacity 0.2s',
               pointerEvents: btConnected ? 'auto' : 'none',
@@ -3138,24 +3140,24 @@ export default function Index() {
                 <button onClick={toggleInputMute} title="Input Mute" style={{
                   width: 26, height: 26, borderRadius: '50%',
                   background: inputMute ? 'rgba(242,86,91,0.22)' : 'rgba(255,255,255,0.05)',
-                  border: `1.5px solid ${inputMute ? 'rgba(242,86,91,0.7)' : '#2E3440'}`,
+                  border: `1.5px solid ${inputMute ? 'rgba(242,86,91,0.7)' : '#454b55'}`,
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: inputMute ? 'rgb(255,255,255)' : '#9BA3B2',
+                  color: inputMute ? 'rgb(255,255,255)' : '#c2c9d6',
                   fontSize: 11, fontWeight: 800,
                   fontFamily: '"Barlow-Regular_2",sans-serif', flexShrink: 0,
                   transition: 'all 0.12s',
                 }}>M</button>
               </div>
-              <div style={{ width: 1, height: 58, background: '#2E3440', flexShrink: 0 }} />
+              <div style={{ width: 1, height: 58, background: '#454b55', flexShrink: 0 }} />
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
                 <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', color: '#F06F21', fontFamily: '"Barlow-Regular_2",sans-serif' }}>OUT VOL</span>
                 <Knob label="OUT VOL" value={outputVol} size={46} accentColor="#F06F21" onChange={handleOutputVolChange} />
                 <button onClick={toggleOutputMute} title="Output Mute" style={{
                   width: 26, height: 26, borderRadius: '50%',
                   background: outputMute ? 'rgba(242,86,91,0.22)' : 'rgba(255,255,255,0.05)',
-                  border: `1.5px solid ${outputMute ? 'rgba(242,86,91,0.7)' : '#2E3440'}`,
+                  border: `1.5px solid ${outputMute ? 'rgba(242,86,91,0.7)' : '#454b55'}`,
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: outputMute ? 'rgb(255,255,255)' : '#9BA3B2',
+                  color: outputMute ? 'rgb(255,255,255)' : '#c2c9d6',
                   fontSize: 11, fontWeight: 800,
                   fontFamily: '"Barlow-Regular_2",sans-serif', flexShrink: 0,
                   transition: 'all 0.12s',
@@ -3186,7 +3188,7 @@ export default function Index() {
           height: 'calc(100% - 121px)',
           transition: 'height 220ms cubic-bezier(.2,0,0,1)',
           zIndex: 50,
-          borderTop: activePanel ? '1px solid #2E3440' : 'none',
+          borderTop: activePanel ? '1px solid #454b55' : 'none',
           pointerEvents: activePanel ? 'auto' : 'none',
         }}>
           <StudioPanel visible={activePanel === 'studio'} onlyTab={studioOnly ?? undefined} onClose={() => { setStudioOnly(null); setActivePanel(null); }} />
@@ -3264,7 +3266,7 @@ export default function Index() {
           }}>
             <div style={{
               minWidth: 168, padding: '16px 22px', borderRadius: 14,
-              background: 'rgba(28,29,33,0.98)', border: '1px solid #2E3440',
+              background: 'rgba(28,29,33,0.98)', border: '1px solid #454b55',
               boxShadow: '0 18px 52px rgba(0,0,0,0.7)',
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
               fontFamily: '"Barlow-Regular_2",sans-serif',
@@ -3305,7 +3307,7 @@ export default function Index() {
                 <div style={{ fontSize: 14, fontWeight: 800, color: '#F08A8A', letterSpacing: '0.02em' }}>
                   {lang === 'zh' ? '上传校验未通过' : 'Upload check failed'}
                 </div>
-                <div style={{ marginTop: 5, fontSize: 11, lineHeight: 1.55, color: '#9BA3B2' }}>
+                <div style={{ marginTop: 5, fontSize: 11, lineHeight: 1.55, color: '#c2c9d6' }}>
                   {lang === 'zh'
                     ? '已自动重发 2 轮，仍有以下参数与 App 保存的值不一致。请重试上传；若每次都一样，把这几条发我。'
                     : 'Retried twice. These registers still differ from the values saved in the app.'}
@@ -3315,7 +3317,7 @@ export default function Index() {
                 {verifyIssues.map((it) => (
                   <div key={it.slot} style={{
                     marginTop: 8, padding: '8px 10px', borderRadius: 10,
-                    background: 'rgba(255,255,255,0.03)', border: '1px solid #2E3440',
+                    background: 'rgba(255,255,255,0.03)', border: '1px solid #454b55',
                   }}>
                     <div style={{ fontSize: 11.5, fontWeight: 800, color: '#C8D0DC' }}>
                       {hwSlotName(it.slot)}
@@ -3373,7 +3375,7 @@ export default function Index() {
         )}
 
         {/* ── BOTTOM MENU BAR · v5.2 三 tab（TONE / LIBRARY / PRESET · 原型样式） ── */}
-        <div style={{ flexShrink: 0, background: '#1f2024', borderTop: '1px solid #2E3440', display: 'flex', alignItems: 'stretch', padding: '3px 6px 5px', gap: 4 }}>
+        <div style={{ flexShrink: 0, background: '#2c2f36', borderTop: '1px solid #454b55', display: 'flex', alignItems: 'stretch', padding: '3px 6px 5px', gap: 4 }}>
           {/* 1. TONE — 四分区音色链路首页 */}
           {/* ★ 2026-10-17（用户要求）：双击 = 复位默认配色，长按 600ms = 锁定/解锁配色。
               注意这里**不能再用 disabled** —— 禁用按钮不派发事件，手势会收不到；
@@ -3479,11 +3481,11 @@ export default function Index() {
     {/* ── Exit confirmation dialog ── */}
     {showExitDialog && (
       <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-        <div style={{ background: '#1F2024', borderRadius: 16, border: '1px solid #2E3440', padding: '26px 28px', textAlign: 'center', maxWidth: 300, width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.6)' }}>
+        <div style={{ background: '#2c2f36', borderRadius: 16, border: '1px solid #454b55', padding: '26px 28px', textAlign: 'center', maxWidth: 300, width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.6)' }}>
           <div style={{ fontSize: 16, fontWeight: 700, color: '#F2F4F8', marginBottom: 8, fontFamily: '"Barlow-Regular_2",sans-serif' }}>{t('exit.title')}</div>
-          <div style={{ fontSize: 13, color: '#9BA3B2', marginBottom: 20 }}>{t('exit.msg')}</div>
+          <div style={{ fontSize: 13, color: '#c2c9d6', marginBottom: 20 }}>{t('exit.msg')}</div>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-            <button onClick={() => setShowExitDialog(false)} style={{ flex: 1, padding: '10px 16px', borderRadius: 12, background: 'rgba(255,255,255,0.06)', border: '1px solid #2E3440', color: '#F2F4F8', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{t('exit.cancel')}</button>
+            <button onClick={() => setShowExitDialog(false)} style={{ flex: 1, padding: '10px 16px', borderRadius: 12, background: 'rgba(255,255,255,0.06)', border: '1px solid #454b55', color: '#F2F4F8', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{t('exit.cancel')}</button>
             <button onClick={handleExit} style={{ flex: 1, padding: '10px 16px', borderRadius: 12, background: 'rgba(242,86,91,0.15)', border: '1px solid rgba(242,86,91,0.5)', color: '#FFAFB3', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{t('exit.confirm')}</button>
           </div>
         </div>
@@ -3632,7 +3634,7 @@ function UserPanel({ visible, onClose, onOpenManualFullScreen, onOpenTutorial, o
 
   if (showManuals) {
     return (
-      <div style={{ position: 'absolute', inset: 0, background: '#14171D', zIndex: 51, display: 'flex', flexDirection: 'column', animation: 'panelFade 0.18s ease-out' }}>
+      <div style={{ position: 'absolute', inset: 0, background: '#31343b', zIndex: 51, display: 'flex', flexDirection: 'column', animation: 'panelFade 0.18s ease-out' }}>
         <PanelHeader
           title={t('panel.manual')}
           accent="rgb(180,160,255)"
@@ -3654,7 +3656,7 @@ function UserPanel({ visible, onClose, onOpenManualFullScreen, onOpenTutorial, o
   }
 
   const card: React.CSSProperties = {
-    background: '#15181E', border: '1px solid rgba(255,255,255,0.14)', borderRadius: 16, padding: 16,
+    background: '#2a2e37', border: '1px solid rgba(255,255,255,0.14)', borderRadius: 16, padding: 16,
   };
   const rowBtn: React.CSSProperties = {
     height: 44, borderRadius: 12, background: 'rgba(255,255,255,0.04)',
@@ -3664,7 +3666,7 @@ function UserPanel({ visible, onClose, onOpenManualFullScreen, onOpenTutorial, o
   };
 
   return (
-    <div style={{ position: 'absolute', inset: 0, background: '#14171D', zIndex: 51, display: 'flex', flexDirection: 'column', animation: 'panelFade 0.18s ease-out' }}>
+    <div style={{ position: 'absolute', inset: 0, background: '#31343b', zIndex: 51, display: 'flex', flexDirection: 'column', animation: 'panelFade 0.18s ease-out' }}>
       <PanelHeader title={t('panel.userProfile')} accent="#F06F21" onClose={onClose} />
 
       {!acc ? (
@@ -3708,12 +3710,12 @@ function UserPanel({ visible, onClose, onOpenManualFullScreen, onOpenTutorial, o
                   <button onClick={() => { setEditing(false); setNameErr(''); }} style={{
                     flex: 1, height: 42, borderRadius: 11, cursor: 'pointer',
                     background: 'transparent', border: '1px solid rgba(255,255,255,0.14)',
-                    color: '#9BA3B2', fontSize: 12, fontWeight: 700, fontFamily: '"Barlow-Regular_2",sans-serif',
+                    color: '#c2c9d6', fontSize: 12, fontWeight: 700, fontFamily: '"Barlow-Regular_2",sans-serif',
                   }}>{t('btn.cancel')}</button>
                   <button onClick={commitName} disabled={saving} style={{
                     flex: 1, height: 42, borderRadius: 11, border: 'none', cursor: saving ? 'default' : 'pointer',
                     background: saving ? 'rgba(240,111,33,0.35)' : '#F06F21',
-                    color: '#170B03', fontSize: 12, fontWeight: 800, fontFamily: '"Barlow-Regular_2",sans-serif',
+                    color: '#3b281c', fontSize: 12, fontWeight: 800, fontFamily: '"Barlow-Regular_2",sans-serif',
                   }}>{saving ? t('user.saving') : t('user.saveName')}</button>
                 </div>
               </>

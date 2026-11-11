@@ -874,7 +874,7 @@ export default function CommunityPanel({
                   flex: 1, height: 40, borderRadius: 11, border: 'none',
                   cursor: storeSlot >= 1 ? 'pointer' : 'default',
                   background: storeSlot >= 1 ? C.brand : 'rgba(255,255,255,0.06)',
-                  color: storeSlot >= 1 ? '#170B03' : C.text3, fontSize: 11.5, fontWeight: 800, fontFamily: C.font,
+                  color: storeSlot >= 1 ? '#3b281c' : C.text3, fontSize: 11.5, fontWeight: 800, fontFamily: C.font,
                 }}
               >{zh ? '存入' : 'SAVE'}</button>
             </div>

@@ -33,8 +33,8 @@ export function ModalCard({
   children,
   zIndex = 60,
   maxWidth = 520,
-  background = '#0A0C10',
-  borderColor = '#2E3440',
+  background = '#242933',
+  borderColor = '#454b55',
   overlayStyle,
   cardStyle,
 }: ModalCardProps) {

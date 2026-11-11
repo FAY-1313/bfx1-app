@@ -48,7 +48,7 @@ import { LOCAL_BANK_ZH, LOCAL_BANK_EN } from '../config/bankLabels';
 
 const GOLD = '#f0b429';
 const APPLIED = '#F06F21';
-const LINE = '#2E3440';
+const LINE = '#454b55';
 /** 组色只用来区分「每屏 4 格」，不再代表硬件的 A/B/C/D 组 */
 const GROUP_COLORS = ['#F2F4F8', '#3ddc84', '#e2c044', '#4cc9f0'];
 
@@ -350,7 +350,7 @@ export default function LocalBankPage({ visible, onClose, getCurrentTone, onAppl
     /* ★ v3.61（2026-10-24 用户拍板）：面板收缩为「内容高度卡片」，不再全屏铺满留一大片空。
        ★ 2026-11-05（统一整改）：卡片改用 ModalCard —— 中间内容超长时在 ModalBody 内滚动，
        底部「保存本地 / 整组上传」永远可见；弹窗遮罩同时带安全区 padding。 */
-    <ModalCard zIndex={60} maxWidth={520} background="#0A0C10" borderColor={LINE}>
+    <ModalCard zIndex={60} maxWidth={520} background="#242933" borderColor={LINE}>
       <PanelHeader title={lang === 'en' ? LOCAL_BANK_EN : LOCAL_BANK_ZH} accent={GOLD} onClose={onClose} />
 
       {/* 长按重命名：顶部临时输入行（不挤占格子） */}
@@ -434,7 +434,7 @@ export default function LocalBankPage({ visible, onClose, getCurrentTone, onAppl
                     filter: ok || on ? 'none' : 'grayscale(1)',
                   }}>
                   <span style={{
-                    fontSize: 15, fontWeight: 800, color: on ? GOLD : '#9BA3B2',
+                    fontSize: 15, fontWeight: 800, color: on ? GOLD : '#c2c9d6',
                     fontFamily: '"Barlow-Regular_2",sans-serif',
                   }}>{slotLabel(s)}</span>
                   <span style={{
@@ -510,13 +510,13 @@ export default function LocalBankPage({ visible, onClose, getCurrentTone, onAppl
         }}>
           <div style={{
             width: '100%', maxWidth: 320, borderRadius: 14, overflow: 'hidden',
-            background: '#13161C', border: '1px solid rgba(242,86,91,0.45)',
+            background: '#292e37', border: '1px solid rgba(242,86,91,0.45)',
             boxShadow: '0 14px 34px rgba(0,0,0,0.62)', padding: '14px 14px 12px',
           }}>
             <div style={{ fontSize: 13, fontWeight: 800, color: '#F2F4F8', fontFamily: '"Barlow-Regular_2",sans-serif' }}>
               {lang === 'en' ? `Clear ${slotLabel(cur)}?` : `清空 ${slotLabel(cur)}？`}
             </div>
-            <div style={{ marginTop: 7, fontSize: 11, lineHeight: 1.6, color: '#9BA3B2' }}>
+            <div style={{ marginTop: 7, fontSize: 11, lineHeight: 1.6, color: '#c2c9d6' }}>
               {lang === 'en'
                 ? `“${curItem?.name || ''}” will be removed. The slot itself is kept.`
                 : `「${curItem?.name || ''}」的音色数据会被清除，槽位保留。`}
@@ -524,7 +524,7 @@ export default function LocalBankPage({ visible, onClose, getCurrentTone, onAppl
             <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
               <button onClick={() => setClearOpen(false)} style={{
                 flex: 1, height: 38, borderRadius: 9, cursor: 'pointer',
-                background: 'rgba(255,255,255,0.04)', border: `1px solid ${LINE}`, color: '#9BA3B2',
+                background: 'rgba(255,255,255,0.04)', border: `1px solid ${LINE}`, color: '#c2c9d6',
                 fontSize: 12, fontWeight: 800, fontFamily: '"Barlow-Regular_2",sans-serif',
               }}>{lang === 'en' ? 'CANCEL' : '取消'}</button>
               <button onClick={doClearConfirmed} style={{
@@ -543,11 +543,11 @@ export default function LocalBankPage({ visible, onClose, getCurrentTone, onAppl
           position: 'absolute', left: 14, right: 14, bottom: 14, zIndex: 7,
           display: 'flex', alignItems: 'center', gap: 10,
           padding: '10px 12px', borderRadius: 12,
-          background: '#1B1F26', border: `1px solid ${LINE}`,
+          background: '#2a2f37', border: `1px solid ${LINE}`,
           boxShadow: '0 10px 26px rgba(0,0,0,0.55)',
         }}>
           <span style={{
-            flex: 1, minWidth: 0, fontSize: 11.5, color: '#9BA3B2',
+            flex: 1, minWidth: 0, fontSize: 11.5, color: '#c2c9d6',
             fontFamily: '"Barlow-Regular_2",sans-serif',
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           }}>
@@ -584,7 +584,7 @@ export default function LocalBankPage({ visible, onClose, getCurrentTone, onAppl
           }}>
           <div style={{
             width: '100%', maxWidth: 340, borderRadius: 14, overflow: 'hidden',
-            background: '#13161C', border: `1px solid ${dlg === 'upload' ? 'rgba(240,111,33,0.45)' : 'rgba(240,180,41,0.45)'}`,
+            background: '#292e37', border: `1px solid ${dlg === 'upload' ? 'rgba(240,111,33,0.45)' : 'rgba(240,180,41,0.45)'}`,
             boxShadow: '0 14px 34px rgba(0,0,0,0.62)',
           }}>
             {/* 标题 */}
@@ -734,7 +734,7 @@ export default function LocalBankPage({ visible, onClose, getCurrentTone, onAppl
                           opacity: disabled ? 0.4 : 1,
                           background: sel ? `${c}1F` : 'rgba(255,255,255,0.04)',
                           border: `1px solid ${sel ? c : LINE}`,
-                          color: sel ? c : '#9BA3B2',
+                          color: sel ? c : '#c2c9d6',
                           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
                           fontFamily: '"Barlow-Regular_2",sans-serif',
                         }}>
@@ -764,7 +764,7 @@ export default function LocalBankPage({ visible, onClose, getCurrentTone, onAppl
                 onClick={() => { setDlg(null); setUpDst(null); }}
                 style={{
                   flex: 1, height: 40, borderRadius: 9, cursor: 'pointer',
-                  background: 'rgba(255,255,255,0.04)', border: `1px solid ${LINE}`, color: '#9BA3B2',
+                  background: 'rgba(255,255,255,0.04)', border: `1px solid ${LINE}`, color: '#c2c9d6',
                   fontSize: 12, fontWeight: 800, fontFamily: '"Barlow-Regular_2",sans-serif',
                 }}>{lang === 'en' ? 'CANCEL' : '取消'}</button>
               <button

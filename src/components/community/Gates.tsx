@@ -47,7 +47,7 @@ export function ConnectGate({ onConnect, connecting, onClose }: {
         <button onClick={onConnect} disabled={connecting} style={{
           marginTop: 26, width: '100%', maxWidth: 280, height: 46, borderRadius: 13, cursor: connecting ? 'default' : 'pointer',
           background: connecting ? 'rgba(240,111,33,0.16)' : C.brand, border: 'none',
-          color: connecting ? C.brand : '#170B03', fontSize: 13, fontWeight: 800,
+          color: connecting ? C.brand : '#3b281c', fontSize: 13, fontWeight: 800,
           fontFamily: C.font, letterSpacing: '0.06em',
         }}>{connecting ? '正在连接…' : '连接设备'}</button>
 

@@ -20,7 +20,7 @@ export type AccentMap = Record<string, string>;
 /** 整页底板在颜色表里的键 */
 export const BG_ID = '__bg';
 /** 底板默认色（与改造前的首页底色一致） */
-export const BG_DEFAULT = '#0a0c10';
+export const BG_DEFAULT = '#24262b';
 
 const ACCENT_KEY = 'bfx_accents_v1';
 const LOCK_KEY = 'bfx_accents_locked';
@@ -54,23 +54,37 @@ export function randomPastel(prev?: string): string {
 }
 
 /**
- * 底板色：**深色**同族（亮 7–13% / 饱和 20–36%）。
- * 底板面积大，不能像模块那样用粉彩 —— 否则整页发白、字全看不清；
- * 这里只让"底色整体偏一个色相"，仍然是深色，控件对比度不受影响。
+ * 底板色：**深灰同族**（亮 14–18% / 饱和 8–16%）。
+ * ★ 2026-11-11：原来亮 7–13% 落到纯黑附近，用户反馈「整体偏黑看不清」，
+ *   抬到深空灰区间；饱和度压低，避免整页发白或偏色。
  */
 export function randomDarkTint(prev?: string): string {
   for (let i = 0; i < 12; i++) {
-    const c = hslToHex(safeHue(), 20 + Math.random() * 16, 7 + Math.random() * 6);
+    const c = hslToHex(safeHue(), 8 + Math.random() * 8, 14 + Math.random() * 4);
     if (!prev || c.toLowerCase() !== prev.toLowerCase()) return c;
   }
-  return hslToHex(safeHue(), 28, 10);
+  return hslToHex(safeHue(), 12, 16);
+}
+
+/** 亮度（0–1）；用来识别历史遗留的「近黑底板色」 */
+function luminance(hex: string): number {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+  if (!m) return 1;
+  const n = parseInt(m[1], 16);
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
 }
 
 function loadMap(): AccentMap {
   try {
     const raw = localStorage.getItem(ACCENT_KEY);
     const o = raw ? JSON.parse(raw) : null;
-    return o && typeof o === 'object' ? o as AccentMap : {};
+    if (!o || typeof o !== 'object') return {};
+    /* ★ 2026-11-11：老版本换过的底板色可能接近纯黑（亮 7–13%），
+       沿用会让「深空灰」改造在升级后失效 → 过暗的直接丢弃，回落到新默认色 */
+    const bg = (o as AccentMap)[BG_ID];
+    if (typeof bg === 'string' && luminance(bg) < 0.08) delete (o as AccentMap)[BG_ID];
+    return o as AccentMap;
   } catch { return {}; }
 }
 

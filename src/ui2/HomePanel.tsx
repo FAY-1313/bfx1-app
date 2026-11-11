@@ -215,7 +215,7 @@ function AltText({ name, alt }: { name: string; alt: string }) {
           文字区从两行变一行，卡片内剩余高度变化，旋钮跟着上下位移。
           现在第二行恒定占位（空时用不换行空格 + 透明），高度永远不变。 */}
       <span style={{
-        ...line, fontWeight: 500, color: '#9BA3B2',
+        ...line, fontWeight: 500, color: '#c2c9d6',
         height: '1.15em', opacity: alt ? 1 : 0,
         transition: 'opacity .12s ease',
       }}>{alt || '\u00A0'}</span>
@@ -262,12 +262,16 @@ function FxCard({
    *   原设计是隐藏手势 + 静默覆盖参数 + 无确认，误触即丢用户调好的音色。
    *   还原能力改由浮窗内的显式「↺ 还原」按钮承担（见 FloatCard.onRestore）。 */
   const ledTap = () => onLed();
+  /* 单行最多旋钮数 —— 决定标签是否要竖排（窄卡片里横排放不下） */
+  const maxCols = Math.max(1, ...thumbRows.map((r) => r.length));
+  /* 两行旋钮（合唱 / 混响等）卡片高度更紧，标签要更短 */
+  const twoRows = thumbRows.length > 1;
   return (
     <div data-fx-card aria-label={name} data-tour={tourId} style={{
       position: 'relative',
       flex: '1 1 0', minWidth: 0, width: 0, height: '100%', borderRadius: 12, padding: '4px 4px 4px',
-      background: `linear-gradient(165deg, ${accent}1c, #14171D)`,
-      border: `1.3px solid ${on ? accent + '88' : '#2E3440'}`,
+      background: `linear-gradient(165deg, ${accent}1c, #31343b)`,
+      border: `1.3px solid ${on ? accent + '88' : '#454b55'}`,
       /* ★ 2026-11-02：线材档没有箱头/箱体 —— 卡片不可点（压暗在下面 filter/opacity 里） */
       pointerEvents: blank ? 'none' : undefined,
       display: 'flex', flexDirection: 'column', alignItems: 'center',
@@ -275,8 +279,8 @@ function FxCard({
       /* ★ 2026-10-17（用户要求）：旁路（关闭）时整块模块暗下去 —— 旋钮、文字、边框一起暗，
          只留底部开关热区可点。用 brightness/saturate 而不是纯 opacity，
          这样暗下去仍有轮廓，能看出"这里有个模块、只是关着"。 */
-      filter: blank ? 'brightness(0.45) saturate(0.25)' : (on ? 'none' : 'brightness(0.5) saturate(0.45)'),
-      opacity: blank ? 0.55 : (on ? 1 : 0.82),
+      filter: blank ? 'brightness(0.62) saturate(0.4)' : (on ? 'none' : 'brightness(0.74) saturate(0.7)'),
+      opacity: blank ? 0.62 : (on ? 1 : 0.9),
       transition: 'filter .22s ease, opacity .22s ease, border-color .22s ease',
     }}>
       {/* ★ 2026-10-19（用户反馈「延迟 / 混响关不掉、也操作不了」）：
@@ -293,7 +297,7 @@ function FxCard({
         }}>
           <span style={{
             padding: '2px 7px', borderRadius: 6,
-            background: 'rgba(16,19,24,.88)', border: `1px solid ${accent}88`,
+            background: 'rgba(36,38,43,.92)', border: `1px solid ${accent}88`,
             color: accent, fontSize: 10.5, fontWeight: 700, letterSpacing: .5, whiteSpace: 'nowrap',
             boxShadow: `0 0 12px ${accent}33`, lineHeight: 1.5,
           }}>{lang === 'zh' ? '点击开启' : 'TAP TO ON'}</span>
@@ -355,12 +359,26 @@ function FxCard({
                   ariaLabel={`${name} ${d.full}`} hintPulse={hint}
                   onDrag={(n) => flashLive(`${lang === 'zh' ? d.short : (d.shortEn ?? d.short)} ${d.fmtAt(n)}`)}
                   onCommit={(n) => { onKnobCommit(d, n); }} />
-                {!single && (
-                  <span style={{
-                    maxWidth: thumbD, overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'center',
-                    fontSize: 11, color: '#9BA3B2', letterSpacing: .2, whiteSpace: 'nowrap',
-                  }}>{lang === 'zh' ? d.short : (d.shortEn ?? d.short)}</span>
-                )}
+                {!single && (() => {
+                  const raw = lang === 'zh' ? d.short : (d.shortEn ?? d.short);
+                  /* ★ 2026-11-11：两行旋钮的卡片高度更紧 —— 标签压成 2 字（速率1→速1），
+                     横排 10px 才放得下，也不会把第二行旋钮顶出卡片底部。 */
+                  const txt = twoRows && raw.length > 2 ? raw[0] + raw[raw.length - 1] : raw;
+                  return (
+                    <span style={{
+                      maxWidth: thumbD, overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'center',
+                      fontSize: 11, color: '#c2c9d6', letterSpacing: .2, whiteSpace: 'nowrap',
+                      /* ★ 2026-11-11（用户反馈「字母被遮挡看不清」）：窄卡片里中文横排放不下
+                         会被截成「音…速…」→ 单行 3 个以上旋钮改竖排，竖向只占一个字宽。 */
+                      ...(maxCols >= 3 && !twoRows ? {
+                        writingMode: 'vertical-rl' as const,
+                        textOrientation: 'upright' as const,
+                        maxHeight: 34, letterSpacing: 0, fontSize: 10, lineHeight: 1.05,
+                      } : {}),
+                      ...(twoRows ? { fontSize: 10, letterSpacing: 0 } : {}),
+                    }}>{txt}</span>
+                  );
+                })()}
               </div>
             ))}
           </div>
@@ -487,7 +505,7 @@ function VSwitch({ on, accent, onToggle, title, style, hint = '', hintSide = 'le
              右边缘与开关右对齐。 */
           position: 'absolute', bottom: '100%', right: 0, marginBottom: 3,
           padding: '1px 6px', borderRadius: 5, whiteSpace: 'nowrap',
-          background: 'rgba(16,19,24,.9)', border: `1px solid ${accent}88`,
+          background: 'rgba(36,38,43,.94)', border: `1px solid ${accent}88`,
           color: accent, fontSize: 10.5, fontWeight: 700, letterSpacing: .5, lineHeight: 1.6,
           pointerEvents: 'none',
         } : hintSide === 'left' ? {
@@ -495,13 +513,13 @@ function VSwitch({ on, accent, onToggle, title, style, hint = '', hintSide = 'le
           position: 'absolute', right: '100%', top: '50%', transform: 'translateY(-50%)',
           marginRight: 4, padding: '2px 2px', borderRadius: 5, width: 22, boxSizing: 'border-box',
           whiteSpace: 'pre-line', lineBreak: 'anywhere' as const, textAlign: 'center',
-          background: 'rgba(16,19,24,.9)', border: `1px solid ${accent}88`,
+          background: 'rgba(36,38,43,.94)', border: `1px solid ${accent}88`,
           color: accent, fontSize: 10.5, fontWeight: 700, letterSpacing: 0, lineHeight: 1.4,
           pointerEvents: 'none',
         } : {
           position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)',
           marginBottom: 2, padding: '1px 5px', borderRadius: 5, whiteSpace: 'nowrap',
-          background: 'rgba(16,19,24,.9)', border: `1px solid ${accent}88`,
+          background: 'rgba(36,38,43,.94)', border: `1px solid ${accent}88`,
           color: accent, fontSize: 10.5, fontWeight: 700, letterSpacing: .4, lineHeight: 1.6,
           pointerEvents: 'none',
         }}>{hint}</span>
@@ -536,7 +554,7 @@ function MasterCard({
     <div data-fx-card aria-label="总音量" data-tour="master-card" style={{
       position: 'relative',
       flex: '1 1 0', minWidth: 0, width: 0, height: '100%', borderRadius: 12, padding: '4px 4px 4px',
-      background: `linear-gradient(165deg, ${accent}1c, #14171D)`,
+      background: `linear-gradient(165deg, ${accent}1c, #31343b)`,
       border: `1.3px solid ${accent}88`,
       display: 'flex', flexDirection: 'column', alignItems: 'center',
       boxSizing: 'border-box', userSelect: 'none', touchAction: 'none',
@@ -560,7 +578,7 @@ function MasterCard({
         }}>
           <span style={{
             padding: '2px 7px', borderRadius: 6,
-            background: 'rgba(16,19,24,.88)', border: `1px solid ${accent}88`,
+            background: 'rgba(36,38,43,.92)', border: `1px solid ${accent}88`,
             color: accent, fontSize: 10.5, fontWeight: 700, letterSpacing: .5, whiteSpace: 'nowrap',
             boxShadow: `0 0 12px ${accent}33`, lineHeight: 1.5,
           }}>{lang === 'zh' ? '点击开启' : 'TAP TO ON'}</span>
@@ -666,7 +684,7 @@ function FloatCard({
               width: 44, height: 44, borderRadius: 12, flexShrink: 0, cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               background: on ? `${accent}22` : 'rgba(255,255,255,.05)',
-              border: `1px solid ${on ? accent : '#2E3440'}`,
+              border: `1px solid ${on ? accent : '#454b55'}`,
             }}>
             <IconPower color={on ? accent : '#5A6270'} />
           </div>
@@ -686,26 +704,26 @@ function FloatCard({
         <div onPointerUp={onClose} title={lang === 'zh' ? '收起' : 'Close'} style={{
           width: 44, height: 44, borderRadius: 12, flexShrink: 0, cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'rgba(255,255,255,.06)', border: '1px solid #2E3440',
-          color: '#9BA3B2', fontSize: 14, lineHeight: 1,
+          background: 'rgba(255,255,255,.06)', border: '1px solid #454b55',
+          color: '#c2c9d6', fontSize: 14, lineHeight: 1,
         }}>✕</div>
       </div>
       {onPick && (
         <div onPointerUp={onPick} style={{
           flexShrink: 0, display: 'flex', alignItems: 'center', gap: 6,
           padding: '5px 9px', borderRadius: 8, cursor: 'pointer',
-          background: '#13161c', border: `1px solid ${accent}aa`,
+          background: '#292e37', border: `1px solid ${accent}aa`,
         }}>
           {/* ★ 2026-10-17（用户要求）：标签也双语；固定宽度 30px，切换语言不改变布局 */}
           <span style={{
-            fontSize: 11, color: '#9BA3B2', flexShrink: 0, width: 30,
+            fontSize: 11, color: '#c2c9d6', flexShrink: 0, width: 30,
             letterSpacing: 0, whiteSpace: 'nowrap', overflow: 'hidden',
           }}>{pickLabel ?? (lang === 'zh' ? '型号' : 'MDL')}</span>
           <span style={{
             flex: 1, minWidth: 0, fontSize: 'clamp(10px, 2.6vw, 11px)', fontWeight: 700,
             color: accent, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
           }}>{modelTx}</span>
-          <span style={{ fontSize: 11, color: '#9BA3B2', flexShrink: 0 }}>▾</span>
+          <span style={{ fontSize: 11, color: '#c2c9d6', flexShrink: 0 }}>▾</span>
         </div>
       )}
       {/* 全部旋钮（分行排列 · 可直接拖动；数值显示在浮窗上方模糊区）
@@ -735,7 +753,7 @@ function FloatCard({
                     onCommit={(n) => onKnobCommit(d, n)} />
                   <span style={{
                     maxWidth: knobD, overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'center',
-                    fontSize: 11, color: '#9BA3B2', letterSpacing: .2, whiteSpace: 'nowrap',
+                    fontSize: 11, color: '#c2c9d6', letterSpacing: .2, whiteSpace: 'nowrap',
                   }}>{lang === 'zh' ? d.short : (d.shortEn ?? d.short)}</span>
                 </div>
               );
@@ -865,10 +883,10 @@ function AnchoredPopup({ title, rect, in: inFlag, items, selIdx, selId, accent, 
       }}>
         <div style={{
           display: 'flex', alignItems: 'center', gap: 7, padding: '8px 12px',
-          borderBottom: '1px solid #2E3440', flexShrink: 0,
+          borderBottom: '1px solid #454b55', flexShrink: 0,
         }}>
           <span style={{ flex: 1, fontSize: 11, fontWeight: 750, color: '#F2F4F8' }}>{title}</span>
-          <span style={{ fontSize: 11, color: '#9BA3B2' }}>
+          <span style={{ fontSize: 11, color: '#c2c9d6' }}>
             {lang === 'zh'
               ? (activeGroup ? `${shown.length} / ${items.length} 项` : `${items.length} 项`)
               : (activeGroup ? `${shown.length} / ${items.length} items` : `${items.length} items`)}
@@ -876,15 +894,15 @@ function AnchoredPopup({ title, rect, in: inFlag, items, selIdx, selId, accent, 
           <div onPointerUp={onClose} title="关闭" style={{
             width: 30, height: 30, borderRadius: 8, cursor: 'pointer', flexShrink: 0,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'rgba(255,255,255,.06)', border: '1px solid #2E3440',
-            color: '#9BA3B2', fontSize: 11, lineHeight: 1,
+            background: 'rgba(255,255,255,.06)', border: '1px solid #454b55',
+            color: '#c2c9d6', fontSize: 11, lineHeight: 1,
           }}>✕</div>
         </div>
         {/* ★ v6.2 分组切换标签（替代原搜索/筛选框） */}
         {groups.length > 1 && (
           <div className="bfx-scroll" style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '8px 10px',
-            overflowX: 'auto', overflowY: 'hidden', borderBottom: '1px solid #2E3440', flexShrink: 0,
+            overflowX: 'auto', overflowY: 'hidden', borderBottom: '1px solid #454b55', flexShrink: 0,
           }}>
             {groups.map((g) => {
               const act = g === activeGroup;
@@ -896,8 +914,8 @@ function AnchoredPopup({ title, rect, in: inFlag, items, selIdx, selId, accent, 
                   style={{
                     flexShrink: 0, padding: '5px 10px', borderRadius: 999, cursor: 'pointer',
                     background: act ? accent : 'rgba(255,255,255,.05)',
-                    border: `1px solid ${act ? accent : '#2E3440'}`,
-                    color: act ? '#0F1319' : '#9BA3B2',
+                    border: `1px solid ${act ? accent : '#454b55'}`,
+                    color: act ? '#232a33' : '#c2c9d6',
                     fontSize: 11, fontWeight: 750, letterSpacing: .3,
                     whiteSpace: 'nowrap', fontFamily: '"Barlow-Regular_2",sans-serif',
                   }}>{g} · {cnt}</button>
@@ -908,7 +926,7 @@ function AnchoredPopup({ title, rect, in: inFlag, items, selIdx, selId, accent, 
         {busy && (
           <div style={{
             padding: '8px 12px', fontSize: 11, fontWeight: 700, color: accent, flexShrink: 0,
-            borderBottom: '1px solid #2E3440',
+            borderBottom: '1px solid #454b55',
           }}>{busy}</div>
         )}
         <div className="bfx-scroll" style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '4px 0 8px' }}>
@@ -921,7 +939,7 @@ function AnchoredPopup({ title, rect, in: inFlag, items, selIdx, selId, accent, 
                 padding: '13px 14px', cursor: 'pointer', textAlign: 'left', border: 'none',
                 background: sel ? `${accent}1f` : 'transparent',
                 borderLeft: `3px solid ${sel ? accent : 'transparent'}`,
-                borderBottom: '1px solid #2E3440',
+                borderBottom: '1px solid #454b55',
               }}>
                 {/* ★ v72：带图的选项（设备选择）—— 用缩略图当 radio，没有图时退回原圆圈 */}
                 {it.img ? (
@@ -949,7 +967,7 @@ function AnchoredPopup({ title, rect, in: inFlag, items, selIdx, selId, accent, 
                     border: `2px solid ${sel ? accent : '#454D5C'}`,
                     background: sel ? accent : 'transparent',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>{sel && <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#0F1319' }} />}</span>
+                  }}>{sel && <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#232a33' }} />}</span>
                 )}
                 <span style={{ flex: 1, minWidth: 0 }}>
                   <span style={{
@@ -958,11 +976,11 @@ function AnchoredPopup({ title, rect, in: inFlag, items, selIdx, selId, accent, 
                     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                   }}>{it.title}</span>
                   {it.sub && <span style={{
-                    display: 'block', fontSize: 11, color: '#9BA3B2', marginTop: 2,
+                    display: 'block', fontSize: 11, color: '#c2c9d6', marginTop: 2,
                     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                   }}>{it.sub}</span>}
                 </span>
-                {it.right && <span style={{ fontSize: 11, color: '#9BA3B2', flexShrink: 0 }}>{it.right}</span>}
+                {it.right && <span style={{ fontSize: 11, color: '#c2c9d6', flexShrink: 0 }}>{it.right}</span>}
               </button>
             );
           })}
@@ -2099,7 +2117,7 @@ export default function HomePanel({ onParam, onBypass, onAmpModel, extSync, sync
               cursor: prog ? 'default' : 'pointer',
               background: prog ? 'rgba(255,255,255,.05)' : 'rgba(242,86,91,0.20)',
               border: '1px solid rgba(242,86,91,0.55)',
-              color: prog ? '#9BA3B2' : '#FFD9DB',
+              color: prog ? '#c2c9d6' : '#FFD9DB',
               fontSize: 11, fontWeight: 800, letterSpacing: '0.06em',
               fontFamily: '"Barlow-Regular_2",sans-serif',
             }}>{lang === 'zh' ? '重试' : 'RETRY'}</button>
@@ -2139,8 +2157,8 @@ export default function HomePanel({ onParam, onBypass, onAmpModel, extSync, sync
         <div style={{
           flex: '23 1 0', minHeight: 84, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4,
           position: 'relative',
-          borderRadius: 12, background: `linear-gradient(165deg, ${ampAc}1a, #14171D)`,
-          border: '1.3px solid #2E3440', padding: '8px 8px', overflow: 'visible',
+          borderRadius: 12, background: `linear-gradient(165deg, ${ampAc}1a, #31343b)`,
+          border: '1.3px solid #454b55', padding: '8px 8px', overflow: 'visible',
           boxShadow: flashMod === 'amp-head' ? 'inset 0 0 0 1.5px #F06F21' : 'none',
           /* ★ 2026-10-17：箱头关闭 → 整区暗下去（右下角开关仍可点） */
           filter: on['amp-head'] === true ? 'none' : 'brightness(0.5) saturate(0.45)',
@@ -2151,12 +2169,12 @@ export default function HomePanel({ onParam, onBypass, onAmpModel, extSync, sync
           <div className="bfx-tap" onPointerUp={(e) => openPopup({ kind: 'model', mod: 'amp-head' }, e)} style={{
             flex: '0 0 35%', minHeight: 32, display: 'flex', alignItems: 'center', gap: 8,
             padding: '4px 8px', borderRadius: 12, cursor: 'pointer', boxSizing: 'border-box',
-            background: '#13161c',
+            background: '#292e37',
             border: `1px solid ${popupOpenAmps() ? ampAc : '#454d5c'}`,
             /* ★ 2026-10-17：箱头关闭 → 型号框不可点（旋钮行已单独锁） */
             pointerEvents: on['amp-head'] === true ? undefined : 'none',
           }}>
-            <span style={{ fontSize: 11, color: '#9BA3B2', letterSpacing: .6, flexShrink: 0 }}>
+            <span style={{ fontSize: 11, color: '#c2c9d6', letterSpacing: .6, flexShrink: 0 }}>
               {lang === 'zh' ? '箱头型号 ▾' : 'AMP MODEL ▾'}
             </span>
             <span style={{
@@ -2166,7 +2184,7 @@ export default function HomePanel({ onParam, onBypass, onAmpModel, extSync, sync
             }}>{amp.sn ?? amp.name}</span>
             <span style={{
               fontSize: 11,
-              color: ampProg ? '#F06F21' : failMap['amp-head'] ? '#F2565B' : '#9BA3B2',
+              color: ampProg ? '#F06F21' : failMap['amp-head'] ? '#F2565B' : '#c2c9d6',
               flexShrink: 0, textAlign: 'right', whiteSpace: 'nowrap',
               fontWeight: ampProg || failMap['amp-head'] ? 750 : 400,
             }}>
@@ -2233,7 +2251,7 @@ export default function HomePanel({ onParam, onBypass, onAmpModel, extSync, sync
                     /* ★ 2026-10-26：字号统一走 10.5 下限（原 8/9/10 低于全 App 字号铁律，
                        9 钮机型靠缩小字号防粘连，代价是小到看不清） */
                     fontSize: 10.5, lineHeight: 1.12,
-                    color: '#9BA3B2',
+                    color: '#c2c9d6',
                     pointerEvents: 'none', marginTop: 2,
                   }}>
                     <span style={{
@@ -2267,8 +2285,8 @@ export default function HomePanel({ onParam, onBypass, onAmpModel, extSync, sync
         <div style={{
           flex: '27 1 0', minHeight: 124, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4,
           position: 'relative',
-          borderRadius: 12, background: `linear-gradient(165deg, ${cabAc}1a, #14171D)`,
-          border: '1.3px solid #2E3440', padding: '4px 8px', overflow: 'hidden',
+          borderRadius: 12, background: `linear-gradient(165deg, ${cabAc}1a, #31343b)`,
+          border: '1.3px solid #454b55', padding: '4px 8px', overflow: 'hidden',
           boxShadow: flashMod === 'cabinet' ? `inset 0 0 0 1.5px ${cabAc}` : 'none',
           /* ★ 2026-10-17：箱体关闭 → 整区暗下去 */
           filter: on.cabinet === true ? 'none' : 'brightness(0.5) saturate(0.45)',
@@ -2285,10 +2303,10 @@ export default function HomePanel({ onParam, onBypass, onAmpModel, extSync, sync
               <div className="bfx-tap" onPointerUp={(e) => openPopup({ kind: 'cab' }, e)} style={{
                 flex: '1 1 0', minHeight: 0, boxSizing: 'border-box',
                 display: 'flex', flexDirection: 'column', justifyContent: 'center',
-                padding: '2px 8px', borderRadius: 8, background: '#13161c', cursor: 'pointer',
+                padding: '2px 8px', borderRadius: 8, background: '#292e37', cursor: 'pointer',
                 border: `1px solid ${popupOpenCab() ? cabAc : '#454d5c'}`,
               }}>
-                <div style={{ fontSize: 11, color: '#9BA3B2', letterSpacing: .8, lineHeight: 1.1 }}>
+                <div style={{ fontSize: 11, color: '#c2c9d6', letterSpacing: .8, lineHeight: 1.1 }}>
               {lang === 'zh' ? '箱体 ▾' : 'CAB ▾'}
             </div>
                 <div style={{
@@ -2299,10 +2317,10 @@ export default function HomePanel({ onParam, onBypass, onAmpModel, extSync, sync
               <div className="bfx-tap" onPointerUp={(e) => openPopup({ kind: 'mic' }, e)} style={{
                 flex: '1 1 0', minHeight: 0, boxSizing: 'border-box',
                 display: 'flex', flexDirection: 'column', justifyContent: 'center',
-                padding: '2px 8px', borderRadius: 8, background: '#13161c', cursor: 'pointer',
+                padding: '2px 8px', borderRadius: 8, background: '#292e37', cursor: 'pointer',
                 border: `1px solid ${popupOpenMic() ? cabAc : '#454d5c'}`,
               }}>
-                <div style={{ fontSize: 11, color: '#9BA3B2', letterSpacing: .8, lineHeight: 1.1 }}>
+                <div style={{ fontSize: 11, color: '#c2c9d6', letterSpacing: .8, lineHeight: 1.1 }}>
               {lang === 'zh' ? '麦克风 ▾' : 'MIC ▾'}
             </div>
                 <div style={{

@@ -35,15 +35,15 @@ const pick = (v: Record<number, number>, reg: number, spec: string) =>
   v[reg] ?? SPECS[spec].def;
 
 export const THEMES: Record<string, PedalTheme> = {
-  'noise-gate': { c1: '#2f4a38', c2: '#17241b', ac: '#50d080' },
-  compressor:   { c1: '#2b3a52', c2: '#141d2b', ac: '#6098d8' },
-  boost:        { c1: '#4a3a22', c2: '#241b0e', ac: '#f0c060' },
+  'noise-gate': { c1: '#2f4a38', c2: '#28382d', ac: '#50d080' },
+  compressor:   { c1: '#2b3a52', c2: '#232e3e', ac: '#6098d8' },
+  boost:        { c1: '#4a3a22', c2: '#403320', ac: '#f0c060' },
   overdrive:    { c1: '#2d4a2c', c2: '#16261a', ac: '#f0a040' },
-  'amp-head':   { c1: '#3a3128', c2: '#1d1813', ac: '#e0a040' },
-  cabinet:      { c1: '#3a2818', c2: '#1d1409', ac: '#c8a060' },
-  chorus:       { c1: '#1f4448', c2: '#0f2426', ac: '#40c0c0' },
-  delay:        { c1: '#1e3a4e', c2: '#0e1f2b', ac: '#48b0e0' },
-  reverb:       { c1: '#332a4e', c2: '#1a1428', ac: '#8060d0' },
+  'amp-head':   { c1: '#3a3128', c2: '#383029', ac: '#e0a040' },
+  cabinet:      { c1: '#3a2818', c2: '#3b2d1c', ac: '#c8a060' },
+  chorus:       { c1: '#1f4448', c2: '#213d40', ac: '#40c0c0' },
+  delay:        { c1: '#1e3a4e', c2: '#1f3341', ac: '#48b0e0' },
+  reverb:       { c1: '#332a4e', c2: '#2c243d', ac: '#8060d0' },
 };
 
 /* ══════════ 1 · 噪声门 ══════════ */

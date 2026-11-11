@@ -31,7 +31,7 @@ export function Sheet({ title, onClose, children, back, onBackdrop }: {
     }} onClick={onDim}>
       <div onClick={(e) => e.stopPropagation()} style={{
         width: '100%', maxWidth: 480, maxHeight: '78vh', display: 'flex', flexDirection: 'column',
-        background: '#14171d', borderTop: '1px solid #454d5c',
+        background: '#31343b', borderTop: '1px solid #454d5c',
         borderRadius: '16px 16px 0 0', boxShadow: '0 -12px 40px rgba(0,0,0,.65)',
       }}>
         <div style={{
@@ -42,7 +42,7 @@ export function Sheet({ title, onClose, children, back, onBackdrop }: {
             <button onClick={back} aria-label="返回上一级" style={{
               /* ★ 2026-10-16（S1 / A6）：26×26 → 44×44 触控安全线 */
               width: 44, height: 44, borderRadius: 12, cursor: 'pointer', flexShrink: 0,
-              border: '1px solid #454d5c', background: '#1b1f26', color: '#8b93a2', fontSize: 18,
+              border: '1px solid #454d5c', background: '#2a2f37', color: '#8b93a2', fontSize: 18,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>‹</button>
           )}
@@ -50,7 +50,7 @@ export function Sheet({ title, onClose, children, back, onBackdrop }: {
           <button onClick={onClose} aria-label="关闭" style={{
             /* ★ 2026-10-16（S1 / A6）：26×26 → 44×44 触控安全线 */
             width: 44, height: 44, borderRadius: 12, cursor: 'pointer', flexShrink: 0,
-            border: '1px solid #454d5c', background: '#1b1f26', color: '#8b93a2', fontSize: 15,
+            border: '1px solid #454d5c', background: '#2a2f37', color: '#8b93a2', fontSize: 15,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>✕</button>
         </div>
@@ -65,7 +65,7 @@ function Thumb({ accent, label }: { accent: string; label?: string }) {
   return (
     <div style={{
       width: 40, height: 40, borderRadius: 8, flexShrink: 0,
-      background: `linear-gradient(150deg, ${accent}44, #0d1015)`,
+      background: `linear-gradient(150deg, ${accent}44, #242933)`,
       border: `1px solid ${accent}66`,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       fontSize: 11, fontWeight: 700, color: accent, letterSpacing: .3,
@@ -192,7 +192,7 @@ export function CabPicker({ cabIdx, micIdx, onPick, onClose }: {
                   border: `2px solid ${sel ? '#5bc8f5' : '#5a6270'}`,
                   background: sel ? '#5bc8f5' : 'transparent',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>{sel && <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#101319' }} />}</div>
+                }}>{sel && <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#242932' }} />}</div>
               }
               title={`${s.mic}${s.pos && s.pos !== '默认' ? ' · ' + s.pos : ''}`}
               sub={`补偿 ${s.makeup >= 0 ? '+' : ''}${s.makeup.toFixed(2)} dB · 拟合误差 ${s.mae.toFixed(3)} dB`}
@@ -216,7 +216,7 @@ export function CabPicker({ cabIdx, micIdx, onPick, onClose }: {
           return (
             <button key={c.key} onClick={() => setCatKey(c.key)} style={{
               padding: '5px 13px', borderRadius: 999, fontSize: 11, cursor: 'pointer',
-              background: on ? 'rgba(232,184,96,.13)' : '#1b1f26',
+              background: on ? 'rgba(232,184,96,.13)' : '#2a2f37',
               border: `1px solid ${on ? '#e8b860' : '#454d5c'}`,
               color: on ? '#e8b860' : '#8b93a2', fontWeight: on ? 650 : 400,
             }}>{c.label} {n}</button>
@@ -253,7 +253,7 @@ export function CabPicker({ cabIdx, micIdx, onPick, onClose }: {
         </div>
       ))}
       <div style={{
-        padding: '11px 14px 2px', fontSize: 11, color: '#7c8494', lineHeight: 1.6,
+        padding: '11px 14px 2px', fontSize: 11, color: '#a4adbd', lineHeight: 1.6,
       }}>
         ● 绿点 = 该箱体有真实 PEQ 数据（共 {CAB_SETS.length} 套 / {CAB_NAMES.length} 箱体）
       </div>

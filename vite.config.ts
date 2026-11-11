@@ -1,6 +1,6 @@
 import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
-import path from "path";
+import { fileURLToPath } from "url";
 import tailwindcss from "@tailwindcss/vite";
 import fs from "fs";
 import AutoImport from "unplugin-auto-import/vite";
@@ -33,7 +33,7 @@ export default defineConfig({
     tailwindcss(),
     dropOrtJsepWasm,
     AutoImport({
-      dts: "auto-imports.d.ts",
+      dts: process.env.BFX_NO_AUTO_DTS ? false : "auto-imports.d.ts",
       include: [/\.[tj]sx?$/],
       imports: [
         "react",
@@ -50,7 +50,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
 });

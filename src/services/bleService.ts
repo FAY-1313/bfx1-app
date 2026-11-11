@@ -671,6 +671,21 @@ class BLEManager {
     }
   }
 
+  /**
+   * ★★ 2026-11-11（用户报障「切换参数就会重启蓝牙」）：
+   * 写/读超时**不等于**掉线 —— GATT 拥塞、硬件忙、一次性调度抖动都会让单次调用超时。
+   * 旧实现在连续 3 次写失败后立刻判死 → 触发上层自动重连（用户看到的就是「蓝牙重启」）。
+   * 现在先做一次真实读探测，只有链路确实断了才清状态并通知上层重连。
+   */
+  private async confirmDeadLink(): Promise<void> {
+    if (!this._connectedDeviceId) return;
+    if (await this.probeAlive()) {
+      this._consecutiveWriteFailures = 0;   // 链路还活着：只清计数，不重连
+      return;
+    }
+    /* probeAlive 内部失败时已 hardResetLink：清状态 + 通知上层重连 */
+  }
+
   /** 死链清理：断开 Android 侧 GATT 残留、清内部状态，并通知上层（触发自动重连） */
   private async hardResetLink(id: string): Promise<void> {
     this._disconnecting = true;
@@ -730,11 +745,8 @@ class BLEManager {
       //   改为连续 WRITE_FAIL_DISCONNECT_THRESHOLD 次失败才判定断连。
       this._consecutiveWriteFailures++;
       if (this._consecutiveWriteFailures >= WRITE_FAIL_DISCONNECT_THRESHOLD && this._connectedDeviceId) {
-        console.warn(`[BLE] 连续 ${this._consecutiveWriteFailures} 次写失败 → 判定断连`);
-        const id = this._connectedDeviceId;
-        this._connectedDeviceId = null;
-        this._connectedDeviceName = "";
-        this._onDisconnectHandler?.(id);
+        console.warn(`[BLE] 连续 ${this._consecutiveWriteFailures} 次写失败 → 探测链路是否存活`);
+        await this.confirmDeadLink();
       }
       return false;
     } finally {
@@ -893,12 +905,8 @@ class BLEManager {
       }
     } catch (e) {
       console.error("BLE read failed:", e);
-      if (this._connectedDeviceId) {
-        const id = this._connectedDeviceId;
-        this._connectedDeviceId = null;
-        this._connectedDeviceName = "";
-        this._onDisconnectHandler?.(id);
-      }
+      /* ★ 2026-11-11：单次读失败不再直接断连（回读抖动会把整条链路拆掉） */
+      await this.confirmDeadLink();
       return null;
     }
   }
@@ -1001,10 +1009,7 @@ class BLEManager {
       if (!ok) {
         this._consecutiveWriteFailures++;
         if (this._consecutiveWriteFailures >= WRITE_FAIL_DISCONNECT_THRESHOLD && this._connectedDeviceId) {
-          const id = this._connectedDeviceId;
-          this._connectedDeviceId = null;
-          this._connectedDeviceName = '';
-          this._onDisconnectHandler?.(id);
+          await this.confirmDeadLink();
         }
         console.warn(`[EA PACK] 第 ${packets + 1} 包发送失败，已发 ${idx}/${total} 帧`);
         return { ok: false, sent: idx, packets, perPacket: per, mtu: this._mtu };

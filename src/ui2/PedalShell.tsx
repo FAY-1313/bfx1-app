@@ -59,7 +59,7 @@ export default function PedalShell({ theme, on, children, onFootswitch, top, not
             width: 62, height: 48, borderRadius: '50%', flex: '0 0 auto',
             cursor: 'pointer', marginTop: 2, padding: 0,
             background: 'linear-gradient(180deg,#c3ccd6,#747d88 55%,#4f565f)',
-            border: '2.5px solid #1a1e24',
+            border: '2.5px solid #2b2f36',
             boxShadow: '0 4px 10px rgba(0,0,0,.6), inset 0 2px 3px rgba(255,255,255,.45)',
           }}
         />

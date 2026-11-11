@@ -583,7 +583,7 @@ export default function DrumPanel({ bpm, setBpm, visible, accentColor }: DrumPan
               placeholder={t('drum.namePh')}
               style={{
                 width: '100%', height: 30, borderRadius: 6, padding: '0 10px', marginBottom: 8,
-                background: '#1f2024', border: `1px solid ${accentColor}55`, color: '#fff',
+                background: '#2c2f36', border: `1px solid ${accentColor}55`, color: '#fff',
                 fontSize: 11, fontFamily: '"Barlow-Regular_2",sans-serif', outline: 'none', boxSizing: 'border-box',
               }} />
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -704,7 +704,7 @@ function KitBar({ kit, onKit, accentColor, t }: {
       <div ref={barRef} data-cmp="DrumKitSelector" style={{
         width: '100%', flexShrink: 0, borderRadius: 8, overflow: 'visible',
         border: `1px solid ${open ? `${accentColor}88` : `${accentColor}44`}`,
-        background: '#1f2024', transition: 'border-color 0.15s ease',
+        background: '#2c2f36', transition: 'border-color 0.15s ease',
       }}>
         <div onClick={() => setOpen(o => !o)} style={{
           position: 'relative', display: 'flex', alignItems: 'center', height: 32, cursor: 'pointer', padding: '0 10px', gap: 8,

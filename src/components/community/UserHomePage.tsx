@@ -82,7 +82,7 @@ export default function UserHomePage({
             width: '100%', height: 44, borderRadius: 12, cursor: 'pointer', marginBottom: 16,
             background: following ? C.surface : C.brand,
             border: `1px solid ${following ? C.line2 : C.brand}`,
-            color: following ? C.text2 : '#170B03', fontSize: 12.5, fontWeight: 800, fontFamily: C.font,
+            color: following ? C.text2 : '#3b281c', fontSize: 12.5, fontWeight: 800, fontFamily: C.font,
           }}>{following ? (zh ? '已关注（再点取消）' : 'Following (tap to unfollow)') : (zh ? '+ 关注 TA' : '+ Follow')}</button>
         )}
 
@@ -104,7 +104,7 @@ export default function UserHomePage({
             {onRetry && (
               <button onClick={onRetry} style={{
                 marginTop: 12, minWidth: 92, height: 42, padding: '0 18px', borderRadius: 21,
-                background: C.brand, border: 'none', color: '#170B03',
+                background: C.brand, border: 'none', color: '#3b281c',
                 fontSize: 12, fontWeight: 800, fontFamily: C.font, cursor: 'pointer',
               }}>{zh ? '重试' : 'Retry'}</button>
             )}

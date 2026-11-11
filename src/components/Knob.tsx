@@ -164,30 +164,30 @@ export default function Knob({
           <radialGradient id={`kb-${uid}`} cx="38%" cy="30%" r="80%">
             <stop offset="0%" stopColor="#4a4d55" />
             <stop offset="45%" stopColor="#2c2e34" />
-            <stop offset="100%" stopColor="#17181c" />
+            <stop offset="100%" stopColor="#2d2e34" />
           </radialGradient>
           <radialGradient id={`kbcap-${uid}`} cx="40%" cy="32%" r="70%">
             <stop offset="0%" stopColor="#55575e" />
-            <stop offset="100%" stopColor="#1c1d21" />
+            <stop offset="100%" stopColor="#2d2f33" />
           </radialGradient>
           {variant === 'boss' && (
             <radialGradient id={`kbboss-${uid}`} cx="42%" cy="30%" r="78%">
               <stop offset="0%" stopColor="#2f3137" />
-              <stop offset="55%" stopColor="#1a1b20" />
-              <stop offset="100%" stopColor="#0d0e11" />
+              <stop offset="55%" stopColor="#2d2e34" />
+              <stop offset="100%" stopColor="#272930" />
             </radialGradient>
           )}
           {(variant === 'mxr' || variant === 'flat') && (
             <radialGradient id={`kbflat-${uid}`} cx="42%" cy="30%" r="76%">
               <stop offset="0%" stopColor="#45474d" />
-              <stop offset="100%" stopColor="#191a1e" />
+              <stop offset="100%" stopColor="#2d2e34" />
             </radialGradient>
           )}
           {variant === 'vintage' && (
             <radialGradient id={`kbvin-${uid}`} cx="40%" cy="32%" r="76%">
               <stop offset="0%" stopColor="#4a4236" />
               <stop offset="60%" stopColor="#26221a" />
-              <stop offset="100%" stopColor="#15120d" />
+              <stop offset="100%" stopColor="#332d24" />
             </radialGradient>
           )}
         </defs>
@@ -212,7 +212,7 @@ export default function Knob({
                 stroke={t.active ? '#e8e8ec' : '#6b6e76'} strokeWidth="1.2" strokeLinecap="round" />
             ))}
             {/* Knob body */}
-            <circle cx={r} cy={r} r={r * 0.66} fill={`url(#kb-${uid})`} stroke="#0e0f12" strokeWidth="1" />
+            <circle cx={r} cy={r} r={r * 0.66} fill={`url(#kb-${uid})`} stroke="#27292f" strokeWidth="1" />
             {/* Inner ring */}
             <circle cx={r} cy={r} r={r * 0.52} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="0.7" />
             {/* Pointer line */}
@@ -220,7 +220,7 @@ export default function Knob({
             {/* Pointer tip dot */}
             <circle cx={ptrX} cy={ptrY} r="2" fill={accentColor} />
             {/* Center cap */}
-            <circle cx={r} cy={r} r={r * 0.20} fill={`url(#kbcap-${uid})`} stroke="#0e0f12" strokeWidth="0.8" />
+            <circle cx={r} cy={r} r={r * 0.20} fill={`url(#kbcap-${uid})`} stroke="#27292f" strokeWidth="0.8" />
             {/* Specular highlight */}
             <ellipse cx={r - r * 0.20} cy={r - r * 0.24} rx={r * 0.15} ry={r * 0.10}
               fill="rgba(255,255,255,0.09)" transform={`rotate(-30 ${r - r * 0.20} ${r - r * 0.24})`} />
@@ -230,7 +230,7 @@ export default function Knob({
         {variant === 'boss' && (
           <>
             {/* 橡胶大旋钮 (Boss) */}
-            <circle cx={r} cy={r} r={r * 0.80} fill={`url(#kbboss-${uid})`} stroke="#0b0c0e" strokeWidth="1" />
+            <circle cx={r} cy={r} r={r * 0.80} fill={`url(#kbboss-${uid})`} stroke="#272a2f" strokeWidth="1" />
             {/* 防滑胶圈 */}
             <circle cx={r} cy={r} r={r * 0.60} fill="none" stroke="rgba(0,0,0,0.38)" strokeWidth="1.5" strokeDasharray="2 2.5" />
             {/* 顶部白色指示条 (随角度转) */}
@@ -246,20 +246,20 @@ export default function Knob({
         {variant === 'chickenhead' && (
           <>
             {/* 小圆钮 + 鸡头指示翅 (Klon) */}
-            <circle cx={r} cy={r} r={r * 0.44} fill={`url(#kb-${uid})`} stroke="#0e0f12" strokeWidth="1" />
+            <circle cx={r} cy={r} r={r * 0.44} fill={`url(#kb-${uid})`} stroke="#27292f" strokeWidth="1" />
             <circle cx={r} cy={r} r={r * 0.30} fill="none" stroke="rgba(255,255,255,0.10)" strokeWidth="0.8" strokeDasharray="1.5 1.5" />
             <g transform={`rotate(${angle} ${r} ${r})`}>
               <rect x={r - r * 0.09} y={r * 0.06} width={r * 0.18} height={r * 0.74} rx={r * 0.045} fill="#d8d4c8" />
               <rect x={r - r * 0.09} y={r * 0.06} width={r * 0.06} height={r * 0.74} rx={r * 0.03} fill={accentColor} opacity="0.9" />
             </g>
-            <circle cx={r} cy={r} r={r * 0.12} fill="#0b0c0e" />
+            <circle cx={r} cy={r} r={r * 0.12} fill="#272a2f" />
           </>
         )}
 
         {variant === 'mxr' && (
           <>
             {/* 平头小旋钮 + 滚花边 (MXR/TS9) */}
-            <circle cx={r} cy={r} r={r * 0.70} fill={`url(#kbflat-${uid})`} stroke="#0e0f12" strokeWidth="1" />
+            <circle cx={r} cy={r} r={r * 0.70} fill={`url(#kbflat-${uid})`} stroke="#27292f" strokeWidth="1" />
             {knurl}
             <g transform={`rotate(${angle} ${r} ${r})`}>
               <rect x={r - 1.5} y={r * 0.14} width={3} height={r * 0.48} rx={1.5} fill={accentColor} />
@@ -271,7 +271,7 @@ export default function Knob({
         {variant === 'flat' && (
           <>
             {/* 工作室平面旋钮 + 细指针 (1176/Distressor) */}
-            <circle cx={r} cy={r} r={r * 0.72} fill={`url(#kbflat-${uid})`} stroke="#0e0f12" strokeWidth="1" />
+            <circle cx={r} cy={r} r={r * 0.72} fill={`url(#kbflat-${uid})`} stroke="#27292f" strokeWidth="1" />
             <line x1={r} y1={r} x2={ptrX} y2={ptrY} stroke="#e8e8ec" strokeWidth="1.8" strokeLinecap="round" />
             <circle cx={r} cy={r} r={r * 0.14} fill={`url(#kbcap-${uid})`} stroke="#000" strokeWidth="0.8" />
           </>
@@ -280,14 +280,14 @@ export default function Knob({
         {variant === 'vintage' && (
           <>
             {/* 复古大旋钮 (法兹) */}
-            <circle cx={r} cy={r} r={r * 0.80} fill={`url(#kbvin-${uid})`} stroke="#0b0c0e" strokeWidth="1" />
+            <circle cx={r} cy={r} r={r * 0.80} fill={`url(#kbvin-${uid})`} stroke="#272a2f" strokeWidth="1" />
             <circle cx={r} cy={r} r={r * 0.62} fill="none" stroke="rgba(255,255,255,0.10)" strokeWidth="1" />
             <circle cx={r} cy={r} r={r * 0.44} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
             <g transform={`rotate(${angle} ${r} ${r})`}>
               <rect x={r - r * 0.17} y={r * 0.08} width={r * 0.34} height={r * 0.50} rx={r * 0.06} fill="#d8d0c0" opacity="0.95" />
               <rect x={r - r * 0.17} y={r * 0.08} width={r * 0.09} height={r * 0.50} rx={r * 0.03} fill={accentColor} opacity="0.8" />
             </g>
-            <circle cx={r} cy={r} r={r * 0.15} fill="#141210" stroke="#000" strokeWidth="0.8" />
+            <circle cx={r} cy={r} r={r * 0.15} fill="#2f2b28" stroke="#000" strokeWidth="0.8" />
           </>
         )}
       </svg>

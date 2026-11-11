@@ -18,35 +18,35 @@ export const GOLD = '#DFA43C';
 
 /**
  * ★★ v3.83（P3-6 / 7.3「色板双轨合并」）：
- * 本文件原是一套**理想值**（`#0A0C10` / `#14171D` / `#F2F4F8`），
- * 与全仓实际在用的 `#0B0D11` / `#15181E` / `#F0F2F5` 差了 1–2 个色阶，
+ * 本文件原是一套**理想值**（`#242933` / `#31343b` / `#F2F4F8`），
+ * 与全仓实际在用的 `#24262b` / `#2a2e37` / `#F0F2F5` 差了 1–2 个色阶，
  * 结果两套色板并行：改 tokens 不改全局视觉，改全局又不敢信 tokens。
  * **现取值统一为「实际在用值」** —— tokens 从此描述现状，不再是另一份提案。
  * 社区那套 `components/community/parts.tsx` 的 `C` 已改为从本文件派生。
  */
 export const SURF = {
   /** 页面底 */
-  bg: '#0B0D11',
+  bg: '#24262b',
   /** 面板 / 浮窗 */
-  panel: '#15181E',
+  panel: '#2a2e37',
   /** 面板内二级底（卡片 / 选中行） */
-  panel2: '#1B1F26',
+  panel2: '#2a2f37',
   /** 顶栏 / 底栏 */
-  bar: '#1F2024',
+  bar: '#2c2f36',
   /** 输入框 / 选择框 */
-  field: '#13161C',
+  field: '#292e37',
 } as const;
 
 /** 描边 2 级 */
 export const LINE = {
-  base: '#2E3440',
+  base: '#454b55',
   strong: '#454D5C',
 } as const;
 
 /** 文字 4 级（weak 仅用于 ≥11px） */
 export const TXT = {
   main: '#F0F2F5',
-  sub: '#9BA3B2',
+  sub: '#c2c9d6',
   weak: '#7C8494',
 } as const;
 
@@ -99,13 +99,13 @@ export const KNOB = {
   /** 外圈高光 */
   hi: '#4A5361',
   /** 本体中间调 */
-  mid: '#2E3440',
+  mid: '#454b55',
   /** 本体暗部 */
   low: '#22262F',
   /** 握纹 / 圆心 */
-  grip: '#0E1014',
+  grip: '#262931',
   /** 未走过刻度 */
   tickOff: '#454D5C',
   /** 进度弧底 */
-  track: '#2E3440',
+  track: '#454b55',
 } as const;
