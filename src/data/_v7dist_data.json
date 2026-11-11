@@ -1,0 +1,1022 @@
+{
+ "B&F NAM Boss DS-1/Boss DS-1_2": {
+  "id": "v7-dist-boss-ds-1",
+  "model": "B&F NAM Boss DS-1",
+  "pos": "Boss DS-1_2",
+  "bass": false,
+  "pre": [
+   1359385105,
+   1353155808,
+   1353156480,
+   1359407434
+  ],
+  "post": [
+   2969923801,
+   1372079152,
+   1346836368,
+   1359354602
+  ],
+  "drive": 40,
+  "dc": 42,
+  "vol": 204,
+  "knobs": [
+   "DISTORTION",
+   "TONE",
+   "LEVEL"
+  ],
+  "formulas": {
+   "DISTORTION": {
+    "kind": "drive",
+    "reg": 64
+   },
+   "TONE": {
+    "kind": "peq",
+    "reg": 70,
+    "type": "PEAK",
+    "freq": 2080,
+    "gi": 113,
+    "q": 4
+   },
+   "LEVEL": {
+    "kind": "level",
+    "reg": 66
+   }
+  },
+  "kn_vals": {
+   "DISTORTION": 0.43478260869565216,
+   "TONE": 0.5,
+   "LEVEL": 0.7083333333333334
+  }
+ },
+ "B&F NAM Boss DS-1/Boss DS-1": {
+  "id": "v7-dist-boss-ds-1",
+  "model": "B&F NAM Boss DS-1",
+  "pos": "Boss DS-1",
+  "bass": false,
+  "pre": [
+   1359385105,
+   1353155808,
+   1353156480,
+   1359407434
+  ],
+  "post": [
+   1346773208,
+   1355113520,
+   1346996112,
+   1346972392
+  ],
+  "drive": 62,
+  "dc": 51,
+  "vol": 179,
+  "knobs": [
+   "DISTORTION",
+   "TONE",
+   "LEVEL"
+  ],
+  "formulas": {
+   "DISTORTION": {
+    "kind": "drive",
+    "reg": 64
+   },
+   "TONE": {
+    "kind": "peq",
+    "reg": 70,
+    "type": "PEAK",
+    "freq": 2080,
+    "gi": 152,
+    "q": 4
+   },
+   "LEVEL": {
+    "kind": "level",
+    "reg": 66
+   }
+  },
+  "kn_vals": {
+   "DISTORTION": 0.6739130434782609,
+   "TONE": 0.5,
+   "LEVEL": 0.6215277777777778
+  }
+ },
+ "B&F NAM Boss DS-2/Boss DS-2": {
+  "id": "v7-dist-boss-ds-2",
+  "model": "B&F NAM Boss DS-2",
+  "pos": "Boss DS-2",
+  "bass": false,
+  "pre": [
+   1359385105,
+   1353176456,
+   1353156480,
+   1359427914
+  ],
+  "post": [
+   2164261081,
+   1346946096,
+   1346852752,
+   1346697960
+  ],
+  "drive": 31,
+  "dc": 45,
+  "vol": 212,
+  "knobs": [
+   "DISTORTION",
+   "TONE",
+   "LEVEL"
+  ],
+  "formulas": {
+   "DISTORTION": {
+    "kind": "drive",
+    "reg": 64
+   },
+   "TONE": {
+    "kind": "peq",
+    "reg": 70,
+    "type": "PEAK",
+    "freq": 2080,
+    "gi": 117,
+    "q": 4
+   },
+   "LEVEL": {
+    "kind": "level",
+    "reg": 66
+   }
+  },
+  "kn_vals": {
+   "DISTORTION": 0.33695652173913043,
+   "TONE": 0.5,
+   "LEVEL": 0.7361111111111112
+  }
+ },
+ "B&F NAM Boss HM-2/Boss HM-2_2": {
+  "id": "v7-dist-boss-hm-2",
+  "model": "B&F NAM Boss HM-2",
+  "pos": "Boss HM-2_2",
+  "bass": false,
+  "pre": [
+   1359385249,
+   1353155808,
+   1353156360,
+   1359448394
+  ],
+  "post": [
+   1346617560,
+   1371976752,
+   1347041168,
+   553708266
+  ],
+  "drive": 46,
+  "dc": 54,
+  "vol": 206,
+  "knobs": [
+   "DISTORTION",
+   "HIGH",
+   "LOW",
+   "LEVEL"
+  ],
+  "formulas": {
+   "DISTORTION": {
+    "kind": "drive",
+    "reg": 64
+   },
+   "HIGH": {
+    "kind": "peq",
+    "reg": 70,
+    "type": "PEAK",
+    "freq": 2080,
+    "gi": 163,
+    "q": 4
+   },
+   "LOW": {
+    "kind": "peq",
+    "reg": 68,
+    "type": "PEAK",
+    "freq": 33.1,
+    "gi": 60,
+    "q": 4
+   },
+   "LEVEL": {
+    "kind": "level",
+    "reg": 66
+   }
+  },
+  "kn_vals": {
+   "DISTORTION": 0.5,
+   "HIGH": 0.5,
+   "LOW": 0.5,
+   "LEVEL": 0.7152777777777778
+  }
+ },
+ "B&F NAM Boss HM-2/Boss HM-2": {
+  "id": "v7-dist-boss-hm-2",
+  "model": "B&F NAM Boss HM-2",
+  "pos": "Boss HM-2",
+  "bass": false,
+  "pre": [
+   1359385249,
+   1353155808,
+   1353156360,
+   1359448394
+  ],
+  "post": [
+   2969768153,
+   1381327920,
+   1347028880,
+   1346497256
+  ],
+  "drive": 36,
+  "dc": 42,
+  "vol": 216,
+  "knobs": [
+   "DISTORTION",
+   "HIGH",
+   "LOW",
+   "LEVEL"
+  ],
+  "formulas": {
+   "DISTORTION": {
+    "kind": "drive",
+    "reg": 64
+   },
+   "HIGH": {
+    "kind": "peq",
+    "reg": 70,
+    "type": "PEAK",
+    "freq": 2080,
+    "gi": 160,
+    "q": 4
+   },
+   "LOW": {
+    "kind": "peq",
+    "reg": 68,
+    "type": "LOW_SHELF",
+    "freq": 33.1,
+    "gi": 49,
+    "q": 16
+   },
+   "LEVEL": {
+    "kind": "level",
+    "reg": 66
+   }
+  },
+  "kn_vals": {
+   "DISTORTION": 0.391304347826087,
+   "HIGH": 0.5,
+   "LOW": 0.5,
+   "LEVEL": 0.75
+  }
+ },
+ "B&F NAM Boss MT-2/Boss MT-2_2": {
+  "id": "v7-dist-boss-mt-2",
+  "model": "B&F NAM Boss MT-2",
+  "pos": "Boss MT-2_2",
+  "bass": false,
+  "pre": [
+   1359446769,
+   1353155808,
+   1353156480,
+   1359448394
+  ],
+  "post": [
+   1353155904,
+   1362100440,
+   1346946520,
+   1346374376
+  ],
+  "drive": 7,
+  "dc": 46,
+  "vol": 288,
+  "knobs": [
+   "DISTORTION",
+   "LOW",
+   "HIGH",
+   "MID",
+   "LEVEL"
+  ],
+  "formulas": {
+   "DISTORTION": {
+    "kind": "drive",
+    "reg": 64
+   },
+   "LOW": {
+    "kind": "peq",
+    "reg": 59,
+    "type": "LOW_SHELF",
+    "freq": 120,
+    "gi": 120,
+    "q": 16
+   },
+   "HIGH": {
+    "kind": "peq",
+    "reg": 62,
+    "type": "HIGH_SHELF",
+    "freq": 5990,
+    "gi": 120,
+    "q": 16
+   },
+   "MID": {
+    "kind": "peq",
+    "reg": 68,
+    "type": "PEAK",
+    "freq": 500.0,
+    "gi": 120,
+    "q": 10
+   },
+   "LEVEL": {
+    "kind": "level",
+    "reg": 66
+   }
+  },
+  "kn_vals": {
+   "DISTORTION": 0.07608695652173914,
+   "LOW": 0.5,
+   "HIGH": 0.5,
+   "MID": 0.5,
+   "LEVEL": 1.0
+  }
+ },
+ "B&F NAM Boss MT-2/Boss MT-2": {
+  "id": "v7-dist-boss-mt-2",
+  "model": "B&F NAM Boss MT-2",
+  "pos": "Boss MT-2",
+  "bass": false,
+  "pre": [
+   1359446769,
+   1353155808,
+   1353156480,
+   1359448394
+  ],
+  "post": [
+   1353155904,
+   1362100440,
+   1346950616,
+   1346374376
+  ],
+  "drive": 5,
+  "dc": 50,
+  "vol": 288,
+  "knobs": [
+   "DISTORTION",
+   "LOW",
+   "HIGH",
+   "MID",
+   "LEVEL"
+  ],
+  "formulas": {
+   "DISTORTION": {
+    "kind": "drive",
+    "reg": 64
+   },
+   "LOW": {
+    "kind": "peq",
+    "reg": 59,
+    "type": "LOW_SHELF",
+    "freq": 120,
+    "gi": 120,
+    "q": 16
+   },
+   "HIGH": {
+    "kind": "peq",
+    "reg": 62,
+    "type": "HIGH_SHELF",
+    "freq": 5990,
+    "gi": 120,
+    "q": 16
+   },
+   "MID": {
+    "kind": "peq",
+    "reg": 68,
+    "type": "PEAK",
+    "freq": 500.0,
+    "gi": 120,
+    "q": 10
+   },
+   "LEVEL": {
+    "kind": "level",
+    "reg": 66
+   }
+  },
+  "kn_vals": {
+   "DISTORTION": 0.05434782608695652,
+   "LOW": 0.5,
+   "HIGH": 0.5,
+   "MID": 0.5,
+   "LEVEL": 1.0
+  }
+ },
+ "B&F NAM Boss OS-2/Boss OS-2": {
+  "id": "v7-dist-boss-os-2",
+  "model": "B&F NAM Boss OS-2",
+  "pos": "Boss OS-2",
+  "bass": false,
+  "pre": [
+   1359405585,
+   1353176384,
+   1353156480,
+   1359427914
+  ],
+  "post": [
+   553799897,
+   1346839600,
+   1346967440,
+   2164714218
+  ],
+  "drive": 47,
+  "dc": 51,
+  "vol": 190,
+  "knobs": [
+   "DISTORTION",
+   "TONE",
+   "LEVEL"
+  ],
+  "formulas": {
+   "DISTORTION": {
+    "kind": "drive",
+    "reg": 64
+   },
+   "TONE": {
+    "kind": "peq",
+    "reg": 70,
+    "type": "PEAK",
+    "freq": 2080,
+    "gi": 145,
+    "q": 4
+   },
+   "LEVEL": {
+    "kind": "level",
+    "reg": 66
+   }
+  },
+  "kn_vals": {
+   "DISTORTION": 0.5108695652173914,
+   "TONE": 0.5,
+   "LEVEL": 0.6597222222222222
+  }
+ },
+ "B&F NAM MXR Distortion+/MXR Distortion+_2": {
+  "id": "v7-dist-mxr-distortion-plus",
+  "model": "B&F NAM MXR Distortion+",
+  "pos": "MXR Distortion+_2",
+  "bass": false,
+  "pre": [
+   1359425921,
+   1353155808,
+   1353156480,
+   1359427914
+  ],
+  "post": [
+   1359384793,
+   1346888752,
+   1355270032,
+   1346439912
+  ],
+  "drive": 52,
+  "dc": 53,
+  "vol": 183,
+  "knobs": [
+   "DISTORTION",
+   "VOLUME"
+  ],
+  "formulas": {
+   "DISTORTION": {
+    "kind": "drive",
+    "reg": 64
+   },
+   "VOLUME": {
+    "kind": "level",
+    "reg": 66
+   }
+  },
+  "kn_vals": {
+   "DISTORTION": 0.5652173913043478,
+   "VOLUME": 0.6354166666666666
+  }
+ },
+ "B&F NAM MXR Distortion+/MXR Distortion+": {
+  "id": "v7-dist-mxr-distortion-plus",
+  "model": "B&F NAM MXR Distortion+",
+  "pos": "MXR Distortion+",
+  "bass": false,
+  "pre": [
+   1359425921,
+   1353155808,
+   1353156480,
+   1359427914
+  ],
+  "post": [
+   554021081,
+   1346868272,
+   1372034960,
+   1355242216
+  ],
+  "drive": 58,
+  "dc": 55,
+  "vol": 178,
+  "knobs": [
+   "DISTORTION",
+   "VOLUME"
+  ],
+  "formulas": {
+   "DISTORTION": {
+    "kind": "drive",
+    "reg": 64
+   },
+   "VOLUME": {
+    "kind": "level",
+    "reg": 66
+   }
+  },
+  "kn_vals": {
+   "DISTORTION": 0.6304347826086957,
+   "VOLUME": 0.6180555555555556
+  }
+ },
+ "B&F NAM EHX Big Muff/EHX Big Muff_2": {
+  "id": "v7-dist-ehx-big-muff",
+  "model": "B&F NAM EHX Big Muff",
+  "pos": "EHX Big Muff_2",
+  "bass": false,
+  "pre": [
+   1359364849,
+   1353155808,
+   1353156480,
+   1359386954
+  ],
+  "post": [
+   1346838744,
+   1381438512,
+   1347090320,
+   1346525928
+  ],
+  "drive": 49,
+  "dc": 48,
+  "vol": 195,
+  "knobs": [
+   "DISTORTION",
+   "SCOOP",
+   "LEVEL"
+  ],
+  "formulas": {
+   "DISTORTION": {
+    "kind": "drive",
+    "reg": 64
+   },
+   "SCOOP": {
+    "kind": "peq",
+    "reg": 69,
+    "type": "PEAK",
+    "freq": 260,
+    "gi": 113,
+    "q": 37
+   },
+   "LEVEL": {
+    "kind": "level",
+    "reg": 66
+   }
+  },
+  "kn_vals": {
+   "DISTORTION": 0.532608695652174,
+   "SCOOP": 0.5,
+   "LEVEL": 0.6770833333333334
+  }
+ },
+ "B&F NAM EHX Big Muff/EHX Big Muff": {
+  "id": "v7-dist-ehx-big-muff",
+  "model": "B&F NAM EHX Big Muff",
+  "pos": "EHX Big Muff",
+  "bass": false,
+  "pre": [
+   1359364849,
+   1353155808,
+   1353156480,
+   1359386954
+  ],
+  "post": [
+   1347068120,
+   1355359280,
+   1346762640,
+   1346374376
+  ],
+  "drive": 66,
+  "dc": 48,
+  "vol": 243,
+  "knobs": [
+   "DISTORTION",
+   "SCOOP",
+   "LEVEL"
+  ],
+  "formulas": {
+   "DISTORTION": {
+    "kind": "drive",
+    "reg": 64
+   },
+   "SCOOP": {
+    "kind": "peq",
+    "reg": 69,
+    "type": "PEAK",
+    "freq": 260,
+    "gi": 146,
+    "q": 12
+   },
+   "LEVEL": {
+    "kind": "level",
+    "reg": 66
+   }
+  },
+  "kn_vals": {
+   "DISTORTION": 0.717391304347826,
+   "SCOOP": 0.5,
+   "LEVEL": 0.84375
+  }
+ },
+ "B&F NAM Behringer Brassmaster/Behringer Brassmaster": {
+  "id": "v7-dist-behringer-brassmaster",
+  "model": "B&F NAM Behringer Brassmaster",
+  "pos": "Behringer Brassmaster",
+  "bass": true,
+  "pre": [
+   1359425713,
+   1353155808,
+   1353156480,
+   1359427842
+  ],
+  "post": [
+   1354830040,
+   1362609200,
+   1346873232,
+   1346857704
+  ],
+  "drive": 15,
+  "dc": 48,
+  "vol": 261,
+  "knobs": [
+   "DISTORTION",
+   "TONE",
+   "LEVEL"
+  ],
+  "formulas": {
+   "DISTORTION": {
+    "kind": "drive",
+    "reg": 64
+   },
+   "TONE": {
+    "kind": "peq",
+    "reg": 70,
+    "type": "PEAK",
+    "freq": 2080,
+    "gi": 122,
+    "q": 4
+   },
+   "LEVEL": {
+    "kind": "level",
+    "reg": 66
+   }
+  },
+  "kn_vals": {
+   "DISTORTION": 0.16304347826086957,
+   "TONE": 0.5,
+   "LEVEL": 0.90625
+  }
+ },
+ "B&F NAM Darkglass X7/Darkglass X7_2": {
+  "id": "v7-dist-darkglass-x7",
+  "model": "B&F NAM Darkglass X7",
+  "pos": "Darkglass X7_2",
+  "bass": true,
+  "pre": [
+   1359425713,
+   1353176384,
+   1353176960,
+   1359427842
+  ],
+  "post": [
+   2969575641,
+   1346712624,
+   1346561936,
+   1346374376
+  ],
+  "drive": 39,
+  "dc": 51,
+  "vol": 257,
+  "knobs": [
+   "DISTORTION",
+   "TONE",
+   "LEVEL"
+  ],
+  "formulas": {
+   "DISTORTION": {
+    "kind": "drive",
+    "reg": 64
+   },
+   "TONE": {
+    "kind": "peq",
+    "reg": 70,
+    "type": "PEAK",
+    "freq": 2080,
+    "gi": 46,
+    "q": 4
+   },
+   "LEVEL": {
+    "kind": "level",
+    "reg": 66
+   }
+  },
+  "kn_vals": {
+   "DISTORTION": 0.42391304347826086,
+   "TONE": 0.5,
+   "LEVEL": 0.8923611111111112
+  }
+ },
+ "B&F NAM Darkglass X7/Darkglass X7": {
+  "id": "v7-dist-darkglass-x7",
+  "model": "B&F NAM Darkglass X7",
+  "pos": "Darkglass X7",
+  "bass": true,
+  "pre": [
+   1359425713,
+   1353176384,
+   1353176960,
+   1359427842
+  ],
+  "post": [
+   1347088600,
+   1362650160,
+   1346832272,
+   1346374376
+  ],
+  "drive": 52,
+  "dc": 42,
+  "vol": 210,
+  "knobs": [
+   "DISTORTION",
+   "TONE",
+   "LEVEL"
+  ],
+  "formulas": {
+   "DISTORTION": {
+    "kind": "drive",
+    "reg": 64
+   },
+   "TONE": {
+    "kind": "peq",
+    "reg": 70,
+    "type": "PEAK",
+    "freq": 2080,
+    "gi": 112,
+    "q": 4
+   },
+   "LEVEL": {
+    "kind": "level",
+    "reg": 66
+   }
+  },
+  "kn_vals": {
+   "DISTORTION": 0.5652173913043478,
+   "TONE": 0.5,
+   "LEVEL": 0.7291666666666666
+  }
+ },
+ "B&F NAM EHX Bass Big Muff/EHX Bass Big Muff_2": {
+  "id": "v7-dist-ehx-bass-big-muff",
+  "model": "B&F NAM EHX Bass Big Muff",
+  "pos": "EHX Bass Big Muff_2",
+  "bass": true,
+  "pre": [
+   1359405233,
+   1353155808,
+   1353156480,
+   1359407362
+  ],
+  "post": [
+   2164605145,
+   1346950192,
+   1346844560,
+   1346374376
+  ],
+  "drive": 52,
+  "dc": 49,
+  "vol": 171,
+  "knobs": [
+   "DISTORTION",
+   "SCOOP",
+   "LEVEL"
+  ],
+  "formulas": {
+   "DISTORTION": {
+    "kind": "drive",
+    "reg": 64
+   },
+   "SCOOP": {
+    "kind": "peq",
+    "reg": 69,
+    "type": "PEAK",
+    "freq": 260,
+    "gi": 141,
+    "q": 4
+   },
+   "LEVEL": {
+    "kind": "level",
+    "reg": 66
+   }
+  },
+  "kn_vals": {
+   "DISTORTION": 0.5652173913043478,
+   "SCOOP": 0.5,
+   "LEVEL": 0.59375
+  }
+ },
+ "B&F NAM EHX Bass Big Muff/EHX Bass Big Muff": {
+  "id": "v7-dist-ehx-bass-big-muff",
+  "model": "B&F NAM EHX Bass Big Muff",
+  "pos": "EHX Bass Big Muff",
+  "bass": true,
+  "pre": [
+   1359405233,
+   1353155808,
+   1353156480,
+   1359407362
+  ],
+  "post": [
+   1346990296,
+   1355277360,
+   1372022672,
+   1354791656
+  ],
+  "drive": 53,
+  "dc": 49,
+  "vol": 178,
+  "knobs": [
+   "DISTORTION",
+   "SCOOP",
+   "LEVEL"
+  ],
+  "formulas": {
+   "DISTORTION": {
+    "kind": "drive",
+    "reg": 64
+   },
+   "SCOOP": {
+    "kind": "peq",
+    "reg": 69,
+    "type": "PEAK",
+    "freq": 260,
+    "gi": 126,
+    "q": 12
+   },
+   "LEVEL": {
+    "kind": "level",
+    "reg": 66
+   }
+  },
+  "kn_vals": {
+   "DISTORTION": 0.5760869565217391,
+   "SCOOP": 0.5,
+   "LEVEL": 0.6180555555555556
+  }
+ },
+ "B&F NAM Way Huge Pork & Pickle/Way Huge Pork & Pickle_2": {
+  "id": "v7-dist-way-huge-pork-pickle",
+  "model": "B&F NAM Way Huge Pork & Pickle",
+  "pos": "Way Huge Pork & Pickle_2",
+  "bass": true,
+  "pre": [
+   1359425713,
+   1353155808,
+   1353156480,
+   1359427842
+  ],
+  "post": [
+   1346834648,
+   1346851888,
+   1346906000,
+   1354762984
+  ],
+  "drive": 65,
+  "dc": 55,
+  "vol": 150,
+  "knobs": [
+   "DISTORTION",
+   "TONE",
+   "LEVEL"
+  ],
+  "formulas": {
+   "DISTORTION": {
+    "kind": "drive",
+    "reg": 64
+   },
+   "TONE": {
+    "kind": "peq",
+    "reg": 70,
+    "type": "PEAK",
+    "freq": 2080,
+    "gi": 130,
+    "q": 4
+   },
+   "LEVEL": {
+    "kind": "level",
+    "reg": 66
+   }
+  },
+  "kn_vals": {
+   "DISTORTION": 0.7065217391304348,
+   "TONE": 0.5,
+   "LEVEL": 0.5208333333333334
+  }
+ },
+ "B&F NAM Way Huge Pork & Pickle/Way Huge Pork & Pickle": {
+  "id": "v7-dist-way-huge-pork-pickle",
+  "model": "B&F NAM Way Huge Pork & Pickle",
+  "pos": "Way Huge Pork & Pickle",
+  "bass": true,
+  "pre": [
+   1359425713,
+   1353155808,
+   1353156480,
+   1359427842
+  ],
+  "post": [
+   1346900184,
+   1346946096,
+   1346783120,
+   1346374376
+  ],
+  "drive": 39,
+  "dc": 58,
+  "vol": 248,
+  "knobs": [
+   "DISTORTION",
+   "TONE",
+   "LEVEL"
+  ],
+  "formulas": {
+   "DISTORTION": {
+    "kind": "drive",
+    "reg": 64
+   },
+   "TONE": {
+    "kind": "peq",
+    "reg": 70,
+    "type": "PEAK",
+    "freq": 2080,
+    "gi": 100,
+    "q": 4
+   },
+   "LEVEL": {
+    "kind": "level",
+    "reg": 66
+   }
+  },
+  "kn_vals": {
+   "DISTORTION": 0.42391304347826086,
+   "TONE": 0.5,
+   "LEVEL": 0.8611111111111112
+  }
+ },
+ "B&F NAM ZVEX Mastotron/ZVEX Mastotron": {
+  "id": "v7-dist-zvex-mastotron",
+  "model": "B&F NAM ZVEX Mastotron",
+  "pos": "ZVEX Mastotron",
+  "bass": true,
+  "pre": [
+   1359425713,
+   1353155808,
+   1353156480,
+   1359427842
+  ],
+  "post": [
+   1346904280,
+   1346917424,
+   1346733968,
+   1391991528
+  ],
+  "drive": 62,
+  "dc": 38,
+  "vol": 219,
+  "knobs": [
+   "DISTORTION",
+   "TONE",
+   "LEVEL"
+  ],
+  "formulas": {
+   "DISTORTION": {
+    "kind": "drive",
+    "reg": 64
+   },
+   "TONE": {
+    "kind": "peq",
+    "reg": 70,
+    "type": "PEAK",
+    "freq": 2080,
+    "gi": 88,
+    "q": 4
+   },
+   "LEVEL": {
+    "kind": "level",
+    "reg": 66
+   }
+  },
+  "kn_vals": {
+   "DISTORTION": 0.6739130434782609,
+   "TONE": 0.5,
+   "LEVEL": 0.7604166666666666
+  }
+ }
+}

@@ -1,0 +1,51 @@
+nam-b-f-nam-ecstasy                        group=HIGH-GAIN    caps= 30  B&F NAM Ecstasy
+nam-b-f-nam-uberschall                     group=HIGH-GAIN    caps= 31  B&F NAM Uberschall
+nam-b-f-nam-herbert                        group=HIGH-GAIN    caps= 33  B&F NAM Herbert
+nam-b-f-nam-vh4                            group=HIGH-GAIN    caps= 34  B&F NAM VH4
+nam-b-f-nam-fireball                       group=HIGH-GAIN    caps= 35  B&F NAM Fireball
+nam-b-f-nam-powerball                      group=HIGH-GAIN    caps= 33  B&F NAM Powerball
+nam-b-f-nam-savage                         group=HIGH-GAIN    caps= 34  B&F NAM Savage
+nam-b-f-nam-5150-iii                       group=HIGH-GAIN    caps= 32  B&F NAM 5150 III
+nam-b-f-nam-bassman                        group=CLEAN        caps= 31  B&F NAM Bassman
+nam-b-f-nam-champ                          group=CLEAN        caps= 31  B&F NAM Champ
+nam-b-f-nam-princeton                      group=CLEAN        caps= 29  B&F NAM Princeton
+nam-b-f-nam-twin-reverb                    group=CLEAN        caps= 29  B&F NAM Twin Reverb
+nam-b-f-nam-friedman                       group=DRIVE        caps= 31  B&F NAM Friedman
+nam-b-f-nam-horizon-precision-drive        group=DRIVE        caps= 29  B&F NAM Horizon Precision Drive
+nam-b-f-nam-jcm2000-dsl                    group=DRIVE        caps= 32  B&F NAM JCM2000 DSL
+nam-b-f-nam-jcm800                         group=DRIVE        caps= 31  B&F NAM JCM800
+nam-b-f-nam-jcm900                         group=DRIVE        caps= 32  B&F NAM JCM900
+nam-b-f-nam-jvm                            group=HIGH-GAIN    caps= 31  B&F NAM JVM
+nam-b-f-nam-plexi                          group=HIGH-GAIN    caps= 31  B&F NAM Plexi
+nam-b-f-nam-mesa-dual-rectifier            group=HIGH-GAIN    caps= 31  B&F NAM Mesa Dual Rectifier
+nam-b-f-nam-mesa-mark                      group=HIGH-GAIN    caps= 30  B&F NAM Mesa Mark
+nam-b-f-nam-mesa-triple-rectifier          group=HIGH-GAIN    caps= 30  B&F NAM Mesa Triple Rectifier
+nam-b-f-nam-rockerverb                     group=DRIVE        caps= 30  B&F NAM Rockerverb
+nam-b-f-nam-archon                         group=HIGH-GAIN    caps= 31  B&F NAM Archon
+nam-b-f-nam-5150                           group=HIGH-GAIN    caps= 32  B&F NAM 5150
+nam-b-f-nam-6505                           group=HIGH-GAIN    caps= 29  B&F NAM 6505
+nam-b-f-nam-randall                        group=DRIVE        caps= 28  B&F NAM Randall
+nam-b-f-nam-generator                      group=HIGH-GAIN    caps= 29  B&F NAM Generator
+nam-b-f-nam-slo-100                        group=DRIVE        caps= 29  B&F NAM SLO-100
+nam-b-f-nam-riot                           group=HIGH-GAIN    caps= 29  B&F NAM Riot
+nam-b-f-nam-ac30                           group=CLEAN        caps= 29  B&F NAM AC30
+nam-b-f-nam-aguilar-tone-hammer-500        group=BASS         caps= 29  B&F NAM Aguilar Tone Hammer 500
+nam-b-f-nam-b15                            group=BASS         caps= 29  B&F NAM B15
+nam-b-f-nam-svt                            group=BASS         caps= 30  B&F NAM SVT
+nam-b-f-nam-scrambler                      group=BASS         caps= 30  B&F NAM Scrambler
+nam-b-f-nam-v4                             group=BASS         caps= 27  B&F NAM V4
+nam-b-f-nam-odb-3                          group=BASS         caps= 28  B&F NAM ODB-3
+nam-b-f-nam-darkglass-alpha-omega          group=BASS         caps= 28  B&F NAM Darkglass Alpha Omega
+nam-b-f-nam-darkglass-b3k                  group=BASS         caps= 28  B&F NAM Darkglass B3K
+nam-b-f-nam-darkglass-b7k-ultra            group=BASS         caps= 27  B&F NAM Darkglass B7K Ultra
+nam-b-f-nam-darkglass-microtubes-900       group=BASS         caps= 26  B&F NAM Darkglass Microtubes 900
+nam-b-f-nam-darkglass-microtubes-infinity  group=BASS         caps= 29  B&F NAM Darkglass Microtubes Infinity
+nam-b-f-nam-darkglass-vmt-vintage-microtubes group=BASS         caps= 28  B&F NAM Darkglass VMT (Vintage Microtubes)
+nam-b-f-nam-rumble                         group=BASS         caps= 27  B&F NAM Rumble
+nam-b-f-nam-gallien-krueger-mb150          group=BASS         caps= 24  B&F NAM Gallien-Krueger MB150
+nam-b-f-nam-mxr-m80-bass-di                group=BASS         caps= 19  B&F NAM MXR M80 Bass DI
+nam-b-f-nam-mesa-bass-800d                 group=BASS         caps= 15  B&F NAM Mesa Bass 800D
+nam-b-f-nam-mesa-subway-d800               group=BASS         caps= 10  B&F NAM Mesa Subway D800
+nam-b-f-nam-terror-bass                    group=BASS         caps=  5  B&F NAM Terror Bass
+nam-b-f-nam-sansamp-bass-driver            group=BASS         caps=  4  B&F NAM SansAmp Bass Driver
+TOTAL amp hardware: 50

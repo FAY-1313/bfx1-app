@@ -1,0 +1,593 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@font-face {
+  font-family: "Barlow-Regular_2";
+  src: url("/fonts/Barlow-Regular_2.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme inline {
+  --font-sans: var(--fontSans);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --shadow-x: var(--shadow-x);
+  --shadow-y: var(--shadow-y);
+  --shadow-blur: var(--shadow-blur);
+  --shadow-spread: var(--shadow-spread);
+  --shadow-color: var(--shadow-color);
+}
+
+/* ── Pro-audio palette (dark graphite, warm accent) ─────────────────────────── */
+:root {
+  --fontSans: "Barlow-Regular_2";
+  --radius: 0.75rem;
+  --background: #1a1b1f;
+  --foreground: #ececec;
+  --card: #232428;
+  --card-foreground: #f0f0f0;
+  --popover: #232428;
+  --popover-foreground: #f0f0f0;
+  --primary: #F06F21;
+  --primary-foreground: #ffffff;
+  --secondary: #2a2b30;
+  --secondary-foreground: #d4d4d8;
+  --muted: #2a2b30;
+  --muted-foreground: #9aa0a6;
+  --accent: #F06F21;
+  --accent-foreground: #ffffff;
+  --destructive: #e5484d;
+  --destructive-foreground: #ffffff;
+  --border: #3a3b40;
+  --input: #2a2b30;
+  --ring: rgba(240, 111, 33, 0.4);
+  --chart-1: #F06F21;
+  --chart-2: #3ddc84;
+  --chart-3: #4cc9f0;
+  --chart-4: #e2c044;
+  --chart-5: #b48cff;
+  --sidebar: #1f2024;
+  --sidebar-foreground: #ececec;
+  --sidebar-primary: #F06F21;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #2a2b30;
+  --sidebar-accent-foreground: #d4d4d8;
+  --sidebar-border: #3a3b40;
+  --sidebar-ring: rgba(240, 111, 33, 0.3);
+  --shadow-x: 0px;
+  --shadow-y: 2px;
+  --shadow-blur: 14px;
+  --shadow-spread: 0px;
+  --shadow-color: rgba(0, 0, 0, 0.45);
+
+  /* BFX brand */
+  --bfx-orange: #F06F21;
+  --bfx-cyan: #4cc9f0;
+  --bfx-green: #3ddc84;
+  --bfx-bg: #1a1b1f;
+  --bfx-panel: #232428;
+  --bfx-raised: #2a2b30;
+  --bfx-border: #3a3b40;
+  --bfx-text: #ececec;
+  --bfx-text-dim: #9aa0a6;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+    background: #1a1b1f;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@layer utilities {
+  .shadow-custom {
+    box-shadow: var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--shadow-spread) var(--shadow-color);
+  }
+}
+
+/* ══════════════════════════════════════════════════
+   BFX1 — Pro-Audio Global Styles
+══════════════════════════════════════════════════ */
+
+/* Scrollbar hide */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ── Rack-unit card (effects module surface) ────────────────────────────────── */
+.bfx-card {
+  background: #232428;
+  border: 1px solid #38393f;
+  border-radius: 14px;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+
+/* ── Section title (module name in scroll area) ─────────────────────────────── */
+.bfx-section-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #d8d8dc;
+  letter-spacing: 0.06em;
+}
+
+/* ── Chip (SHARED / GUITAR / BASS tag) ──────────────────────────────────────── */
+.bfx-chip {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #c8c8cc;
+}
+
+/* ── Status LED (small round indicator) ─────────────────────────────────────── */
+.bfx-led {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #3a3b40;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.6);
+  flex-shrink: 0;
+}
+.bfx-led.on {
+  background: #F06F21;
+  box-shadow: 0 0 8px rgba(240, 111, 33, 0.7);
+}
+
+/* ── Soft pulse (keep spectrum bars animated) ───────────────────────────────── */
+@keyframes spectrum {
+  0%, 100% { transform: scaleY(0.3); }
+  50% { transform: scaleY(1); }
+}
+
+/* ── Studio: 节拍脉冲 / 录制闪烁 / 面板淡入 ───────────────────────── */
+@keyframes pulseScale {
+  0% { transform: translate(-50%,-50%) scale(1); }
+  35% { transform: translate(-50%,-50%) scale(1.16); }
+  100% { transform: translate(-50%,-50%) scale(1); }
+}
+@keyframes countPop {
+  0% { transform: scale(1.4); opacity: 0.5; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+/* ★ 2026-10-16：蓝牙连接成功后，底部设备图的呼吸发光（透明背景 PNG）
+   收敛为一层 drop-shadow（原先叠两层，审查报告问题 5） */
+/* ★ 2026-10-17（用户要求）：连接态由绿改蓝（#5bc8f5 = 全 App 的「设备/箱体」主色） */
+@keyframes bfxDevGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 10px rgba(91,200,245,0.55));
+  }
+  50% {
+    filter: drop-shadow(0 0 18px rgba(91,200,245,0.85));
+  }
+}
+
+@keyframes panelFade {
+  from { opacity: 0; transform: translateY(6px); }
+  /* ★ v3.83（P3-4）：终帧写 none 而不是 translateY(0) —— 保留任何非 none 的
+     transform 都会让元素成为 fixed 子元素的包含块（与 .panel-enter 同一根因）。 */
+  to { opacity: 1; transform: none; }
+}
+
+/* ★ 2026-10-16：补上一直缺失的 spin —— BluetoothPanel 与 Index 的加载圈都在用
+   `animation: 'spin 1s linear infinite'`，但工程里从没定义过这个 keyframes，
+   两处 spinner 实际是静止的（Tailwind 只在用到 animate-spin 时才注入它）。 */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* 调音器进准锁定闪光环 (C6): 由外向内扩散后淡出 */
+@keyframes tuneFlash {
+  0% { opacity: 0.95; transform: scale(0.9); }
+  100% { opacity: 0; transform: scale(1.08); }
+}
+
+/* ── 硬件页丝印状态 LED 呼吸 (D1): 模块 ON=在信号链上, LED 亮度脉动 ── */
+@keyframes bfxLedBreathe {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+/* ── 云端分轨: 不确定进度条斜纹扫动 ───────────────────────────────────
+   45° 条纹周期 16px, 沿 x 平移 16/cos45°≈22.63px 恰好无缝回环 */
+@keyframes stripeSweep {
+  from { background-position: 0 0; }
+  to { background-position: 22.63px 0; }
+}
+
+/* ══════════ v5.4 交互整改（WO-03/04/10）══════════ */
+/* 长按进度环（走完即触发长按） */
+@keyframes knobLp { to { stroke-dashoffset: 0; } }
+/* 首次可发现提示：呼吸高亮 */
+@keyframes knobHint {
+  0%, 100% { opacity: 0; transform: scale(.92); }
+  50%      { opacity: .55; transform: scale(1.05); }
+}
+/* WO-10 小屏箱体：选择框在小屏改为同行并排，把高度让给线框图 */
+.cab-sel { display: flex; flex-direction: column; gap: 5px; justify-content: center; }
+@media (max-height: 730px) {
+  .cab-sel { flex-direction: row; align-items: stretch; }
+  .cab-sel > div { flex: 1 1 0; min-width: 0; }
+}
+
+/* ══════════ v6 设计系统：交互状态与滚动条统一 ══════════ */
+/* 压感（移动端替代 hover）：所有可点元素统一 active 反馈 */
+.bfx-tap { transition: transform 150ms cubic-bezier(.2,0,0,1), background-color 150ms, border-color 150ms; }
+.bfx-tap:active { transform: scale(.97); }
+/* 焦点环（无障碍必需） */
+.bfx-focus:focus-visible,
+button:focus-visible,
+[role="slider"]:focus-visible,
+[role="switch"]:focus-visible {
+  outline: 2px solid #F06F21;
+  outline-offset: 2px;
+}
+/* 弹窗列表滚动条 */
+.bfx-scroll::-webkit-scrollbar { width: 4px; }
+.bfx-scroll::-webkit-scrollbar-thumb { background: #2E3440; border-radius: 999px; }
+.bfx-scroll::-webkit-scrollbar-track { background: transparent; }
+
+/* ══════════ 面板切换过渡（★ 2026-10-17 用户反馈「切换跳帧闪动」）══════════
+   ① .panel-enter：条件渲染的面板（本地库 / 音色库 / 用户）挂载时淡入上浮，
+      与 StudioPanel / BluetoothPanel 的 opacity+translateY 过渡保持同一手感。
+   ② .panel-flash：每次切换 activePanel 重建一次，深色遮罩快速淡出 ——
+      换个面板时内容会瞬间替换，这一层把"硬切"变成"从暗处浮现"。
+      不拦截点击（pointer-events:none），也不会盖住底部 Dock（z-index 低于 60）。 */
+.panel-enter {
+  animation: panelEnter 200ms cubic-bezier(.2,0,0,1) both;
+  /* ★★ v3.83（P3-4）：**不要**在这里加 will-change ——
+     `will-change: opacity, transform` 会让它永久成为 fixed 子元素的包含块，
+     一旦面板里出现 position:fixed（例如 DropMenu），立刻错位 67px。
+     终帧也必须写 `transform: none`（不是 translateY(0)）—— both 会保留终态，
+     保留任何非 none 的 transform 同样会创建包含块。 */
+}
+@keyframes panelEnter {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.panel-flash {
+  position: absolute;
+  inset: 0;
+  z-index: 55;
+  pointer-events: none;
+  background: #0B0D11;
+  animation: panelFlash 200ms cubic-bezier(.2,0,0,1) both;
+}
+@keyframes panelFlash {
+  from { opacity: 0.85; }
+  to   { opacity: 0; }
+}
+
+/* ══════════ 禁止长按选择 / 复制（★ 2026-10-17 用户反馈）══════════
+   Android WebView 里长按任意文字都会弹「复制/全选」气泡，操作旋钮、点卡片时
+   极易误触。本 App 没有需要长按复制的内容（导出文本走「复制」按钮的 clipboard API），
+   故全局禁用；输入框单独放开，否则本地库重命名/搜索框无法编辑。 */
+html, body, #root {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ══════════ Android 15+ 强制全屏（edge-to-edge）安全区 ══════════
+ * targetSdk 36 起系统强制 App 内容延伸到状态栏/导航栏下方，
+ * 而本工程此前没有任何 env(safe-area-inset-*) —— 顶栏与底部 Dock 会被系统栏压住。
+ * 这里把安全区 padding 放在 #root 上（Index 根容器已改 height:100%），
+ * 这样 absolute 面板也不会盖住安全区。 */
+html, body, #root { height: 100%; }
+#root {
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+input, textarea, [contenteditable="true"] {
+  -webkit-touch-callout: default;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* ══════════ 关闭状态的开关 = 低亮度慢呼吸（★ 2026-10-17 用户要求）══════════
+   关掉的模块整块会被压暗（brightness .5），灯条如果也用深灰就彻底看不见了。
+   所以关态改用「模块主色的低亮度 + 2s 呼吸」：既能一眼找到开关在哪，
+   又不会像开启时那样亮，语义仍是"关着"。 */
+@keyframes ledBreath {
+  0%   { opacity: 0.22; }
+  50%  { opacity: 0.72; }
+  100% { opacity: 0.22; }
+}
+.led-off {
+  animation: ledBreath 2s ease-in-out infinite;
+}
+/* 尊重系统「减少动态效果」设置 */
+@media (prefers-reduced-motion: reduce) {
+  .led-off { animation: none; opacity: 0.45; }
+}
+
+/* ══════════ LOGO 点击反馈（★ 2026-10-17）══════════ */
+@keyframes logoPop {
+  0%   { transform: scale(1); }
+  38%  { transform: scale(0.86); }
+  70%  { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+.logo-pop { animation: logoPop 320ms cubic-bezier(.34,1.3,.64,1); }
+
+/* ══════════ 箱体设备图点击反馈（★ 2026-10-17 用户要求）══════════
+   点产品图 → 一次「按下去再弹回来」的脉冲，让"这一下点到了"有可见回应。
+   每次点按换 key 重播，不依赖 CSS 类名的移除/重加。 */
+@keyframes imgPop {
+  0%   { transform: scale(1); }
+  32%  { transform: scale(0.90); }
+  68%  { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+.img-pop { animation: imgPop 300ms cubic-bezier(.34,1.3,.64,1); }
+
+/* ══════════════════════════════════════════════════════════════════════
+   ★ 2026-10-17 · BFX1 品牌开屏动画（用户要求：开屏使用 LOGO 动画）
+   与原生 splash（Android drawable/splash.png、iOS LaunchScreen）同底色同构图，
+   原生图 → 动画首帧无跳变；动画结束后整层淡出露出主界面。
+   时间轴：logo 0-720ms → 扫光 380-1380ms → 细线 470ms → 字标 700ms → 进度条
+   ────────────────────────────────────────────────────────────────────── */
+.boot-root {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #0d0d0f;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: opacity 380ms ease;
+}
+/* 中央暖光，跟 splash.png 的椭圆光一致 */
+.boot-root::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 130vw;
+  height: 130vw;
+  max-width: 900px;
+  max-height: 900px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(240,111,33,.10) 0%, rgba(240,111,33,.045) 34%, transparent 66%);
+  pointer-events: none;
+}
+.boot-stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translateY(-3vh);
+}
+.boot-logo-wrap {
+  position: relative;
+  width: min(56vw, 232px);
+  animation: bootLogoIn 760ms cubic-bezier(.16,1,.3,1) both;
+}
+.boot-logo {
+  display: block;
+  width: 100%;
+  height: auto;
+  -webkit-user-drag: none;
+}
+/* ★ 2026-10-17（用户反馈「开屏有一个横向飘过去的东西」）：扫光已整体删除。
+   那道从左扫到右的高光虽然精致，但会被读成"有东西飘过去"，关掉更干净。 */
+.boot-rule {
+  height: 1px;
+  margin-top: 30px;
+  background: linear-gradient(90deg, transparent, rgba(240,111,33,.55), transparent);
+  animation: bootRule 560ms cubic-bezier(.16,1,.3,1) 470ms both;
+}
+.boot-word {
+  margin-top: 16px;
+  font-family: "Barlow-Regular_2", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(238,240,243,.5);
+  animation: bootWord 620ms cubic-bezier(.16,1,.3,1) 660ms both;
+}
+.boot-bar {
+  position: absolute;
+  left: 50%;
+  bottom: 13%;
+  transform: translateX(-50%);
+  width: 132px;
+  height: 2px;
+  border-radius: 2px;
+  background: rgba(255,255,255,.07);
+  overflow: hidden;
+}
+.boot-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #c2551a, #F06F21, #ff9d5c);
+  animation: bootBar 3000ms cubic-bezier(.3,.7,.3,1) 120ms both;
+}
+/* ★ 2026-10-18（用户反馈「偏慢、跳得太均匀就太假」）：
+   改成真实物体的**阻尼弹跳**——发力起跳很快，落地后被"弹"回来几次，
+   每次都更矮、更急促，最后落定。
+   真实感的关键在**分段缓动**：每段上升用 ease-out（起步猛、到顶自然减速），
+   每段下落用 ease-in（越接近地面越快），一条 linear 匀速曲线是做不出这种手感的。
+   时间轴（总 1900ms）：171ms 起跳到顶 → 342 落地 → 513 第二峰(-7) → 684 落地
+                        → 836 第三峰(-3) → 988 落地 → 1102 微弹(-1.2) → 1216 落定 */
+.boot-bounce {
+  animation: bootBounce 1900ms linear 760ms 1 both;
+  will-change: transform;
+}
+@keyframes bootBounce {
+  0% {
+    transform: translateY(0) scale(1);
+    animation-timing-function: cubic-bezier(.12,.9,.3,1);      /* 猛发力起跳 */
+  }
+  9% {
+    transform: translateY(-15px) scale(1.03);
+    animation-timing-function: cubic-bezier(.55,0,.88,.42);    /* 到顶 → 越落越快 */
+  }
+  18% {
+    transform: translateY(0) scale(.983);
+    animation-timing-function: cubic-bezier(.12,.9,.3,1);      /* 着地压扁 → 反弹 */
+  }
+  27% {
+    transform: translateY(-7px) scale(1.015);
+    animation-timing-function: cubic-bezier(.55,0,.88,.42);
+  }
+  36% {
+    transform: translateY(0) scale(.993);
+    animation-timing-function: cubic-bezier(.12,.9,.3,1);
+  }
+  44% {
+    transform: translateY(-3px) scale(1.006);
+    animation-timing-function: cubic-bezier(.55,0,.88,.42);
+  }
+  52% {
+    transform: translateY(0) scale(.998);
+    animation-timing-function: cubic-bezier(.2,.8,.4,1);
+  }
+  58% { transform: translateY(-1.2px) scale(1.002); }
+  64%,
+  100% { transform: translateY(0) scale(1); }
+}
+/* 进度条下方的 LOADING 呼吸字 */
+.boot-loading {
+  position: absolute;
+  left: 50%;
+  bottom: calc(13% - 30px);
+  transform: translateX(-50%);
+  font-family: "Barlow-Regular_2", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .42em;
+  text-indent: .42em;
+  color: rgba(240,111,33,.92);
+  animation: bootLoading 1500ms ease-in-out 300ms infinite;
+}
+@keyframes bootLoading {
+  0%, 100% { opacity: .25; }
+  50%      { opacity: .95; }
+}
+@keyframes bootLogoIn {
+  0%   { opacity: 0; transform: scale(.84); filter: blur(11px); }
+  60%  { opacity: 1; filter: blur(0); }
+  100% { opacity: 1; transform: scale(1); filter: blur(0); }
+}
+@keyframes bootRule {
+  0%   { width: 0; opacity: 0; }
+  100% { width: 74px; opacity: 1; }
+}
+@keyframes bootWord {
+  0%   { opacity: 0; letter-spacing: .52em; }
+  100% { opacity: 1; letter-spacing: .34em; }
+}
+@keyframes bootBar {
+  0%   { width: 0; }
+  100% { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .boot-logo-wrap, .boot-bounce, .boot-rule, .boot-word, .boot-bar i { animation-duration: 1ms; }
+}
+
+/* ══════════ 中部大号提示（TONE 键双击 / 长按）★ 2026-10-17 ══════════ */
+@keyframes hintIn {
+  0%   { opacity: 0; transform: scale(.92) translateY(6px); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes hintOut {
+  0%   { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(.97); }
+}
+
+/* ══════════ 蓝牙连接成功：闪烁 → 常亮 + 扩散环 ★ 2026-10-17 ══════════
+   用户要求「连接成功后蓝牙要闪烁并常亮，有一个动态画面告诉用户连接成功，
+   停留 2 秒左右，再进入首页或教程」。 */
+@keyframes btFlash {
+  0%, 100% { opacity: .16; }
+  50%      { opacity: 1; }
+}
+/* ★ v3.68：等待态慢呼吸 —— 「正在连接」用，区别于成功态那三下快闪 */
+@keyframes btBreath {
+  0%, 100% { opacity: .55; }
+  50%      { opacity: 1; }
+}
+@keyframes btRing {
+  0%   { transform: scale(1); opacity: .9; }
+  70%  { opacity: .28; }
+  100% { transform: scale(2.25); opacity: 0; }
+}
+@keyframes connIn {
+  0%   { opacity: 0; transform: scale(.93); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes connBar {
+  0%   { width: 0; }
+  100% { width: 100%; }
+}
+/* 蓝牙页未连接时的设备图呼吸光：沿透明 PNG 的真实轮廓发散（2s 慢呼吸） */
+.dev-breathe {
+  animation: devBreathe 2s ease-in-out infinite;
+}
+/* 点击回弹与呼吸同时存在时必须并列声明，否则后写的会把先写的顶掉
+   （.img-pop 只管 transform、.dev-breathe 只管 filter，两者可以并行） */
+.dev-breathe.img-pop {
+  animation:
+    imgPop 300ms cubic-bezier(.34,1.3,.64,1),
+    devBreathe 2s ease-in-out infinite;
+}
+@keyframes devBreathe {
+  0%, 100% { filter: drop-shadow(0 0 3px rgba(91,200,245,.16)); }
+  50%      { filter: drop-shadow(0 0 15px rgba(91,200,245,.78)) drop-shadow(0 0 34px rgba(91,200,245,.34)); }
+}
+

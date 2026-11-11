@@ -1,0 +1,9 @@
+{
+  "name": "bumpToneCount",
+  "version": "1.0.0",
+  "description": "Increment trialCount / favCount on community tones with admin privileges.",
+  "main": "index.js",
+  "dependencies": {
+    "@cloudbase/node-sdk": "^3.0.0"
+  }
+}

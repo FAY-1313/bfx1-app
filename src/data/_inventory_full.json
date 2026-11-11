@@ -1,0 +1,2984 @@
+{
+ "uiTrimOn": true,
+ "keep": {
+  "cabinet": {
+   "B&F NAM 1966 Bassman with Jensen C12N": [
+    "Cone"
+   ],
+   "B&F NAM 1971 Fender Twin Reverb 2x12 Oxford 12T6-10": [
+    "Distant 24In"
+   ],
+   "B&F NAM BLFR LR 4x10": [
+    "ST170 3.00in 3.0in"
+   ],
+   "B&F NAM Marshall 1960": [
+    "421"
+   ],
+   "B&F NAM Marshall 1972 1960a 4x12 custom": [
+    "Celestian Greenbacks -Airsong"
+   ],
+   "B&F NAM DB FRAMUS 4X12 G12M": [
+    "(无话筒)"
+   ],
+   "B&F NAM Mesa Boogie Rectifier OS 4x12 V30": [
+    "R121/57"
+   ],
+   "B&F NAM Carvin 4x12": [
+    "Eminence Carvin British 100"
+   ],
+   "B&F NAM Orange 4x12 V30 shure57 cn": [
+    "(无话筒)"
+   ],
+   "B&F NAM TJ3 66AC30 SLVR": [
+    "121-545"
+   ],
+   "B&F NAM EVH 5150 iii": [
+    "Airsong"
+   ],
+   "B&F NAM DR Z Maz 38 Sr 2x12": [
+    "G12H anniversary + V30 UK -Airsong"
+   ],
+   "B&F NAM Mesa Recto 212 Karnivore/V30": [
+    "SM57 (vivahatex)"
+   ],
+   "B&F NAM Ampeg 8x10": [
+    "4033 AH"
+   ],
+   "B&F NAM Ampeg B15N": [
+    "SM57 + R121"
+   ],
+   "B&F NAM Ampeg SVT410HLF": [
+    "MD421 + F47"
+   ],
+   "B&F NAM Mesa Powerhouse 410": [
+    "SM57 + MD421"
+   ],
+   "B&F NAM Darkglass DG410C": [
+    "Beta52 A8 + U87 B5"
+   ],
+   "B&F NAM GK RBH 410": [
+    "SM57 + MD421"
+   ],
+   "B&F NAM SWR Goliath": [
+    "SM57 + RE20"
+   ]
+  },
+  "overdrive": {
+   "中频过载": [
+    "TS808",
+    "SD-1"
+   ],
+   "透明过载": [
+    "BD-2"
+   ],
+   "轻过载": [
+    "Klon Centaur"
+   ],
+   "失真态过载": [
+    "RAT"
+   ],
+   "MOSFET 过载": [
+    "OCD"
+   ],
+   "双模过载": [
+    "Plumes"
+   ],
+   "前级 DI": [
+    "SansAmp"
+   ],
+   "贝斯过载": [
+    "B3K"
+   ],
+   "贝斯复古": [
+    "M80"
+   ]
+  },
+  "dist": {
+   "经典失真": [
+    "DS-1"
+   ],
+   "现代金属": [
+    "MT-2"
+   ],
+   "锯条失真": [
+    "HM-2"
+   ],
+   "法兹": [
+    "Big Muff"
+   ],
+   "复古失真": [
+    "Distortion+"
+   ],
+   "贝斯失真法兹": [
+    "Bass Big Muff"
+   ],
+   "贝斯 DG": [
+    "B7K Ultra"
+   ]
+  }
+ },
+ "modules": [
+  {
+   "var": "noiseGate",
+   "id": null,
+   "label": null,
+   "short": null,
+   "subModels": {}
+  },
+  {
+   "var": "compressor",
+   "id": null,
+   "label": null,
+   "short": null,
+   "subModels": {
+    "guitar": [
+     {
+      "id": null,
+      "name": null,
+      "display": null,
+      "group": null,
+      "disabled": null,
+      "knobs": [],
+      "captures": []
+     },
+     {
+      "id": null,
+      "name": null,
+      "display": null,
+      "group": null,
+      "disabled": null,
+      "knobs": [],
+      "captures": []
+     },
+     {
+      "id": null,
+      "name": null,
+      "display": null,
+      "group": null,
+      "disabled": null,
+      "knobs": [],
+      "captures": []
+     },
+     {
+      "id": null,
+      "name": null,
+      "display": null,
+      "group": null,
+      "disabled": null,
+      "knobs": [],
+      "captures": []
+     },
+     {
+      "id": null,
+      "name": null,
+      "display": null,
+      "group": null,
+      "disabled": null,
+      "knobs": [],
+      "captures": []
+     },
+     {
+      "id": null,
+      "name": null,
+      "display": null,
+      "group": null,
+      "disabled": null,
+      "knobs": [],
+      "captures": []
+     }
+    ],
+    "bass": [
+     {
+      "id": null,
+      "name": null,
+      "display": null,
+      "group": null,
+      "disabled": null,
+      "knobs": [],
+      "captures": []
+     },
+     {
+      "id": null,
+      "name": null,
+      "display": null,
+      "group": null,
+      "disabled": null,
+      "knobs": [],
+      "captures": []
+     },
+     {
+      "id": null,
+      "name": null,
+      "display": null,
+      "group": null,
+      "disabled": null,
+      "knobs": [],
+      "captures": []
+     },
+     {
+      "id": null,
+      "name": null,
+      "display": null,
+      "group": null,
+      "disabled": null,
+      "knobs": [],
+      "captures": []
+     },
+     {
+      "id": null,
+      "name": null,
+      "display": null,
+      "group": null,
+      "disabled": null,
+      "knobs": [],
+      "captures": []
+     }
+    ]
+   }
+  },
+  {
+   "var": "boost",
+   "id": null,
+   "label": null,
+   "short": null,
+   "subModels": {}
+  },
+  {
+   "var": "overdrive",
+   "id": "v26-od-mid-boost",
+   "label": "TS808",
+   "short": null,
+   "subModels": {
+    "guitar": [
+     {
+      "id": "v26-od-mid-boost",
+      "name": "中频过载",
+      "display": "TS Series",
+      "group": "TS SERIES",
+      "disabled": false,
+      "knobs": [
+       "DRIVE",
+       "TONE",
+       "LEVEL"
+      ],
+      "captures": [
+       "TS808",
+       "TS9",
+       "SD-1",
+       "Precision Drive",
+       "OD808"
+      ]
+     },
+     {
+      "id": "v26-od-transparent",
+      "name": "透明过载",
+      "display": "BD Series",
+      "group": "TRANSPARENT",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "TONE",
+       "LEVEL"
+      ],
+      "captures": [
+       "BD-2",
+       "OD-3"
+      ]
+     },
+     {
+      "id": "v26-od-light",
+      "name": "轻过载",
+      "display": "Klon Series",
+      "group": "LIGHT OD",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "TREBLE",
+       "OUTPUT"
+      ],
+      "captures": [
+       "Klon Centaur",
+       "Tumnus"
+      ]
+     },
+     {
+      "id": "v26-od-rat",
+      "name": "失真态过载",
+      "display": "RAT Series",
+      "group": "HEAVY OD",
+      "disabled": false,
+      "knobs": [
+       "DISTORTION",
+       "FILTER",
+       "VOLUME"
+      ],
+      "captures": [
+       "RAT",
+       "Turbo RAT"
+      ]
+     },
+     {
+      "id": "v26-od-mosfet",
+      "name": "MOSFET 过载",
+      "display": "OCD Series",
+      "group": "HEAVY OD",
+      "disabled": false,
+      "knobs": [
+       "DRIVE",
+       "TONE",
+       "VOLUME"
+      ],
+      "captures": [
+       "OCD"
+      ]
+     },
+     {
+      "id": "v26-od-marshall",
+      "name": "Marshall 透明",
+      "display": "MG Series",
+      "group": "TRANSPARENT",
+      "disabled": false,
+      "knobs": [
+       "VOLUME",
+       "DRIVE",
+       "TONE"
+      ],
+      "captures": [
+       "Morning Glory"
+      ]
+     },
+     {
+      "id": "v26-od-zw44-od",
+      "name": "轰鸣过载",
+      "display": "ZW Series",
+      "group": "HEAVY OD",
+      "disabled": false,
+      "knobs": [
+       "DISTORTION",
+       "TONE",
+       "LEVEL"
+      ],
+      "captures": [
+       "ZW44"
+      ]
+     },
+     {
+      "id": "v26-od-805-od",
+      "name": "高解析过载",
+      "display": "805 Series",
+      "group": "TRANSPARENT",
+      "disabled": false,
+      "knobs": [
+       "DRIVE",
+       "TONE",
+       "LEVEL"
+      ],
+      "captures": [
+       "805"
+      ]
+     },
+     {
+      "id": "v26-od-dirtytree-od",
+      "name": "紧致过载",
+      "display": "DT Series",
+      "group": "HEAVY OD",
+      "disabled": false,
+      "knobs": [
+       "DRIVE",
+       "TONE",
+       "LEVEL"
+      ],
+      "captures": [
+       "Dirty Tree"
+      ]
+     },
+     {
+      "id": "v26-od-mxr77-od",
+      "name": "英式过载",
+      "display": "MGX Series",
+      "group": "TRANSPARENT",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "TONE",
+       "LEVEL"
+      ],
+      "captures": [
+       "M77"
+      ]
+     },
+     {
+      "id": "v26-od-gladio-od",
+      "name": "双级过载",
+      "display": "4K Series",
+      "group": "LIGHT OD",
+      "disabled": false,
+      "knobs": [
+       "DRIVE",
+       "TONE",
+       "LEVEL"
+      ],
+      "captures": [
+       "Gladio",
+       "Protein",
+       "King of Tone"
+      ]
+     },
+     {
+      "id": "v26-od-plumes-od",
+      "name": "双模过载",
+      "display": "Plumes Series",
+      "group": "MID BOOST",
+      "disabled": false,
+      "knobs": [
+       "DRIVE",
+       "TONE",
+       "LEVEL"
+      ],
+      "captures": [
+       "Plumes"
+      ]
+     }
+    ],
+    "bass": [
+     {
+      "id": "v26-od-bass-di",
+      "name": "前级 DI",
+      "display": "TH Series",
+      "group": "BASS PRE",
+      "disabled": false,
+      "knobs": [
+       "DRIVE",
+       "BASS",
+       "TREBLE",
+       "LEVEL"
+      ],
+      "captures": [
+       "Tone Hammer",
+       "SansAmp",
+       "BASSRIG"
+      ]
+     },
+     {
+      "id": "v26-od-bass-drive",
+      "name": "贝斯过载",
+      "display": "B3K Series",
+      "group": "BASS OD",
+      "disabled": false,
+      "knobs": [
+       "DRIVE",
+       "LEVEL",
+       "TREBLE",
+       "BASS"
+      ],
+      "captures": [
+       "B3K",
+       "Bass Soul Food",
+       "Pork & Pickle"
+      ]
+     },
+     {
+      "id": "v26-od-bass-retro",
+      "name": "贝斯复古",
+      "display": "M80 Series",
+      "group": "BASS RETRO",
+      "disabled": false,
+      "knobs": [
+       "DRIVE",
+       "LOW",
+       "HIGH",
+       "LEVEL"
+      ],
+      "captures": [
+       "M80",
+       "Brassmaster"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "var": "dist",
+   "id": "v26-dist-classic",
+   "label": "DS-1",
+   "short": null,
+   "subModels": {
+    "guitar": [
+     {
+      "id": "v26-dist-classic",
+      "name": "经典失真",
+      "display": "DS Series",
+      "group": "CLASSIC",
+      "disabled": false,
+      "knobs": [
+       "DISTORTION",
+       "TONE",
+       "LEVEL"
+      ],
+      "captures": [
+       "DS-1",
+       "DS-2",
+       "OS-2"
+      ]
+     },
+     {
+      "id": "v26-dist-metal",
+      "name": "现代金属",
+      "display": "MT Series",
+      "group": "METAL",
+      "disabled": false,
+      "knobs": [
+       "DISTORTION",
+       "LOW",
+       "HIGH",
+       "MID",
+       "MID FREQ",
+       "LEVEL"
+      ],
+      "captures": [
+       "MT-2"
+      ]
+     },
+     {
+      "id": "v26-dist-saw",
+      "name": "锯条失真",
+      "display": "HM Series",
+      "group": "METAL",
+      "disabled": false,
+      "knobs": [
+       "DISTORTION",
+       "HIGH",
+       "LOW",
+       "LEVEL"
+      ],
+      "captures": [
+       "HM-2"
+      ]
+     },
+     {
+      "id": "v26-dist-fuzz",
+      "name": "法兹",
+      "display": "Muff Series",
+      "group": "FUZZ",
+      "disabled": false,
+      "knobs": [
+       "DISTORTION",
+       "SCOOP",
+       "LEVEL"
+      ],
+      "captures": [
+       "Big Muff"
+      ]
+     },
+     {
+      "id": "v26-dist-retro",
+      "name": "复古失真",
+      "display": "D+ Series",
+      "group": "RETRO",
+      "disabled": false,
+      "knobs": [
+       "DISTORTION",
+       "VOLUME"
+      ],
+      "captures": [
+       "Distortion+"
+      ]
+     },
+     {
+      "id": "v26-dist-fortin-dist",
+      "name": "Fortin 金属",
+      "display": "Fortin Series",
+      "group": "METAL",
+      "disabled": false,
+      "knobs": [
+       "DISTORTION",
+       "TONE",
+       "LEVEL"
+      ],
+      "captures": [
+       "Grind",
+       "Meshuggah"
+      ]
+     },
+     {
+      "id": "v26-dist-g3-dist",
+      "name": "高增益金属",
+      "display": "G3 Series",
+      "group": "METAL",
+      "disabled": false,
+      "knobs": [
+       "DISTORTION",
+       "TONE",
+       "LEVEL"
+      ],
+      "captures": [
+       "G3"
+      ]
+     },
+     {
+      "id": "v26-dist-am-dist",
+      "name": "美式金属",
+      "display": "AM Series",
+      "group": "METAL",
+      "disabled": false,
+      "knobs": [
+       "DISTORTION",
+       "TONE",
+       "LEVEL"
+      ],
+      "captures": [
+       "FX56",
+       "Rockman X100"
+      ]
+     },
+     {
+      "id": "v26-dist-mm-dist",
+      "name": "重型金属",
+      "display": "MM Series",
+      "group": "METAL",
+      "disabled": false,
+      "knobs": [
+       "DISTORTION",
+       "BASS",
+       "MID",
+       "TREBLE",
+       "LEVEL"
+      ],
+      "captures": [
+       "Metal Muff"
+      ]
+     }
+    ],
+    "bass": [
+     {
+      "id": "v26-dist-bass-fuzz",
+      "name": "贝斯失真法兹",
+      "display": "X7 Series",
+      "group": "BASS FUZZ",
+      "disabled": false,
+      "knobs": [
+       "DISTORTION",
+       "TONE",
+       "LEVEL"
+      ],
+      "captures": [
+       "X7",
+       "Bass Big Muff",
+       "Mastotron"
+      ]
+     },
+     {
+      "id": "v26-dist-dg-dist",
+      "name": "贝斯 DG",
+      "display": "DG Series",
+      "group": "BASS DIST",
+      "disabled": false,
+      "knobs": [
+       "DISTORTION",
+       "BASS",
+       "TREBLE",
+       "LEVEL"
+      ],
+      "captures": [
+       "B7K Ultra",
+       "Ultra V Bass"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "var": "ampHead",
+   "id": "v8-amp-dumble-ods",
+   "label": "ODS",
+   "short": null,
+   "subModels": {
+    "guitar": [
+     {
+      "id": "v8-amp-dumble-ods",
+      "name": "B&F NAM Dumble ODS",
+      "display": "ODS",
+      "group": "CLEAN 清音",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Dumble ODS",
+       "Dumble ODS_2"
+      ]
+     },
+     {
+      "id": "v8-amp-fender-bassman",
+      "name": "B&F NAM Fender Bassman",
+      "display": "Bassman",
+      "group": "CLEAN 清音",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Fender Bassman",
+       "Fender Bassman_2"
+      ]
+     },
+     {
+      "id": "v8-amp-fender-champ",
+      "name": "B&F NAM Fender Champ",
+      "display": "Champ",
+      "group": "CLEAN 清音",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Fender Champ"
+      ]
+     },
+     {
+      "id": "v8-amp-fender-deluxe-reverb",
+      "name": "B&F NAM Fender Deluxe Reverb",
+      "display": "Deluxe Reverb",
+      "group": "CLEAN 清音",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Fender Deluxe Reverb",
+       "Fender Deluxe Reverb_2"
+      ]
+     },
+     {
+      "id": "v8-amp-fender-princeton",
+      "name": "B&F NAM Fender Princeton",
+      "display": "Princeton",
+      "group": "CLEAN 清音",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Fender Princeton",
+       "Fender Princeton_2"
+      ]
+     },
+     {
+      "id": "v8-amp-fender-super-reverb",
+      "name": "B&F NAM Fender Super Reverb",
+      "display": "Super Reverb",
+      "group": "CLEAN 清音",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Fender Super Reverb",
+       "Fender Super Reverb_2"
+      ]
+     },
+     {
+      "id": "v8-amp-fender-twin-reverb",
+      "name": "B&F NAM Fender Twin Reverb",
+      "display": "Twin Reverb",
+      "group": "CLEAN 清音",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Fender Twin Reverb",
+       "Fender Twin Reverb_2"
+      ]
+     },
+     {
+      "id": "v8-amp-hiwatt",
+      "name": "B&F NAM Hiwatt",
+      "display": "DR103",
+      "group": "CLEAN 清音",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Hiwatt",
+       "Hiwatt_2"
+      ]
+     },
+     {
+      "id": "v8-amp-roland-jc120",
+      "name": "B&F NAM Roland JC120",
+      "display": "JC120",
+      "group": "CLEAN 清音",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Roland JC120"
+      ]
+     },
+     {
+      "id": "v8-amp-fender-hot-rod",
+      "name": "B&F NAM Fender Hot Rod",
+      "display": "Hot Rod",
+      "group": "CLEAN 清音",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Fender Hot Rod",
+       "Fender Hot Rod_2"
+      ]
+     },
+     {
+      "id": "v8-amp-friedman-be",
+      "name": "B&F NAM Friedman BE",
+      "display": "BE-100",
+      "group": "CRUNCH 过载",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Friedman BE",
+       "Friedman BE_2"
+      ]
+     },
+     {
+      "id": "v8-amp-marshall-jcm800",
+      "name": "B&F NAM Marshall JCM800",
+      "display": "JCM800",
+      "group": "CRUNCH 过载",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Marshall JCM800",
+       "Marshall JCM800_2"
+      ]
+     },
+     {
+      "id": "v8-amp-marshall-jcm900",
+      "name": "B&F NAM Marshall JCM900",
+      "display": "JCM900",
+      "group": "CRUNCH 过载",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Marshall JCM900",
+       "Marshall JCM900_2"
+      ]
+     },
+     {
+      "id": "v8-amp-marshall-jtm45",
+      "name": "B&F NAM Marshall JTM45",
+      "display": "JTM45",
+      "group": "CRUNCH 过载",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Marshall JTM45",
+       "Marshall JTM45_2"
+      ]
+     },
+     {
+      "id": "v8-amp-marshall-plexi",
+      "name": "B&F NAM Marshall Plexi",
+      "display": "Plexi",
+      "group": "CRUNCH 过载",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Marshall Plexi",
+       "Marshall Plexi_2"
+      ]
+     },
+     {
+      "id": "v8-amp-orange-rockerverb",
+      "name": "B&F NAM Orange Rockerverb",
+      "display": "Rockerverb",
+      "group": "CRUNCH 过载",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Orange Rockerverb",
+       "Orange Rockerverb_2"
+      ]
+     },
+     {
+      "id": "v8-amp-vox-ac15",
+      "name": "B&F NAM Vox AC15",
+      "display": "AC15",
+      "group": "CRUNCH 过载",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "TREBLE",
+       "CUT"
+      ],
+      "captures": [
+       "Vox AC15",
+       "Vox AC15_2"
+      ]
+     },
+     {
+      "id": "v8-amp-vox-ac30",
+      "name": "B&F NAM Vox AC30",
+      "display": "AC30",
+      "group": "CRUNCH 过载",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "TREBLE",
+       "CUT"
+      ],
+      "captures": [
+       "Vox AC30",
+       "Vox AC30_2"
+      ]
+     },
+     {
+      "id": "v8-amp-xotic-bb-preamp",
+      "name": "B&F NAM Xotic BB Preamp",
+      "display": "BB Preamp",
+      "group": "CRUNCH 过载",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER"
+      ],
+      "captures": [
+       "Xotic BB Preamp"
+      ]
+     },
+     {
+      "id": "v8-amp-bogner-ecstasy",
+      "name": "B&F NAM Bogner Ecstasy",
+      "display": "Ecstasy",
+      "group": "HIGH GAIN 高增益",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Bogner Ecstasy",
+       "Bogner Ecstasy_2"
+      ]
+     },
+     {
+      "id": "v8-amp-bogner-uberschall",
+      "name": "B&F NAM Bogner Uberschall",
+      "display": "Uberschall",
+      "group": "HIGH GAIN 高增益",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Bogner Uberschall",
+       "Bogner Uberschall_2"
+      ]
+     },
+     {
+      "id": "v8-amp-diezel-herbert",
+      "name": "B&F NAM Diezel Herbert",
+      "display": "Herbert",
+      "group": "HIGH GAIN 高增益",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Diezel Herbert"
+      ]
+     },
+     {
+      "id": "v8-amp-diezel-vh4",
+      "name": "B&F NAM Diezel VH4",
+      "display": "VH4",
+      "group": "HIGH GAIN 高增益",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Diezel VH4",
+       "Diezel VH4_2"
+      ]
+     },
+     {
+      "id": "v8-amp-engl-fireball",
+      "name": "B&F NAM ENGL Fireball",
+      "display": "Fireball",
+      "group": "HIGH GAIN 高增益",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "ENGL Fireball",
+       "ENGL Fireball_2"
+      ]
+     },
+     {
+      "id": "v8-amp-engl-powerball",
+      "name": "B&F NAM ENGL Powerball",
+      "display": "Powerball",
+      "group": "HIGH GAIN 高增益",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "ENGL Powerball",
+       "ENGL Powerball_2"
+      ]
+     },
+     {
+      "id": "v8-amp-engl-savage",
+      "name": "B&F NAM ENGL Savage",
+      "display": "Savage",
+      "group": "HIGH GAIN 高增益",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "ENGL Savage",
+       "ENGL Savage_2"
+      ]
+     },
+     {
+      "id": "v8-amp-evh-5150iii",
+      "name": "B&F NAM EVH 5150III",
+      "display": "5150III",
+      "group": "HIGH GAIN 高增益",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE",
+       "RESONANCE"
+      ],
+      "captures": [
+       "EVH 5150III",
+       "EVH 5150III_2"
+      ]
+     },
+     {
+      "id": "v8-amp-mesa-dual-rectifier",
+      "name": "B&F NAM Mesa Dual Rectifier",
+      "display": "Dual Rectifier",
+      "group": "HIGH GAIN 高增益",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Mesa Dual Rectifier",
+       "Mesa Dual Rectifier_2"
+      ]
+     },
+     {
+      "id": "v8-amp-mesa-mark",
+      "name": "B&F NAM Mesa Mark",
+      "display": "Mark",
+      "group": "HIGH GAIN 高增益",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Mesa Mark",
+       "Mesa Mark_2"
+      ]
+     },
+     {
+      "id": "v8-amp-soldano-slo",
+      "name": "B&F NAM Soldano SLO",
+      "display": "SLO",
+      "group": "HIGH GAIN 高增益",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Soldano SLO",
+       "Soldano SLO_2"
+      ]
+     },
+     {
+      "id": "v8-amp-prs-archon",
+      "name": "B&F NAM PRS Archon",
+      "display": "Archon",
+      "group": "HIGH GAIN 高增益",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "PRS Archon",
+       "PRS Archon_2"
+      ]
+     },
+     {
+      "id": "v8-amp-peavey-5150",
+      "name": "B&F NAM Peavey 5150",
+      "display": "5150",
+      "group": "HIGH GAIN 高增益",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE",
+       "RESONANCE"
+      ],
+      "captures": [
+       "Peavey 5150",
+       "Peavey 5150_2"
+      ]
+     },
+     {
+      "id": "v8-amp-peavey-6505",
+      "name": "B&F NAM Peavey 6505",
+      "display": "6505",
+      "group": "HIGH GAIN 高增益",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE",
+       "RESONANCE"
+      ],
+      "captures": [
+       "Peavey 6505",
+       "Peavey 6505_2"
+      ]
+     },
+     {
+      "id": "v8-amp-marshall-jvm",
+      "name": "B&F NAM Marshall JVM",
+      "display": "JVM",
+      "group": "HIGH GAIN 高增益",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Marshall JVM",
+       "Marshall JVM_2",
+       "Marshall JVM_3",
+       "Marshall JVM_4",
+       "Marshall JVM_5"
+      ]
+     },
+     {
+      "id": "v8-amp-marshall-jcm2000-dsl",
+      "name": "B&F NAM Marshall JCM2000 DSL",
+      "display": "JCM2000 DSL",
+      "group": "CRUNCH 过载",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Marshall JCM2000 DSL",
+       "Marshall JCM2000 DSL_2",
+       "Marshall JCM2000 DSL_3"
+      ]
+     },
+     {
+      "id": "v8-amp-revv-generator",
+      "name": "B&F NAM Revv Generator",
+      "display": "Generator",
+      "group": "HIGH GAIN 高增益",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Revv Generator",
+       "Revv Generator_2",
+       "Revv Generator_3",
+       "Revv Generator_4",
+       "Revv Generator_5"
+      ]
+     },
+     {
+      "id": "v8-amp-randall-diavlo",
+      "name": "B&F NAM Randall Diavlo",
+      "display": "Randall Diavlo",
+      "group": "HIGH GAIN 高增益",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Randall Diavlo",
+       "Randall Diavlo_2",
+       "Randall Diavlo_3"
+      ]
+     }
+    ],
+    "bass": [
+     {
+      "id": "v8-amp-ampeg-b-18n",
+      "name": "B&F NAM Ampeg B-18N",
+      "display": "B-18N",
+      "group": "箱头",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Ampeg B-18N"
+      ]
+     },
+     {
+      "id": "v8-amp-ampeg-svt-4",
+      "name": "B&F NAM Ampeg SVT-4",
+      "display": "SVT-4",
+      "group": "箱头",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Ampeg SVT-4"
+      ]
+     },
+     {
+      "id": "v8-amp-ampeg-svt-cl",
+      "name": "B&F NAM Ampeg SVT-CL",
+      "display": "SVT-CL",
+      "group": "箱头",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Ampeg SVT-CL"
+      ]
+     },
+     {
+      "id": "v8-amp-ampeg-v2",
+      "name": "B&F NAM Ampeg V2",
+      "display": "V2",
+      "group": "箱头",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Ampeg V2"
+      ]
+     },
+     {
+      "id": "v8-amp-ampeg-v4b",
+      "name": "B&F NAM Ampeg V4B",
+      "display": "V4B",
+      "group": "箱头",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Ampeg V4B"
+      ]
+     },
+     {
+      "id": "v8-amp-eden",
+      "name": "B&F NAM Eden",
+      "display": "WT800",
+      "group": "箱头",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Eden"
+      ]
+     },
+     {
+      "id": "v8-amp-gallien-krueger",
+      "name": "B&F NAM Gallien-Krueger",
+      "display": "800RB",
+      "group": "箱头",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Gallien-Krueger",
+       "Gallien-Krueger_2"
+      ]
+     },
+     {
+      "id": "v8-amp-hartke",
+      "name": "B&F NAM Hartke",
+      "display": "LH500",
+      "group": "箱头",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Hartke",
+       "Hartke_2"
+      ]
+     },
+     {
+      "id": "v8-amp-markbass-little-mark",
+      "name": "B&F NAM Markbass Little Mark",
+      "display": "Little Mark",
+      "group": "箱头",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Markbass Little Mark",
+       "Markbass Little Mark_2"
+      ]
+     },
+     {
+      "id": "v8-amp-mesa-triple-rectifier",
+      "name": "B&F NAM Mesa Triple Rectifier",
+      "display": "Triple Rectifier",
+      "group": "HIGH GAIN 高增益",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Mesa Triple Rectifier",
+       "Mesa Triple Rectifier_2",
+       "Mesa Triple Rectifier_3",
+       "Mesa Triple Rectifier_4",
+       "Mesa Triple Rectifier_5"
+      ]
+     },
+     {
+      "id": "v8-amp-ampeg-v4",
+      "name": "B&F NAM Ampeg V4",
+      "display": "V4",
+      "group": "箱头",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Ampeg V4",
+       "Ampeg V4_2",
+       "Ampeg V4_3",
+       "Ampeg V4_4",
+       "Ampeg V4_5"
+      ]
+     },
+     {
+      "id": "v8-amp-ampeg-b15",
+      "name": "B&F NAM Ampeg B15",
+      "display": "B15",
+      "group": "箱头",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Ampeg B15",
+       "Ampeg B15_2",
+       "Ampeg B15_3",
+       "Ampeg B15_4"
+      ]
+     },
+     {
+      "id": "v8-amp-ampeg-svt",
+      "name": "B&F NAM Ampeg SVT",
+      "display": "SVT",
+      "group": "箱头",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Ampeg SVT",
+       "Ampeg SVT_2",
+       "Ampeg SVT_3",
+       "Ampeg SVT_4"
+      ]
+     },
+     {
+      "id": "v8-amp-fender-rumble",
+      "name": "B&F NAM Fender Rumble",
+      "display": "Rumble",
+      "group": "箱头",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Fender Rumble",
+       "Fender Rumble_2",
+       "Fender Rumble_3"
+      ]
+     },
+     {
+      "id": "v8-amp-gallien-krueger-mb150",
+      "name": "B&F NAM Gallien-Krueger MB150",
+      "display": "MB150",
+      "group": "箱头",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Gallien-Krueger MB150",
+       "Gallien-Krueger MB150_2"
+      ]
+     },
+     {
+      "id": "v8-amp-orange-terror-bass",
+      "name": "B&F NAM Orange Terror Bass",
+      "display": "Terror Bass",
+      "group": "箱头",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Orange Terror Bass"
+      ]
+     },
+     {
+      "id": "v8-amp-darkglass-microtubes-900",
+      "name": "B&F NAM Darkglass Microtubes 900",
+      "display": "M900",
+      "group": "箱头",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Darkglass Microtubes 900"
+      ]
+     },
+     {
+      "id": "v8-amp-mesa-bass-800d",
+      "name": "B&F NAM Mesa Bass 800D",
+      "display": "Bass 800D",
+      "group": "箱头",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Mesa Bass 800D",
+       "Mesa Bass 800D_2",
+       "Mesa Bass 800D_3",
+       "Mesa Bass 800D_4",
+       "Mesa Bass 800D_5"
+      ]
+     },
+     {
+      "id": "v8-amp-mesa-subway-d800",
+      "name": "B&F NAM Mesa Subway D800",
+      "display": "Subway D800",
+      "group": "箱头",
+      "disabled": false,
+      "knobs": [
+       "GAIN",
+       "VOLUME",
+       "MASTER",
+       "BASS",
+       "MIDDLE",
+       "TREBLE",
+       "PRESENCE"
+      ],
+      "captures": [
+       "Mesa Subway D800",
+       "Mesa Subway D800_2",
+       "Mesa Subway D800_3",
+       "Mesa Subway D800_4",
+       "Mesa Subway D800_5"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "var": "cabinet",
+   "id": "v14-cab-dr-z-maz-38-sr-2x12",
+   "label": "G12H anniversary + V30 UK -Airsong",
+   "short": null,
+   "subModels": {
+    "guitar": [
+     {
+      "id": "v14-cab-dr-z-maz-38-sr-2x12",
+      "name": "B&F NAM DR Z Maz 38 Sr 2x12",
+      "display": "DR Z Maz 38 Sr 2x12",
+      "group": "Dr. Z",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "G12H anniversary + V30 UK -Airsong"
+      ]
+     },
+     {
+      "id": "v14-cab-5150-iconic-4x12",
+      "name": "B&F NAM 5150 ICONIC 4X12",
+      "display": "5150 ICONIC 4X12",
+      "group": "EVH",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "(无话筒)"
+      ]
+     },
+     {
+      "id": "v14-cab-5150-iconic-x-fender-hm-4x12",
+      "name": "B&F NAM 5150 ICONIC X FENDER HM 4X12",
+      "display": "5150 ICONIC X FENDER HM 4X12",
+      "group": "EVH",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "(无话筒)"
+      ]
+     },
+     {
+      "id": "v14-cab-carvin-4x12",
+      "name": "B&F NAM Carvin 4x12",
+      "display": "Carvin 4x12",
+      "group": "EVH",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "Eminence Carvin British 100"
+      ]
+     },
+     {
+      "id": "v14-cab-evh-5150-iii",
+      "name": "B&F NAM EVH 5150 iii",
+      "display": "EVH 5150 iii",
+      "group": "EVH",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "Airsong"
+      ]
+     },
+     {
+      "id": "v14-cab-g12-evh-ur-5150iii-4x12",
+      "name": "B&F NAM G12-EVH UR 5150III 4x12",
+      "display": "G12-EVH UR 5150III 4x12",
+      "group": "EVH",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "SM57 2.25in 0.0in VP28",
+       "SM57 1.75in 0.0in CL7603",
+       "SM57 2.00in 0.0in OA30 CL7603"
+      ]
+     },
+     {
+      "id": "v14-cab-1966-bassman-with-jensen-c12n",
+      "name": "B&F NAM 1966 Bassman with Jensen C12N",
+      "display": "1966 Bassman with Jensen C12N",
+      "group": "Fender",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "Cone"
+      ]
+     },
+     {
+      "id": "v14-cab-1966-bassman-with-jensen-c12na",
+      "name": "B&F NAM 1966 Bassman with Jensen C12NA",
+      "display": "1966 Bassman with Jensen C12NA",
+      "group": "Fender",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "Cap",
+       "Cone",
+       "Cap Edge",
+       "Distant 12In",
+       "Distant 24In",
+       "Cap Edge #2",
+       "Cone Edge"
+      ]
+     },
+     {
+      "id": "v14-cab-1970-bassman-cts-sm57-lower",
+      "name": "B&F NAM 1970 Bassman CTS (SM57 Lower)",
+      "display": "1970 Bassman CTS (SM57 Lower)",
+      "group": "Fender",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "Cone Edge",
+       "Cap",
+       "Cap Edge",
+       "Cone"
+      ]
+     },
+     {
+      "id": "v14-cab-1970-bassman-cts-sm57-upper",
+      "name": "B&F NAM 1970 Bassman CTS (SM57 Upper)",
+      "display": "1970 Bassman CTS (SM57 Upper)",
+      "group": "Fender",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "Cap",
+       "Cone",
+       "Cone Edge",
+       "Cap Edge"
+      ]
+     },
+     {
+      "id": "v14-cab-1971-fender-twin-reverb-2x12-oxford-12t6-10",
+      "name": "B&F NAM 1971 Fender Twin Reverb 2x12 Oxford 12T6-10",
+      "display": "1971 Fender Twin Reverb 2x12 Oxford 12T6-10",
+      "group": "Fender",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "Distant 24In",
+       "Cap",
+       "Cap #2",
+       "Cone",
+       "Cap Edge",
+       "Rear 12In",
+       "Cap Edge #2",
+       "Rear 24In"
+      ]
+     },
+     {
+      "id": "v14-cab-blfr-lr-4x10",
+      "name": "B&F NAM BLFR LR 4x10",
+      "display": "BLFR LR 4x10",
+      "group": "Fender",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "ST170 3.00in 3.0in",
+       "ST170 2.00in 3.0in",
+       "SM57 3.25in 0.0in",
+       "ST170 1.00in 3.0in"
+      ]
+     },
+     {
+      "id": "v14-cab-db-fender-jenp10r",
+      "name": "B&F NAM DB FENDER JENP10R",
+      "display": "DB FENDER JENP10R",
+      "group": "Fender",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "Clean"
+      ]
+     },
+     {
+      "id": "v14-cab-deluxe-reverb-oxford",
+      "name": "B&F NAM DELUXE REVERB OXFORD",
+      "display": "DELUXE REVERB OXFORD",
+      "group": "Fender",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "BIG",
+       "LEAN"
+      ]
+     },
+     {
+      "id": "v14-cab-fender-hm-4x12",
+      "name": "B&F NAM FENDER HM 4X12",
+      "display": "FENDER HM 4X12",
+      "group": "Fender",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "(无话筒)"
+      ]
+     },
+     {
+      "id": "v14-cab-fender-bassman-410",
+      "name": "B&F NAM Fender Bassman 410",
+      "display": "Fender Bassman 410",
+      "group": "Fender",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "MD421 + R121"
+      ]
+     },
+     {
+      "id": "v14-cab-fender-bassman-neo-115",
+      "name": "B&F NAM Fender Bassman Neo 115",
+      "display": "Fender Bassman Neo 115",
+      "group": "Fender",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "SM57_Close_OnAxis"
+      ]
+     },
+     {
+      "id": "v14-cab-fender-bassman-neo-410",
+      "name": "B&F NAM Fender Bassman Neo 410",
+      "display": "Fender Bassman Neo 410",
+      "group": "Fender",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "SM57_Close_OnAxis"
+      ]
+     },
+     {
+      "id": "v14-cab-p10r-ur-4x10",
+      "name": "B&F NAM P10R UR 4x10",
+      "display": "P10R UR 4x10",
+      "group": "Fender",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "M160 2.50in 2.0in",
+       "SM57 2.25in 0.0in"
+      ]
+     },
+     {
+      "id": "v14-cab-tf-56-tweed-pro-1x15-c15n",
+      "name": "B&F NAM TF '56 TWEED PRO 1X15 C15N",
+      "display": "TF '56 TWEED PRO 1X15 C15N",
+      "group": "Fender",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "Enhanced"
+      ]
+     },
+     {
+      "id": "v14-cab-tf-66-dr-1x12-jensn-c12na",
+      "name": "B&F NAM TF 66 DR 1X12 JENSN C12NA",
+      "display": "TF 66 DR 1X12 JENSN C12NA",
+      "group": "Fender",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "545 2",
+       "Enhanced",
+       "57 R121 70-30"
+      ]
+     },
+     {
+      "id": "v14-cab-db-framus-4x12-g12m",
+      "name": "B&F NAM DB FRAMUS 4X12 G12M",
+      "display": "DB FRAMUS 4X12 G12M",
+      "group": "Framus",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "(无话筒)"
+      ]
+     },
+     {
+      "id": "v14-cab-db-marshall-4x12-t75",
+      "name": "B&F NAM DB MARSHALL 4X12 T75",
+      "display": "DB MARSHALL 4X12 T75",
+      "group": "Marshall",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "(无话筒)"
+      ]
+     },
+     {
+      "id": "v14-cab-marshall-1960",
+      "name": "B&F NAM Marshall 1960",
+      "display": "Marshall 1960",
+      "group": "Marshall",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "421"
+      ]
+     },
+     {
+      "id": "v14-cab-marshall-1972-1960a-4x12-custom",
+      "name": "B&F NAM Marshall 1972 1960a 4x12 custom",
+      "display": "Marshall 1972 1960a 4x12 custom",
+      "group": "Marshall",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "Celestian Greenbacks -Airsong"
+      ]
+     },
+     {
+      "id": "v14-cab-marshall-4x12-mix-ready",
+      "name": "B&F NAM Marshall 4x12 Mix-Ready",
+      "display": "Marshall 4x12 Mix-Ready",
+      "group": "Marshall",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "(无话筒)"
+      ]
+     },
+     {
+      "id": "v14-cab-marshall-box",
+      "name": "B&F NAM Marshall Box",
+      "display": "Marshall Box",
+      "group": "Marshall",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "906-B",
+       "SM57-C",
+       "906-E",
+       "SM57-E",
+       "SM57-D"
+      ]
+     },
+     {
+      "id": "v14-cab-marshall-jcm900-lead-1960",
+      "name": "B&F NAM Marshall JCM900 LEAD-1960",
+      "display": "Marshall JCM900 LEAD-1960",
+      "group": "Marshall",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "SM57"
+      ]
+     },
+     {
+      "id": "v14-cab-marshall-jcm900-lead-1960-blended-3",
+      "name": "B&F NAM Marshall JCM900 LEAD-1960 BLENDED 3",
+      "display": "Marshall JCM900 LEAD-1960 BLENDED 3",
+      "group": "Marshall",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "(无话筒)"
+      ]
+     },
+     {
+      "id": "v14-cab-marshall-jcm900-lead-1960-sehnneiser",
+      "name": "B&F NAM Marshall JCM900 LEAD-1960 SEHNNEISER",
+      "display": "Marshall JCM900 LEAD-1960 SEHNNEISER",
+      "group": "Marshall",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "e609"
+      ]
+     },
+     {
+      "id": "v14-cab-tj3-69mars412-grn",
+      "name": "B&F NAM TJ3 69Mars412 GRN",
+      "display": "TJ3 69Mars412 GRN",
+      "group": "Marshall",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "121-545"
+      ]
+     },
+     {
+      "id": "v14-cab-db-mesa-4x12-v30",
+      "name": "B&F NAM DB MESA 4X12 V30",
+      "display": "DB MESA 4X12 V30",
+      "group": "Mesa",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "(无话筒)"
+      ]
+     },
+     {
+      "id": "v14-cab-darkdays-mesa2x12-v30",
+      "name": "B&F NAM DarkDays-Mesa2x12-V30",
+      "display": "DarkDays-Mesa2x12-V30",
+      "group": "Mesa",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "edge_1in",
+       "cone_grille"
+      ]
+     },
+     {
+      "id": "v14-cab-darkdays-mesa2x12-v30-mix-balanced",
+      "name": "B&F NAM DarkDays-Mesa2x12-V30 MIX Balanced",
+      "display": "DarkDays-Mesa2x12-V30 MIX Balanced",
+      "group": "Mesa",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "(无话筒)"
+      ]
+     },
+     {
+      "id": "v14-cab-darkdays-mesa2x12-v30-mix-deep",
+      "name": "B&F NAM DarkDays-Mesa2x12-V30 MIX Deep",
+      "display": "DarkDays-Mesa2x12-V30 MIX Deep",
+      "group": "Mesa",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "(无话筒)"
+      ]
+     },
+     {
+      "id": "v14-cab-darkdays-mesa2x12-v30-mix-tight",
+      "name": "B&F NAM DarkDays-Mesa2x12-V30 MIX Tight",
+      "display": "DarkDays-Mesa2x12-V30 MIX Tight",
+      "group": "Mesa",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "(无话筒)"
+      ]
+     },
+     {
+      "id": "v14-cab-mesa-412-os-v30",
+      "name": "B&F NAM Mesa 412 OS v30",
+      "display": "Mesa 412 OS v30",
+      "group": "Mesa",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "sm57 top right 2002",
+       "sm57 top right 2025"
+      ]
+     },
+     {
+      "id": "v14-cab-mesa-boogie-rectifier-os-4x12-v30",
+      "name": "B&F NAM Mesa Boogie Rectifier OS 4x12 V30",
+      "display": "Mesa Boogie Rectifier OS 4x12 V30",
+      "group": "Mesa",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "R121/57"
+      ]
+     },
+     {
+      "id": "v14-cab-mesa-boogie-rectifier-os-v30",
+      "name": "B&F NAM Mesa Boogie Rectifier OS V30",
+      "display": "Mesa Boogie Rectifier OS V30",
+      "group": "Mesa",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "R121/SM57 EQ 2"
+      ]
+     },
+     {
+      "id": "v14-cab-mesa-os-4x12",
+      "name": "B&F NAM Mesa OS 4x12",
+      "display": "Mesa OS 4x12",
+      "group": "Mesa",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "57_m160"
+      ]
+     },
+     {
+      "id": "v14-cab-mesa-oversized-sm57-vr2-5150-power",
+      "name": "B&F NAM Mesa Oversized SM57 VR2 5150 Power",
+      "display": "Mesa Oversized SM57 VR2 5150 Power",
+      "group": "Mesa",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "jp_is_out_of_tune"
+      ]
+     },
+     {
+      "id": "v14-cab-mesa-recto-212-karnivore",
+      "name": "B&F NAM Mesa Recto 212 Karnivore",
+      "display": "Mesa Recto 212 Karnivore",
+      "group": "Mesa",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "SM57 (vivahatex)"
+      ]
+     },
+     {
+      "id": "v14-cab-mesa-recto-212-karnivore-dv77",
+      "name": "B&F NAM Mesa Recto 212 Karnivore/DV77",
+      "display": "Mesa Recto 212 Karnivore/DV77",
+      "group": "Mesa",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "SM57 (vivahatex)"
+      ]
+     },
+     {
+      "id": "v14-cab-mesa-recto-212-karnivore-swamp-thang",
+      "name": "B&F NAM Mesa Recto 212 Karnivore/Swamp Thang",
+      "display": "Mesa Recto 212 Karnivore/Swamp Thang",
+      "group": "Mesa",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "SM57 (vivahatex)"
+      ]
+     },
+     {
+      "id": "v14-cab-mesa-recto-212-karnivore-v30",
+      "name": "B&F NAM Mesa Recto 212 Karnivore/V30",
+      "display": "Mesa Recto 212 Karnivore/V30",
+      "group": "Mesa",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "SM57 (vivahatex)"
+      ]
+     },
+     {
+      "id": "v14-cab-pj-mesa-rectifier-4x12-pg-27-pos-3",
+      "name": "B&F NAM PJ Mesa Rectifier 4x12 pg 27 pos 3",
+      "display": "PJ Mesa Rectifier 4x12 pg 27 pos 3",
+      "group": "Mesa",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "(无话筒)"
+      ]
+     },
+     {
+      "id": "v14-cab-pj-mesa-rectifier-4x12-sm",
+      "name": "B&F NAM PJ Mesa Rectifier 4x12 sm",
+      "display": "PJ Mesa Rectifier 4x12 sm",
+      "group": "Mesa",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "57 pos 1L",
+       "57 pos 3",
+       "57 pos 1LO",
+       "57 pos 2"
+      ]
+     },
+     {
+      "id": "v14-cab-room-left-mesa-oversized-at2020",
+      "name": "B&F NAM Room Left Mesa Oversized AT2020",
+      "display": "Room Left Mesa Oversized AT2020",
+      "group": "Mesa",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "jp_is_out_of_tune"
+      ]
+     },
+     {
+      "id": "v14-cab-room-right-mesa-oversized-at2020",
+      "name": "B&F NAM Room Right Mesa Oversized AT2020",
+      "display": "Room Right Mesa Oversized AT2020",
+      "group": "Mesa",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "jp_is_out_of_tune"
+      ]
+     },
+     {
+      "id": "v14-cab-tf-mesa-st-4x12a-v30",
+      "name": "B&F NAM TF MESA ST 4X12A V30",
+      "display": "TF MESA ST 4X12A V30",
+      "group": "Mesa",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "421 U5 3",
+       "Enhanced",
+       "Top Boost"
+      ]
+     },
+     {
+      "id": "v14-cab-db-orange-ppc-4x12-v30",
+      "name": "B&F NAM DB ORANGE PPC 4X12 V30",
+      "display": "DB ORANGE PPC 4X12 V30",
+      "group": "Orange",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "(无话筒)"
+      ]
+     },
+     {
+      "id": "v14-cab-o412st-v30-03",
+      "name": "B&F NAM O412st - V30-03",
+      "display": "O412st - V30-03",
+      "group": "Orange",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "05 (eoc-)_dc",
+       "01 (c)_dc",
+       "05 (eoc-)_dc #2",
+       "01 (c)_dc #2"
+      ]
+     },
+     {
+      "id": "v14-cab-o412st-v30-03-v7x",
+      "name": "B&F NAM O412st - V30-03 - V7X",
+      "display": "O412st - V30-03 - V7X",
+      "group": "Orange",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "03 (eoc+)_dc"
+      ]
+     },
+     {
+      "id": "v14-cab-orange-2x12-v30",
+      "name": "B&F NAM Orange 2x12 V30",
+      "display": "Orange 2x12 V30",
+      "group": "Orange",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "SM57 A",
+       "e906 D",
+       "SM57 D"
+      ]
+     },
+     {
+      "id": "v14-cab-orange-2x12-v30-rm700-d",
+      "name": "B&F NAM Orange 2x12 V30 RM700 D",
+      "display": "Orange 2x12 V30 RM700 D",
+      "group": "Orange",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "(无话筒)"
+      ]
+     },
+     {
+      "id": "v14-cab-orange-2x12-v30-rm700-e",
+      "name": "B&F NAM Orange 2x12 V30 RM700 E",
+      "display": "Orange 2x12 V30 RM700 E",
+      "group": "Orange",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "(无话筒)"
+      ]
+     },
+     {
+      "id": "v14-cab-orange-4x12-v30-shure57-cn",
+      "name": "B&F NAM Orange 4x12 V30 shure57 cn",
+      "display": "Orange 4x12 V30 shure57 cn",
+      "group": "Orange",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "(无话筒)"
+      ]
+     },
+     {
+      "id": "v14-cab-orange-ppc212-2x12-vintage-30-s-early-uk-airsong",
+      "name": "B&F NAM Orange ppc212 2x12 -vintage 30's early UK- AIrsong",
+      "display": "Orange ppc212 2x12 -vintage 30's early UK- AIrsong",
+      "group": "Orange",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "(无话筒)"
+      ]
+     },
+     {
+      "id": "v14-cab-tf-orange-4x12-v30",
+      "name": "B&F NAM TF ORANGE 4X12 V30",
+      "display": "TF ORANGE 4X12 V30",
+      "group": "Orange",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "BETA",
+       "017 TUBE 3",
+       "421 U5 M160 70-30",
+       "Enhanced"
+      ]
+     },
+     {
+      "id": "v14-cab-tj3-70orng412-h30",
+      "name": "B&F NAM TJ3 70ORNG412 H30",
+      "display": "TJ3 70ORNG412 H30",
+      "group": "Orange",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "121-545"
+      ]
+     },
+     {
+      "id": "v14-cab-tf-64-ac30-2x12-blue",
+      "name": "B&F NAM TF 64 AC30 2X12 BLUE",
+      "display": "TF 64 AC30 2X12 BLUE",
+      "group": "Vox",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "57 R121 70-30"
+      ]
+     },
+     {
+      "id": "v14-cab-tj3-66ac30-slvr",
+      "name": "B&F NAM TJ3 66AC30 SLVR",
+      "display": "TJ3 66AC30 SLVR",
+      "group": "Vox",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "121-545"
+      ]
+     },
+     {
+      "id": "v14-cab-vox-ac50-2x12-with-goodmans-241",
+      "name": "B&F NAM VOX AC50 2x12 With Goodmans 241",
+      "display": "VOX AC50 2x12 With Goodmans 241",
+      "group": "Vox",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "(无话筒)"
+      ]
+     }
+    ],
+    "bass": [
+     {
+      "id": "v14-cab-ampeg-8x10",
+      "name": "B&F NAM Ampeg 8x10",
+      "display": "Ampeg 8x10",
+      "group": "Ampeg",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "4033 AH",
+       "57 AH",
+       "D6 AH",
+       "e602 A107"
+      ]
+     },
+     {
+      "id": "v14-cab-ampeg-b15n",
+      "name": "B&F NAM Ampeg B15N",
+      "display": "Ampeg B15N",
+      "group": "Ampeg",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "SM57 + R121"
+      ]
+     },
+     {
+      "id": "v14-cab-ampeg-svt410hlf",
+      "name": "B&F NAM Ampeg SVT410HLF",
+      "display": "Ampeg SVT410HLF",
+      "group": "Ampeg",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "MD421 + F47"
+      ]
+     },
+     {
+      "id": "v14-cab-ampeg-v9",
+      "name": "B&F NAM Ampeg V9",
+      "display": "Ampeg V9",
+      "group": "Ampeg",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "SM57 1 + R121 3"
+      ]
+     },
+     {
+      "id": "v14-cab-dean-svt-crossover",
+      "name": "B&F NAM Dean SVT Crossover",
+      "display": "Dean SVT Crossover",
+      "group": "Ampeg",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "4x10 Subkick + P10"
+      ]
+     },
+     {
+      "id": "v14-cab-ashdown-abm-bp1510",
+      "name": "B&F NAM Ashdown ABM BP1510",
+      "display": "Ashdown ABM BP1510",
+      "group": "Ashdown",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "Se4400a + BD300"
+      ]
+     },
+     {
+      "id": "v14-cab-darkglass-dg410c",
+      "name": "B&F NAM Darkglass DG410C",
+      "display": "Darkglass DG410C",
+      "group": "Darkglass",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "Beta52 A8 + U87 B5"
+      ]
+     },
+     {
+      "id": "v14-cab-eden-nemesis-410",
+      "name": "B&F NAM Eden Nemesis 410",
+      "display": "Eden Nemesis 410",
+      "group": "Eden",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "SM57 + SE441"
+      ]
+     },
+     {
+      "id": "v14-cab-gk-rbh-410",
+      "name": "B&F NAM GK RBH 410",
+      "display": "GK RBH 410",
+      "group": "Gallien-Krueger",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "SM57 + MD421"
+      ]
+     },
+     {
+      "id": "v14-cab-mesa-powerhouse-215",
+      "name": "B&F NAM Mesa Powerhouse 215",
+      "display": "Mesa Powerhouse 215",
+      "group": "Mesa",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "SM57 + MD421"
+      ]
+     },
+     {
+      "id": "v14-cab-mesa-powerhouse-410",
+      "name": "B&F NAM Mesa Powerhouse 410",
+      "display": "Mesa Powerhouse 410",
+      "group": "Mesa",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "SM57 + MD421"
+      ]
+     },
+     {
+      "id": "v14-cab-mesa-powerhouse-410-215",
+      "name": "B&F NAM Mesa Powerhouse 410+215",
+      "display": "Mesa Powerhouse 410+215",
+      "group": "Mesa",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "SM57 + RE20"
+      ]
+     },
+     {
+      "id": "v14-cab-peavey-115bx",
+      "name": "B&F NAM Peavey 115BX",
+      "display": "Peavey 115BX",
+      "group": "Peavey",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "BD300 + D11L"
+      ]
+     },
+     {
+      "id": "v14-cab-peavey-215-bw",
+      "name": "B&F NAM Peavey 215 BW",
+      "display": "Peavey 215 BW",
+      "group": "Peavey",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "Se4400a"
+      ]
+     },
+     {
+      "id": "v14-cab-science-215-kappalite-3015",
+      "name": "B&F NAM Science 215 Kappalite 3015",
+      "display": "Science 215 Kappalite 3015",
+      "group": "Science",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "SM57 + RE20"
+      ]
+     },
+     {
+      "id": "v14-cab-science-610",
+      "name": "B&F NAM Science 610",
+      "display": "Science 610",
+      "group": "Science",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "SM57 + MD421"
+      ]
+     },
+     {
+      "id": "v14-cab-science-610-215-pr400",
+      "name": "B&F NAM Science 610+215 PR400",
+      "display": "Science 610+215 PR400",
+      "group": "Science",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "RE20 + U87"
+      ]
+     },
+     {
+      "id": "v14-cab-swr-goliath",
+      "name": "B&F NAM SWR Goliath",
+      "display": "SWR Goliath",
+      "group": "SWR",
+      "disabled": false,
+      "knobs": [],
+      "captures": [
+       "SM57 + RE20"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "var": "chorus",
+   "id": null,
+   "label": null,
+   "short": null,
+   "subModels": {
+    "guitar": [
+     {
+      "id": null,
+      "name": null,
+      "display": null,
+      "group": null,
+      "disabled": null,
+      "knobs": [],
+      "captures": []
+     },
+     {
+      "id": null,
+      "name": null,
+      "display": null,
+      "group": null,
+      "disabled": null,
+      "knobs": [],
+      "captures": []
+     },
+     {
+      "id": null,
+      "name": null,
+      "display": null,
+      "group": null,
+      "disabled": null,
+      "knobs": [],
+      "captures": []
+     },
+     {
+      "id": null,
+      "name": null,
+      "display": null,
+      "group": null,
+      "disabled": null,
+      "knobs": [],
+      "captures": []
+     }
+    ],
+    "bass": [
+     {
+      "id": null,
+      "name": null,
+      "display": null,
+      "group": null,
+      "disabled": null,
+      "knobs": [],
+      "captures": []
+     },
+     {
+      "id": null,
+      "name": null,
+      "display": null,
+      "group": null,
+      "disabled": null,
+      "knobs": [],
+      "captures": []
+     }
+    ]
+   }
+  },
+  {
+   "var": "delay",
+   "id": null,
+   "label": null,
+   "short": null,
+   "subModels": {
+    "guitar": [
+     {
+      "id": null,
+      "name": null,
+      "display": null,
+      "group": null,
+      "disabled": null,
+      "knobs": [],
+      "captures": []
+     },
+     {
+      "id": null,
+      "name": null,
+      "display": null,
+      "group": null,
+      "disabled": null,
+      "knobs": [],
+      "captures": []
+     }
+    ],
+    "bass": [
+     {
+      "id": null,
+      "name": null,
+      "display": null,
+      "group": null,
+      "disabled": null,
+      "knobs": [],
+      "captures": []
+     },
+     {
+      "id": null,
+      "name": null,
+      "display": null,
+      "group": null,
+      "disabled": null,
+      "knobs": [],
+      "captures": []
+     }
+    ]
+   }
+  },
+  {
+   "var": "reverb",
+   "id": null,
+   "label": null,
+   "short": null,
+   "subModels": {
+    "guitar": [
+     {
+      "id": null,
+      "name": null,
+      "display": null,
+      "group": null,
+      "disabled": null,
+      "knobs": [],
+      "captures": []
+     },
+     {
+      "id": null,
+      "name": null,
+      "display": null,
+      "group": null,
+      "disabled": null,
+      "knobs": [],
+      "captures": []
+     },
+     {
+      "id": null,
+      "name": null,
+      "display": null,
+      "group": null,
+      "disabled": null,
+      "knobs": [],
+      "captures": []
+     },
+     {
+      "id": null,
+      "name": null,
+      "display": null,
+      "group": null,
+      "disabled": null,
+      "knobs": [],
+      "captures": []
+     },
+     {
+      "id": null,
+      "name": null,
+      "display": null,
+      "group": null,
+      "disabled": null,
+      "knobs": [],
+      "captures": []
+     },
+     {
+      "id": null,
+      "name": null,
+      "display": null,
+      "group": null,
+      "disabled": null,
+      "knobs": [],
+      "captures": []
+     }
+    ],
+    "bass": [
+     {
+      "id": null,
+      "name": null,
+      "display": null,
+      "group": null,
+      "disabled": null,
+      "knobs": [],
+      "captures": []
+     },
+     {
+      "id": null,
+      "name": null,
+      "display": null,
+      "group": null,
+      "disabled": null,
+      "knobs": [],
+      "captures": []
+     }
+    ]
+   }
+  }
+ ]
+}

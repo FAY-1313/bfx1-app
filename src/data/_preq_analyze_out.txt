@@ -1,0 +1,240 @@
+total data rows: 211
+
+=== 目录分布 ===
+  pedal_soft: 40
+  pedal_hard: 51
+  amp: 120
+
+=== 原型分布 ===
+
+[amp]
+  A-HIGAIN-TIGHT: 31
+  A-MARSHALL: 22
+  A-FENDER-SCOOP: 15
+  A-BASS-FLAT: 10
+  A-SLO: 8
+  A-VOX: 7
+  A-BASS-HIFI: 6
+  A-FENDER-SMALL: 4
+  A-BASS-DRIVE: 4
+  A-ORANGE: 4
+  未分类: 4
+  A-HIGAIN-FULL: 2
+  A-MESA-RECTO: 2
+  A-MESA-MARK: 1
+
+[pedal_hard]
+  D-MID: 21
+  D-SCOOP: 18
+  D-HM2: 10
+  D-BASS: 2
+
+[pedal_soft]
+  O-TS: 11
+  O-CENTAUR: 11
+  O-SD: 5
+  O-BB: 3
+  O-FORTIN: 3
+  O-RAT: 2
+  O-PLUMES: 2
+  O-PRECISION: 2
+  O-SANSA: 1
+
+=== 每原型唯一 PEQ 组合数 ===
+
+[amp]
+  A-HIGAIN-TIGHT: 31 rows, 3 unique PEQ combos
+  A-MARSHALL: 22 rows, 3 unique PEQ combos
+  A-FENDER-SCOOP: 15 rows, 2 unique PEQ combos
+  A-BASS-FLAT: 10 rows, 1 unique PEQ combos
+  A-SLO: 8 rows, 1 unique PEQ combos
+  A-VOX: 7 rows, 3 unique PEQ combos
+  A-BASS-HIFI: 6 rows, 1 unique PEQ combos
+  A-FENDER-SMALL: 4 rows, 2 unique PEQ combos
+  A-BASS-DRIVE: 4 rows, 1 unique PEQ combos
+  A-ORANGE: 4 rows, 1 unique PEQ combos
+  未分类: 4 rows, 1 unique PEQ combos
+  A-HIGAIN-FULL: 2 rows, 1 unique PEQ combos
+  A-MESA-RECTO: 2 rows, 1 unique PEQ combos
+  A-MESA-MARK: 1 rows, 1 unique PEQ combos
+
+[pedal_hard]
+  D-MID: 21 rows, 2 unique PEQ combos
+  D-SCOOP: 18 rows, 1 unique PEQ combos
+  D-HM2: 10 rows, 1 unique PEQ combos
+  D-BASS: 2 rows, 1 unique PEQ combos
+
+[pedal_soft]
+  O-TS: 11 rows, 4 unique PEQ combos
+  O-CENTAUR: 11 rows, 1 unique PEQ combos
+  O-SD: 5 rows, 1 unique PEQ combos
+  O-BB: 3 rows, 1 unique PEQ combos
+  O-FORTIN: 3 rows, 1 unique PEQ combos
+  O-RAT: 2 rows, 1 unique PEQ combos
+  O-PLUMES: 2 rows, 1 unique PEQ combos
+  O-PRECISION: 2 rows, 1 unique PEQ combos
+  O-SANSA: 1 rows, 1 unique PEQ combos
+
+=== 每个原型首行 ===
+
+[pedal_soft] O-TS | Tube Screamer 中频隆起+低切高切
+  PEQ1: LowShelf 694Hz -4.0dB Q=0.71 S=0.71 -> 0x510645C9
+  PEQ2: Peak 721Hz 3.0dB Q=0.79 S=0.71 -> 0x50C875D8
+  PEQ3: Peak 2000Hz 0.0dB Q=0.71 S=0.71 -> 0x50A78780
+  PEQ4: HighShelf 5040Hz -4.0dB Q=0.71 S=0.71 -> 0x51064902
+
+[pedal_soft] O-BB | Blues Breaker 透明
+  PEQ1: LowShelf 297Hz -1.0dB Q=0.71 S=0.71 -> 0x51073469
+  PEQ2: Peak 794Hz 1.0dB Q=0.5 S=0.71 -> 0x5047D600
+  PEQ3: Peak 2520Hz 0.0dB Q=0.71 S=0.71 -> 0x50A787E0
+  PEQ4: HighShelf 8000Hz -2.0dB Q=0.71 S=0.71 -> 0x5106E9C2
+
+[pedal_soft] O-SD | SD-1 透明过载略亮
+  PEQ1: LowShelf 794Hz -3.0dB Q=0.71 S=0.71 -> 0x51069601
+  PEQ2: Peak 908Hz 2.0dB Q=0.79 S=0.71 -> 0x50C82638
+  PEQ3: Peak 2520Hz 0.0dB Q=0.71 S=0.71 -> 0x50A787E0
+  PEQ4: HighShelf 5990Hz -3.0dB Q=0.71 S=0.71 -> 0x5106994A
+
+[pedal_soft] O-CENTAUR | Klon 透明轻微中频
+  PEQ1: LowShelf 149Hz -1.0dB Q=0.71 S=0.71 -> 0x51073349
+  PEQ2: Peak 1000Hz 2.0dB Q=0.5 S=0.71 -> 0x50482660
+  PEQ3: Peak 3000Hz 1.0dB Q=0.71 S=0.71 -> 0x50A7D828
+  PEQ4: HighShelf 8000Hz -2.0dB Q=0.71 S=0.71 -> 0x5106E9C2
+
+[pedal_soft] O-RAT | RAT 中频凹陷粗糙
+  PEQ1: LowShelf 595Hz -2.0dB Q=0.71 S=0.71 -> 0x5106E589
+  PEQ2: Peak 1000Hz -2.0dB Q=1.0 S=0.71 -> 0x5106E660
+  PEQ3: Peak 3000Hz 0.0dB Q=0.71 S=0.71 -> 0x50A78828
+  PEQ4: HighShelf 4000Hz -3.0dB Q=0.71 S=0.71 -> 0x510698A2
+
+[pedal_soft] O-SANSA | SansAmp 平衡
+  PEQ1: LowShelf 120Hz -1.0dB Q=0.71 S=0.71 -> 0x510732F1
+  PEQ2: Peak 595Hz 1.0dB Q=0.59 S=0.71 -> 0x5077D588
+  PEQ3: Peak 2000Hz 0.0dB Q=0.71 S=0.71 -> 0x50A78780
+  PEQ4: HighShelf 6990Hz -2.0dB Q=0.71 S=0.71 -> 0x5106E98A
+
+[pedal_soft] O-PLUMES | Plumes TS变体
+  PEQ1: LowShelf 694Hz -3.0dB Q=0.71 S=0.71 -> 0x510695C9
+  PEQ2: Peak 1000Hz 3.0dB Q=0.79 S=0.71 -> 0x50C87660
+  PEQ3: Peak 3000Hz 1.0dB Q=0.71 S=0.71 -> 0x50A7D828
+  PEQ4: HighShelf 5990Hz -3.0dB Q=0.71 S=0.71 -> 0x5106994A
+
+[pedal_soft] O-FORTIN | DirtyTree 紧致攻击
+  PEQ1: LowShelf 198Hz -2.0dB Q=0.71 S=0.71 -> 0x5106E3C1
+  PEQ2: Peak 794Hz 2.0dB Q=0.71 S=0.71 -> 0x50A82600
+  PEQ3: Peak 2520Hz 1.0dB Q=0.71 S=0.71 -> 0x50A7D7E0
+  PEQ4: HighShelf 5990Hz -3.0dB Q=0.71 S=0.71 -> 0x5106994A
+
+[pedal_soft] O-PRECISION | Precision Drive 紧致现代
+  PEQ1: LowShelf 250Hz -3.0dB Q=0.71 S=0.71 -> 0x51069421
+  PEQ2: Peak 1000Hz 3.0dB Q=0.71 S=0.71 -> 0x50A87660
+  PEQ3: Peak 3000Hz 1.0dB Q=0.71 S=0.71 -> 0x50A7D828
+  PEQ4: HighShelf 6990Hz -2.0dB Q=0.71 S=0.71 -> 0x5106E98A
+
+[pedal_hard] D-BASS | 贝斯失真保留低频
+  PEQ1: LowShelf 149Hz 0.0dB Q=0.71 S=0.71 -> 0x51078349
+  PEQ2: Peak 500Hz 2.0dB Q=0.59 S=0.71 -> 0x50782540
+  PEQ3: Peak 1500Hz 0.0dB Q=0.71 S=0.71 -> 0x50A78708
+  PEQ4: HighShelf 5040Hz -2.0dB Q=0.71 S=0.71 -> 0x5106E902
+
+[pedal_hard] D-MID | DS-1 中频凹陷
+  PEQ1: LowShelf 397Hz -1.0dB Q=0.71 S=0.71 -> 0x510734E1
+  PEQ2: Peak 1000Hz -3.599999999999998dB Q=1.0 S=0.71 -> 0x51066660
+  PEQ3: Peak 3000Hz 1.0dB Q=0.71 S=0.71 -> 0x50A7D828
+  PEQ4: HighShelf 4000Hz -2.0dB Q=0.71 S=0.71 -> 0x5106E8A2
+
+[pedal_hard] D-HM2 | HM-2 电锯中频
+  PEQ1: LowShelf 1000Hz -6.0dB Q=0.71 S=0.71 -> 0x5105A661
+  PEQ2: Peak 1000Hz 6.0dB Q=1.5 S=0.71 -> 0x51796660
+  PEQ3: Peak 2000Hz 0.0dB Q=0.71 S=0.71 -> 0x50A78780
+  PEQ4: HighShelf 2520Hz -5.0dB Q=0.71 S=0.71 -> 0x5105F7E2
+
+[pedal_hard] D-SCOOP | MT-2 大幅中频凹陷
+  PEQ1: LowShelf 347Hz 1.0dB Q=0.71 S=0.71 -> 0x5107D4A9
+  PEQ2: Peak 794Hz -6.0dB Q=1.19 S=0.71 -> 0x5135A600
+  PEQ3: Peak 3000Hz 0.0dB Q=0.71 S=0.71 -> 0x50A78828
+  PEQ4: HighShelf 5040Hz -2.0dB Q=0.71 S=0.71 -> 0x5106E902
+
+[amp] A-MARSHALL | Marshall 中频隆起
+  PEQ1: LowShelf 180Hz -1.0dB Q=0.71 S=0.71 -> 0x51073399
+  PEQ2: Peak 1000Hz 2.400000000000002dB Q=0.59 S=0.71 -> 0x50784660
+  PEQ3: Peak 3000Hz 1.0dB Q=0.71 S=0.71 -> 0x50A7D828
+  PEQ4: HighShelf 5990Hz -2.3999999999999986dB Q=0.71 S=0.71 -> 0x5106C94A
+
+[amp] A-HIGAIN-TIGHT | 紧致高增益低切
+  PEQ1: LowShelf 297Hz -2.0dB Q=0.71 S=0.71 -> 0x5106E469
+  PEQ2: Peak 1000Hz 1.0dB Q=0.59 S=0.71 -> 0x5077D660
+  PEQ3: Peak 3000Hz 1.0dB Q=0.71 S=0.71 -> 0x50A7D828
+  PEQ4: HighShelf 8000Hz -1.0dB Q=0.71 S=0.71 -> 0x510739C2
+
+[amp] A-FENDER-SMALL | Champ 小功率中频
+  PEQ1: LowShelf 120Hz -1.0dB Q=0.71 S=0.71 -> 0x510732F1
+  PEQ2: Peak 794Hz 2.400000000000002dB Q=0.59 S=0.71 -> 0x50784600
+  PEQ3: Peak 2520Hz 0.0dB Q=0.71 S=0.71 -> 0x50A787E0
+  PEQ4: HighShelf 5990Hz -3.3999999999999986dB Q=0.71 S=0.71 -> 0x5106794A
+
+[amp] A-FENDER-SCOOP | Fender 清音平坦
+  PEQ1: LowShelf 99.0Hz 0.0dB Q=0.71 S=0.71 -> 0x510782A1
+  PEQ2: Peak 794Hz 1.0dB Q=0.5 S=0.71 -> 0x5047D600
+  PEQ3: Peak 2520Hz 0.0dB Q=0.71 S=0.71 -> 0x50A787E0
+  PEQ4: HighShelf 8000Hz -2.0dB Q=0.71 S=0.71 -> 0x5106E9C2
+
+[amp] A-BASS-HIFI | 贝斯HIFI
+  PEQ1: LowShelf 80.3Hz 0.0dB Q=0.71 S=0.71 -> 0x51078249
+  PEQ2: Peak 500Hz 1.0dB Q=0.5 S=0.71 -> 0x5047D540
+  PEQ3: Peak 2000Hz 1.0dB Q=0.71 S=0.71 -> 0x50A7D780
+  PEQ4: HighShelf 6990Hz -1.0dB Q=0.71 S=0.71 -> 0x5107398A
+
+[amp] A-BASS-FLAT | 贝斯平坦
+  PEQ1: LowShelf 99.0Hz 0.0dB Q=0.71 S=0.71 -> 0x510782A1
+  PEQ2: Peak 297Hz 1.0dB Q=0.5 S=0.71 -> 0x5047D468
+  PEQ3: Peak 1000Hz 0.0dB Q=0.71 S=0.71 -> 0x50A78660
+  PEQ4: HighShelf 5040Hz -2.0dB Q=0.71 S=0.71 -> 0x5106E902
+
+[amp] A-BASS-DRIVE | 贝斯过载
+  PEQ1: LowShelf 149Hz 0.0dB Q=0.71 S=0.71 -> 0x51078349
+  PEQ2: Peak 500Hz 2.0dB Q=0.59 S=0.71 -> 0x50782540
+  PEQ3: Peak 1500Hz 1.0dB Q=0.71 S=0.71 -> 0x50A7D708
+  PEQ4: HighShelf 5040Hz -2.0dB Q=0.71 S=0.71 -> 0x5106E902
+
+[amp] A-HIGAIN-FULL | Hiwatt 清亮饱满
+  PEQ1: LowShelf 99.0Hz 0.0dB Q=0.71 S=0.71 -> 0x510782A1
+  PEQ2: Peak 794Hz 1.0dB Q=0.5 S=0.71 -> 0x5047D600
+  PEQ3: Peak 2520Hz 1.0dB Q=0.71 S=0.71 -> 0x50A7D7E0
+  PEQ4: HighShelf 8980Hz -2.0dB Q=0.71 S=0.71 -> 0x5106E9F2
+
+[amp] A-VOX | Vox chime 中高频
+  PEQ1: LowShelf 198Hz -1.0dB Q=0.71 S=0.71 -> 0x510733C1
+  PEQ2: Peak 2000Hz 3.0dB Q=0.59 S=0.71 -> 0x50787780
+  PEQ3: Peak 4000Hz 1.0dB Q=0.71 S=0.71 -> 0x50A7D8A0
+  PEQ4: HighShelf 10100Hz -2.0dB Q=0.71 S=0.71 -> 0x5106EA22
+
+[amp] A-ORANGE | Orange 中低频厚高频暗
+  PEQ1: LowShelf 120Hz 1.0dB Q=0.71 S=0.71 -> 0x5107D2F1
+  PEQ2: Peak 397Hz 2.0dB Q=0.59 S=0.71 -> 0x507824E0
+  PEQ3: Peak 1500Hz 0.0dB Q=0.71 S=0.71 -> 0x50A78708
+  PEQ4: HighShelf 4000Hz -3.0dB Q=0.71 S=0.71 -> 0x510698A2
+
+[amp] A-SLO | Soldano 紧致中频
+  PEQ1: LowShelf 250Hz -1.0dB Q=0.71 S=0.71 -> 0x51073421
+  PEQ2: Peak 794Hz 3.0dB Q=0.71 S=0.71 -> 0x50A87600
+  PEQ3: Peak 2520Hz 0.0dB Q=0.71 S=0.71 -> 0x50A787E0
+  PEQ4: HighShelf 6990Hz -2.0dB Q=0.71 S=0.71 -> 0x5106E98A
+
+[amp] A-MESA-RECTO | Rectifier 厚低频中凹
+  PEQ1: LowShelf 149Hz 1.6000000000000014dB Q=0.71 S=0.71 -> 0x51080349
+  PEQ2: Peak 500Hz -2.0dB Q=0.79 S=0.71 -> 0x50C6E540
+  PEQ3: Peak 2000Hz 0.0dB Q=0.71 S=0.71 -> 0x50A78780
+  PEQ4: HighShelf 5040Hz -3.599999999999998dB Q=0.71 S=0.71 -> 0x51066902
+
+[amp] A-MESA-MARK | Mark 中频可调
+  PEQ1: LowShelf 180Hz 0.40000000000000213dB Q=0.71 S=0.71 -> 0x5107A399
+  PEQ2: Peak 749Hz 2.0dB Q=0.71 S=0.71 -> 0x50A825E8
+  PEQ3: Peak 2520Hz 1.0dB Q=0.71 S=0.71 -> 0x50A7D7E0
+  PEQ4: HighShelf 5990Hz -2.0dB Q=0.71 S=0.71 -> 0x5106E94A
+
+[amp] 未分类 | 通用高增益
+  PEQ1: LowShelf 250Hz -1.0dB Q=0.71 S=0.71 -> 0x51073421
+  PEQ2: Peak 1000Hz 1.0dB Q=0.59 S=0.71 -> 0x5077D660
+  PEQ3: Peak 3000Hz 1.0dB Q=0.71 S=0.71 -> 0x50A7D828
+  PEQ4: HighShelf 6990Hz -2.0dB Q=0.71 S=0.71 -> 0x5106E98A

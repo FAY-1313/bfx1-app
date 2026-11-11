@@ -1,0 +1,67 @@
+==== OVERDRIVE (81-230) ====
+  id=nam-b-f-nam-od-3                           group=过载             name=B&F NAM OD-3
+  id=nam-b-f-nam-sd-1                           group=过载             name=B&F NAM SD-1
+  id=nam-b-f-nam-browne-protein                 group=过载             name=B&F NAM Browne Protein
+  id=nam-b-f-nam-plumes                         group=合并             name=B&F NAM Plumes
+  id=nam-b-f-nam-fortin-dirty-tree              group=过载             name=B&F NAM Fortin Dirty Tree
+  id=nam-b-f-nam-ts808                          group=过载             name=B&F NAM TS808
+  id=nam-b-f-nam-ts9                            group=过载             name=B&F NAM TS9
+  id=nam-b-f-nam-tube-screamer                  group=过载             name=B&F NAM Tube Screamer
+  id=nam-b-f-nam-king-of-tone-bluesbreaker      group=过载             name=B&F NAM King of Tone Bluesbreaker
+  id=nam-b-f-nam-centaur                        group=过载             name=B&F NAM Centaur
+  id=nam-b-f-nam-ly-pedals-gladio               group=过载             name=B&F NAM Ly Pedals Gladio
+  id=nam-b-f-nam-mxr-m77                        group=过载             name=B&F NAM MXR M77
+  id=nam-b-f-nam-zw44-wylde-overdrive           group=过载             name=B&F NAM ZW44 Wylde Overdrive
+  id=nam-b-f-nam-od808                          group=过载             name=B&F NAM OD808
+  id=nam-b-f-nam-od9                            group=过载             name=B&F NAM OD9
+  id=nam-b-f-nam-st9pro                         group=过载             name=B&F NAM ST9Pro+
+  id=nam-b-f-nam-mezzabarba-mzero-od            group=过载             name=B&F NAM Mezzabarba MZero OD
+  id=nam-b-f-nam-proco-rat                      group=过载             name=B&F NAM Proco RAT
+  id=nam-b-f-nam-turbo-rat                      group=过载             name=B&F NAM Turbo RAT
+  id=nam-b-f-nam-seymour-duncan-805             group=过载             name=B&F NAM Seymour Duncan 805
+  id=nam-b-f-nam-sansamp                        group=合并             name=B&F NAM SansAmp
+  id=nam-b-f-nam-bb-preamp                      group=过载             name=B&F NAM BB Preamp
+
+==== DIST (231-363) ====
+  id=nam-b-f-nam-ds-1                           group=失真             name=B&F NAM DS-1
+  id=nam-b-f-nam-ds-2                           group=失真             name=B&F NAM DS-2
+  id=nam-b-f-nam-hm-2                           group=失真             name=B&F NAM HM-2
+  id=nam-b-f-nam-mt-2                           group=失真             name=B&F NAM MT-2
+  id=nam-b-f-nam-metal-muff                     group=失真             name=B&F NAM Metal Muff
+  id=nam-b-f-nam-os-2                           group=失真             name=B&F NAM OS-2
+  id=nam-b-f-nam-rockman-sustainor-dist         group=失真             name=B&F NAM Rockman Sustainor Dist
+  id=nam-b-f-nam-dod-fx56-american-metal        group=失真             name=B&F NAM DOD FX56 American Metal
+  id=nam-b-f-nam-grind                          group=失真             name=B&F NAM Grind
+  id=nam-b-f-nam-meshuggah                      group=失真             name=B&F NAM Meshuggah
+  id=nam-b-f-nam-204-distortion                 group=失真             name=B&F NAM 204 Distortion+
+  id=nam-b-f-nam-distortion                     group=失真             name=B&F NAM Distortion+
+  id=nam-b-f-nam-rockman-x100-dist              group=失真             name=B&F NAM Rockman X100 Dist
+  id=nam-b-f-nam-grind-2                        group=失真             name=B&F NAM Grind 2
+  id=nam-b-f-nam-marshall-guvnor                group=失真             name=B&F NAM Marshall Guvnor
+  id=nam-b-f-nam-g3                             group=失真             name=B&F NAM G3
+  id=nam-b-f-nam-darkglass-b7k-ultra-2          group=失真             name=B&F NAM Darkglass B7K Ultra 2
+  id=nam-b-f-nam-darkglass-ultra-v-bass         group=失真             name=B&F NAM Darkglass Ultra V Bass
+  id=nam-b-f-nam-mxr-m80-bass-di-2              group=失真             name=B&F NAM MXR M80 Bass DI 2
+
+==== AMP-HEAD (364-...) ====
+  id=nam-b-f-nam-ecstasy                        group=HIGH-GAIN      name=B&F NAM Ecstasy
+  id=nam-b-f-nam-uberschall                     group=HIGH-GAIN      name=B&F NAM Uberschall
+  id=nam-b-f-nam-herbert                        group=HIGH-GAIN      name=B&F NAM Herbert
+  id=nam-b-f-nam-vh4                            group=HIGH-GAIN      name=B&F NAM VH4
+  id=nam-b-f-nam-fireball                       group=HIGH-GAIN      name=B&F NAM Fireball
+  id=nam-b-f-nam-powerball                      group=HIGH-GAIN      name=B&F NAM Powerball
+  id=nam-b-f-nam-savage                         group=HIGH-GAIN      name=B&F NAM Savage
+  id=nam-b-f-nam-5150-iii                       group=HIGH-GAIN      name=B&F NAM 5150 III
+  id=nam-b-f-nam-bassman                        group=CLEAN          name=B&F NAM Bassman
+  id=nam-b-f-nam-champ                          group=CLEAN          name=B&F NAM Champ
+  id=nam-b-f-nam-princeton                      group=CLEAN          name=B&F NAM Princeton
+  id=nam-b-f-nam-twin-reverb                    group=CLEAN          name=B&F NAM Twin Reverb
+  id=nam-b-f-nam-friedman                       group=DRIVE          name=B&F NAM Friedman
+  id=nam-b-f-nam-horizon-precision-drive        group=DRIVE          name=B&F NAM Horizon Precision Drive
+  id=nam-b-f-nam-jcm2000-dsl                    group=DRIVE          name=B&F NAM JCM2000 DSL
+  id=nam-b-f-nam-jcm800                         group=DRIVE          name=B&F NAM JCM800
+  id=nam-b-f-nam-jcm900                         group=DRIVE          name=B&F NAM JCM900
+  id=nam-b-f-nam-jvm                            group=HIGH-GAIN      name=B&F NAM JVM
+  id=nam-b-f-nam-plexi                          group=HIGH-GAIN      name=B&F NAM Plexi
+  id=nam-b-f-nam-mesa-dual-rectifier            group=HIGH-GAIN      name=B&F NAM Mesa Dual Rectifier
+

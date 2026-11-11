@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- TestFlight / App Store 分发 -->
+    <key>method</key>
+    <string>app-store</string>
+    <!-- CI 会自动把 YOUR_TEAM_ID 替换为 secrets.APPLE_TEAM_ID -->
+    <key>teamID</key>
+    <string>YOUR_TEAM_ID</string>
+    <key>signingStyle</key>
+    <string>manual</string>
+    <!-- 现代 Xcode 不再支持 bitcode -->
+    <key>uploadBitcode</key>
+    <false/>
+    <key>stripSwiftSymbols</key>
+    <true/>
+    <key>uploadSymbols</key>
+    <true/>
+</dict>
+</plist>

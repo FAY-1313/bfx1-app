@@ -1,0 +1,3 @@
+=== pedalData.ts total size: 83368 ===
+--- count of entries mentioning PRE PEQ regs 44-47 ---
+mentions of 44: 24, 45: 5, 46: 7, 47: 8, 53: 6, 54: 0, 55: 6, 56: 12

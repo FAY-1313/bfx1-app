@@ -1,0 +1,9 @@
+{
+  "name": "seedOfficial",
+  "version": "1.0.0",
+  "description": "Upsert official tones into the tones collection with admin privileges.",
+  "main": "index.js",
+  "dependencies": {
+    "@cloudbase/node-sdk": "^3.0.0"
+  }
+}

@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <!-- ★ v3.78 bilingual: Chinese system shows Chinese name -->
+    <string name="app_name">BFX-1 音色处理器</string>
+    <string name="title_activity_main">BFX-1 音色处理器</string>
+    <string name="package_name">com.bfx1.processor</string>
+    <string name="custom_url_scheme">com.bfx1.processor</string>
+</resources>

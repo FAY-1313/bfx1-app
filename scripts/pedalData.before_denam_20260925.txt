@@ -1,0 +1,615 @@
+export type PlayMode = 'guitar' | 'bass';
+
+export interface SubModel {
+  id: string;
+  /** 数据名 (组合键/预设键/id 依据, 保持稳定避免预设迁移) */
+  name: string;
+  /** UI 显示名: B&F NAM + 品牌+型号 (较 name 更长, 仅用于展示) */
+  display?: string;
+  knobs: string[];
+  group?: string;
+  color?: string;
+  accentColor?: string;
+  /** 禁用选项: 灰色不可选 (贝斯过载/失真) */
+  disabled?: boolean;
+  speakerLabel?: string;
+  /** 三旋钮布局: 'row'=一排(默认), 'tri'=上2下1 两排 */
+  layout?: 'row' | 'tri';
+  // 两级结构: captures 为硬件型号下的位置快照列表 (组合键 = "name/pos")
+  captures?: { pos: string; label?: string }[];
+}
+
+export interface ModuleConfig {
+  id: string;
+  label: string;
+  shortLabel: string;
+  hasSubModels: boolean;
+  subModels?: { guitar: SubModel[]; bass: SubModel[] };
+  knobs?: string[];
+  bodyColor?: string;
+  accentColor?: string;
+}
+
+// ─── Unified Color Palette ────────────────────────────────────────────
+// Compressor   → Blue (#5588cc accent)
+// Overdrive    → Green (#58b868 accent)
+// Boost        → Deep green/Orange (#2a4030/#f0a040 accent)
+// Amp Head     → Amber (#e0a040 accent)
+// Cabinet      → Warm brown (#cc9966 accent)
+// Chorus       → Teal (#40c0c0 accent)
+// Delay        → Sky blue (#48b0e0 accent)
+// Reverb       → Violet (#8060d0 accent)
+// Noise Gate   → Mint (#50d080 accent)
+
+// ─── 1. Noise Gate ────────────────────────────────────────────────────
+const noiseGate: ModuleConfig = {
+  id: 'noise-gate', label: 'Noise Gate', shortLabel: 'GATE',
+  hasSubModels: false, knobs: ['THRESHOLD'],
+  bodyColor: '#2a4030', accentColor: '#50d080',
+};
+
+// ─── 2. Compressor (Blue) ─────────────────────────────────────────────
+const compressor: ModuleConfig = {
+  id: 'compressor', label: 'Compressor', shortLabel: 'COMP',
+  hasSubModels: true,
+  subModels: {
+    guitar: [
+      { id: 'mxr-dyna',   name: 'B&F Dyna Comp',             knobs: ['SUSTAIN', 'OUTPUT'],                           color: '#384860', accentColor: '#6098d8' },
+      { id: 'boss-cs2',   name: 'B&F CS-2',                  knobs: ['SUSTAIN', 'LEVEL', 'ATTACK'],                 color: '#3a4c62', accentColor: '#5c90d4' },
+      { id: 'la2a',       name: 'B&F LA-2A',           knobs: ['PEAK REDUCTION', 'GAIN'],                     color: '#385060', accentColor: '#6098d0' },
+      { id: 'urei-1176',  name: 'B&F 1176 Rev A',            knobs: ['INPUT', 'OUTPUT', 'ATTACK', 'RELEASE', 'RATIO'], color: '#384a64', accentColor: '#5688d8' },
+      { id: 'neve-33609', name: 'B&F 33609',                 knobs: ['THRESHOLD', 'ATTACK', 'RECOVERY', 'RATIO', 'MAKEUP'], color: '#384860', accentColor: '#5888cc' },
+      { id: 'distressor', name: 'B&F Distressor',  knobs: ['INPUT', 'ATTACK', 'RELEASE', 'RATIO', 'OUTPUT'], color: '#3a4660', accentColor: '#5a84cc' },
+    ],
+    bass: [
+      { id: 'dbx-163-b',  name: 'B&F 163',                   knobs: ['COMPRESSION', 'GAIN'],                        color: '#384c62', accentColor: '#5a8cd4' },
+      { id: 'summit-tla', name: 'B&F TLA-50',       knobs: ['THRESHOLD', 'ATTACK', 'RELEASE', 'RATIO', 'GAIN'], color: '#3a4860', accentColor: '#5688d0' },
+      { id: 'keeley-bass',name: 'B&F Bassist',            knobs: ['THRESHOLD', 'RATIO', 'GAIN'],                  color: '#384460', accentColor: '#5884cc' },
+      { id: 'manley-vari',name: 'B&F Vari-Mu',            knobs: ['THRESHOLD', 'ATTACK', 'RELEASE', 'RATIO', 'GAIN'], color: '#3a4862', accentColor: '#5688d4' },
+      { id: 'ebs-multi',  name: 'B&F Multicomp',             knobs: ['THRESHOLD', 'RATIO', 'GAIN'],                  color: '#384a64', accentColor: '#5890d8' },
+    ],
+  },
+};
+
+// ─── 3. Boost (PGA input gain, single knob) ───────────────────────────
+const boost: ModuleConfig = {
+  id: 'boost', label: 'Boost', shortLabel: 'BOOST',
+  hasSubModels: false,
+  knobs: ['BOOST'],
+  bodyColor: '#2a4030', accentColor: '#f0a040',
+};
+
+// ─── 4. Overdrive (Green) — v27 型号化: 6 吉他系 + 3 贝斯系, Slot B 列系列内具体型号 ───
+const overdrive: ModuleConfig = {
+  id: 'overdrive', label: 'Overdrive', shortLabel: 'OD',
+  hasSubModels: true,
+  subModels: {
+    guitar: [
+      { id: "v26-od-mid-boost",   group: "TS SERIES",  name: "中频过载",    display: "TS Series",    knobs: ["DRIVE", "TONE", "LEVEL"], color: "#3c5838", accentColor: "#f0a040", disabled: false, captures: [
+        { pos: "TS808", label: "TS808" }, { pos: "TS9", label: "TS9" }, { pos: "SD-1", label: "SD-1" }, { pos: "Precision Drive", label: "Precision Drive" },
+        { pos: "OD808", label: "OD808" },
+      ] },
+      { id: "v26-od-transparent", group: "TRANSPARENT",  name: "透明过载",    display: "BD Series",    knobs: ["GAIN", "TONE", "LEVEL"], color: "#3c5838", accentColor: "#f0a040", disabled: false, captures: [
+        { pos: "BD-2", label: "BD-2" }, { pos: "OD-3", label: "OD-3" },
+      ] },
+      { id: "v26-od-light",       group: "LIGHT OD",  name: "轻过载",      display: "Klon Series",      knobs: ["GAIN", "TREBLE", "OUTPUT"], color: "#3c5838", accentColor: "#f0a040", disabled: false, captures: [
+        { pos: "Klon Centaur", label: "Klon Centaur" }, { pos: "Tumnus", label: "Tumnus" },
+      ] },
+      { id: "v26-od-rat",         group: "HEAVY OD",  name: "失真态过载",  display: "RAT Series",  knobs: ["DISTORTION", "FILTER", "VOLUME"], color: "#3c5838", accentColor: "#f0a040", disabled: false, captures: [
+        { pos: "RAT", label: "RAT" },
+        { pos: "Turbo RAT", label: "Turbo RAT" },
+      ] },
+      { id: "v26-od-mosfet",      group: "HEAVY OD",  name: "MOSFET 过载", display: "OCD Series", knobs: ["DRIVE", "TONE", "VOLUME"], color: "#3c5838", accentColor: "#f0a040", disabled: false, captures: [
+        { pos: "OCD", label: "OCD" },
+      ] },
+      { id: "v26-od-marshall",    group: "TRANSPARENT",  name: "Marshall 透明", display: "MG Series", knobs: ["VOLUME", "DRIVE", "TONE"], color: "#3c5838", accentColor: "#f0a040", disabled: false, captures: [
+        { pos: "Morning Glory", label: "Morning Glory" },
+      ] },
+      { id: "v26-od-zw44-od", group: "HEAVY OD", name: "轰鸣过载", display: "ZW Series", knobs: ["DISTORTION", "TONE", "LEVEL"], color: "#3c5838", accentColor: "#f0a040", disabled: false, captures: [
+        { pos: "ZW44", label: "ZW44" },
+      ] },
+      { id: "v26-od-805-od", group: "TRANSPARENT", name: "高解析过载", display: "805 Series", knobs: ["DRIVE", "TONE", "LEVEL"], color: "#3c5838", accentColor: "#f0a040", disabled: false, captures: [
+        { pos: "805", label: "805" },
+      ] },
+      { id: "v26-od-dirtytree-od", group: "HEAVY OD", name: "紧致过载", display: "DT Series", knobs: ["DRIVE", "TONE", "LEVEL"], color: "#3c5838", accentColor: "#f0a040", disabled: false, captures: [
+        { pos: "Dirty Tree", label: "Dirty Tree" },
+      ] },
+      { id: "v26-od-mxr77-od", group: "TRANSPARENT", name: "英式过载", display: "MGX Series", knobs: ["GAIN", "TONE", "LEVEL"], color: "#3c5838", accentColor: "#f0a040", disabled: false, captures: [
+        { pos: "M77", label: "M77" },
+      ] },
+      { id: "v26-od-gladio-od", group: "LIGHT OD", name: "双级过载", display: "4K Series", knobs: ["DRIVE", "TONE", "LEVEL"], color: "#3c5838", accentColor: "#f0a040", disabled: false, captures: [
+        { pos: "Gladio", label: "Gladio" }, { pos: "Protein", label: "Protein" }, { pos: "King of Tone", label: "King of Tone" },
+      ] },
+      { id: "v26-od-plumes-od", group: "MID BOOST", name: "双模过载", display: "Plumes Series", knobs: ["DRIVE", "TONE", "LEVEL"], color: "#3c5838", accentColor: "#f0a040", disabled: false, captures: [
+        { pos: "Plumes", label: "Plumes" },
+      ] },
+    ],
+    bass: [
+      { id: "v26-od-bass-di",     group: "BASS PRE",    name: "前级 DI",     display: "TH Series",     knobs: ["DRIVE", "BASS", "TREBLE", "LEVEL"], color: "#3c5838", accentColor: "#f0a040", disabled: false, captures: [
+        { pos: "Tone Hammer", label: "Tone Hammer" }, { pos: "SansAmp", label: "SansAmp" }, { pos: "BASSRIG", label: "BASSRIG" },
+      ] },
+      { id: "v26-od-bass-drive",  group: "BASS OD",name: "贝斯过载",    display: "B3K Series",    knobs: ["DRIVE", "LEVEL", "TREBLE", "BASS"], color: "#3c5838", accentColor: "#f0a040", disabled: false, captures: [
+        { pos: "B3K", label: "B3K" }, { pos: "Bass Soul Food", label: "Bass Soul Food" }, { pos: "Pork & Pickle", label: "Pork & Pickle" },
+      ] },
+      { id: "v26-od-bass-retro",  group: "BASS RETRO",name: "贝斯复古",    display: "M80 Series",    knobs: ["DRIVE", "LOW", "HIGH", "LEVEL"], color: "#3c5838", accentColor: "#f0a040", disabled: false, captures: [
+        { pos: "M80", label: "M80" }, { pos: "Brassmaster", label: "Brassmaster" },
+      ] },
+    ],
+  },
+};
+
+// ─── 5. Distortion (独立 DIST 单块模块, v27 型号化: 5 吉他系 + 1 贝斯系, Slot B 列系列内具体型号) ─────
+const dist: ModuleConfig = {
+  id: 'dist', label: 'Distortion', shortLabel: 'DIST',
+  hasSubModels: true,
+  subModels: {
+    guitar: [
+      { id: "v26-dist-classic", group: "CLASSIC", name: "经典失真",   display: "DS Series",   knobs: ["DISTORTION", "TONE", "LEVEL"], color: "#40241a", accentColor: "#e87040", disabled: false, captures: [
+        { pos: "DS-1", label: "DS-1" }, { pos: "DS-2", label: "DS-2" }, { pos: "OS-2", label: "OS-2" },
+      ] },
+      { id: "v26-dist-metal",   group: "METAL",    name: "现代金属",   display: "MT Series",   knobs: ["DISTORTION", "LOW", "HIGH", "MID", "MID FREQ", "LEVEL"], color: "#40241a", accentColor: "#e87040", disabled: false, captures: [
+        { pos: "MT-2", label: "MT-2" },
+      ] },
+      { id: "v26-dist-saw",     group: "METAL", name: "锯条失真",   display: "HM Series",   knobs: ["DISTORTION", "HIGH", "LOW", "LEVEL"], color: "#40241a", accentColor: "#e87040", disabled: false, captures: [
+        { pos: "HM-2", label: "HM-2" },
+      ] },
+      { id: "v26-dist-fuzz",    group: "FUZZ",    name: "法兹",       display: "Muff Series",       knobs: ["DISTORTION", "SCOOP", "LEVEL"], color: "#40241a", accentColor: "#e87040", disabled: false, captures: [
+        { pos: "Big Muff", label: "Big Muff" },
+      ] },
+      { id: "v26-dist-retro",   group: "RETRO", name: "复古失真",   display: "D+ Series",   knobs: ["DISTORTION", "VOLUME"], color: "#40241a", accentColor: "#e87040", disabled: false, captures: [
+        { pos: "Distortion+", label: "Distortion+" },
+      ] },
+      { id: "v26-dist-fortin-dist", group: "METAL", name: "Fortin 金属", display: "Fortin Series", knobs: ["DISTORTION", "TONE", "LEVEL"], color: "#40241a", accentColor: "#e87040", disabled: false, captures: [
+        { pos: "Grind", label: "Grind" }, { pos: "Meshuggah", label: "Meshuggah" },
+      ] },
+      { id: "v26-dist-g3-dist", group: "METAL", name: "高增益金属", display: "G3 Series", knobs: ["DISTORTION", "TONE", "LEVEL"], color: "#40241a", accentColor: "#e87040", disabled: false, captures: [
+        { pos: "G3", label: "G3" },
+      ] },
+      { id: "v26-dist-am-dist", group: "METAL", name: "美式金属", display: "AM Series", knobs: ["DISTORTION", "TONE", "LEVEL"], color: "#40241a", accentColor: "#e87040", disabled: false, captures: [
+        { pos: "FX56", label: "FX56" }, { pos: "Rockman X100", label: "Rockman X100" },
+      ] },
+      { id: "v26-dist-mm-dist", group: "METAL", name: "重型金属", display: "MM Series", knobs: ["DISTORTION", "BASS", "MID", "TREBLE", "LEVEL"], color: "#40241a", accentColor: "#e87040", disabled: false, captures: [
+        { pos: "Metal Muff", label: "Metal Muff" },
+      ] },
+    ],
+    bass: [
+      { id: "v26-dist-bass-fuzz", group: "BASS FUZZ", name: "贝斯失真法兹", display: "X7 Series", knobs: ["DISTORTION", "TONE", "LEVEL"], color: "#40241a", accentColor: "#e87040", disabled: false, captures: [
+        { pos: "X7", label: "X7" }, { pos: "Bass Big Muff", label: "Bass Big Muff" }, { pos: "Mastotron", label: "Mastotron" },
+      ] },
+      { id: "v26-dist-dg-dist", group: "BASS DIST", name: "贝斯 DG", display: "DG Series", knobs: ["DISTORTION", "BASS", "TREBLE", "LEVEL"], color: "#40241a", accentColor: "#e87040", disabled: false, captures: [
+        { pos: "B7K Ultra", label: "B7K Ultra" }, { pos: "Ultra V Bass", label: "Ultra V Bass" },
+      ] },
+    ],
+  },
+  bodyColor: '#3c4038', accentColor: '#e08040',
+};
+
+// ─── 6. Amp Head (B&F NAM 两级: 硬件 + 位置快照) ──────────────────────
+const ampHead: ModuleConfig = {
+  id: 'amp-head', label: 'Amp Head', shortLabel: 'AMP',
+  hasSubModels: true,
+  subModels: {
+    guitar: [
+      { id: "v8-amp-dumble-ods", group: "CLEAN 清音", name: "B&F NAM Dumble ODS", display: "B&F NAM ODS", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "Dumble ODS", label: "ODS" }, { pos: "Dumble ODS_2", label: "ODS_2" },
+      ] },
+      { id: "v8-amp-fender-bassman", group: "CLEAN 清音", name: "B&F NAM Fender Bassman", display: "B&F NAM Bassman", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "Fender Bassman", label: "Bassman" }, { pos: "Fender Bassman_2", label: "Bassman_2" },
+      ] },
+      { id: "v8-amp-fender-champ", group: "CLEAN 清音", name: "B&F NAM Fender Champ", display: "B&F NAM Champ", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "Fender Champ", label: "Champ" },
+      ] },
+      { id: "v8-amp-fender-deluxe-reverb", group: "CLEAN 清音", name: "B&F NAM Fender Deluxe Reverb", display: "B&F NAM Deluxe Reverb", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "Fender Deluxe Reverb", label: "Deluxe Reverb" }, { pos: "Fender Deluxe Reverb_2", label: "Deluxe Reverb_2" },
+      ] },
+      { id: "v8-amp-fender-princeton", group: "CLEAN 清音", name: "B&F NAM Fender Princeton", display: "B&F NAM Princeton", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "Fender Princeton", label: "Princeton" }, { pos: "Fender Princeton_2", label: "Princeton_2" },
+      ] },
+      { id: "v8-amp-fender-super-reverb", group: "CLEAN 清音", name: "B&F NAM Fender Super Reverb", display: "B&F NAM Super Reverb", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "Fender Super Reverb", label: "Super Reverb" }, { pos: "Fender Super Reverb_2", label: "Super Reverb_2" },
+      ] },
+      { id: "v8-amp-fender-twin-reverb", group: "CLEAN 清音", name: "B&F NAM Fender Twin Reverb", display: "B&F NAM Twin Reverb", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "Fender Twin Reverb", label: "Twin Reverb" }, { pos: "Fender Twin Reverb_2", label: "Twin Reverb_2" },
+      ] },
+      { id: "v8-amp-hiwatt", group: "CLEAN 清音", name: "B&F NAM Hiwatt", display: "B&F NAM DR103", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "Hiwatt", label: "DR103" }, { pos: "Hiwatt_2", label: "DR103_2" },
+      ] },
+      { id: "v8-amp-roland-jc120", group: "CLEAN 清音", name: "B&F NAM Roland JC120", display: "B&F NAM JC120", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "Roland JC120", label: "JC120" },
+      ] },
+      { id: "v8-amp-fender-hot-rod", group: "CLEAN 清音", name: "B&F NAM Fender Hot Rod", display: "B&F NAM Hot Rod", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "Fender Hot Rod", label: "Hot Rod" }, { pos: "Fender Hot Rod_2", label: "Hot Rod_2" },
+      ] },
+      { id: "v8-amp-friedman-be", group: "CRUNCH 过载", name: "B&F NAM Friedman BE", display: "B&F NAM BE-100", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "Friedman BE", label: "BE-100" }, { pos: "Friedman BE_2", label: "BE-100_2" },
+      ] },
+      { id: "v8-amp-marshall-jcm800", group: "CRUNCH 过载", name: "B&F NAM Marshall JCM800", display: "B&F NAM JCM800", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "Marshall JCM800", label: "JCM800" }, { pos: "Marshall JCM800_2", label: "JCM800_2" },
+      ] },
+      { id: "v8-amp-marshall-jcm900", group: "CRUNCH 过载", name: "B&F NAM Marshall JCM900", display: "B&F NAM JCM900", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "Marshall JCM900", label: "JCM900" }, { pos: "Marshall JCM900_2", label: "JCM900_2" },
+      ] },
+      { id: "v8-amp-marshall-jtm45", group: "CRUNCH 过载", name: "B&F NAM Marshall JTM45", display: "B&F NAM JTM45", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "Marshall JTM45", label: "JTM45" }, { pos: "Marshall JTM45_2", label: "JTM45_2" },
+      ] },
+      { id: "v8-amp-marshall-plexi", group: "CRUNCH 过载", name: "B&F NAM Marshall Plexi", display: "B&F NAM Plexi", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "Marshall Plexi", label: "Plexi" }, { pos: "Marshall Plexi_2", label: "Plexi_2" },
+      ] },
+      { id: "v8-amp-orange-rockerverb", group: "CRUNCH 过载", name: "B&F NAM Orange Rockerverb", display: "B&F NAM Rockerverb", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "Orange Rockerverb", label: "Rockerverb" }, { pos: "Orange Rockerverb_2", label: "Rockerverb_2" },
+      ] },
+      { id: "v8-amp-vox-ac15", group: "CRUNCH 过载", name: "B&F NAM Vox AC15", display: "B&F NAM AC15", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "TREBLE", "CUT"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "Vox AC15", label: "AC15" }, { pos: "Vox AC15_2", label: "AC15_2" },
+      ] },
+      { id: "v8-amp-vox-ac30", group: "CRUNCH 过载", name: "B&F NAM Vox AC30", display: "B&F NAM AC30", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "TREBLE", "CUT"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "Vox AC30", label: "AC30" }, { pos: "Vox AC30_2", label: "AC30_2" },
+      ] },
+      { id: "v8-amp-xotic-bb-preamp", group: "CRUNCH 过载", name: "B&F NAM Xotic BB Preamp", display: "B&F NAM BB Preamp", knobs: ["GAIN", "VOLUME", "MASTER"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "Xotic BB Preamp", label: "BB Preamp" },
+      ] },
+      { id: "v8-amp-bogner-ecstasy", group: "HIGH GAIN 高增益", name: "B&F NAM Bogner Ecstasy", display: "B&F NAM Ecstasy", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "Bogner Ecstasy", label: "Ecstasy" }, { pos: "Bogner Ecstasy_2", label: "Ecstasy_2" },
+      ] },
+      { id: "v8-amp-bogner-uberschall", group: "HIGH GAIN 高增益", name: "B&F NAM Bogner Uberschall", display: "B&F NAM Uberschall", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "Bogner Uberschall", label: "Uberschall" }, { pos: "Bogner Uberschall_2", label: "Uberschall_2" },
+      ] },
+      { id: "v8-amp-diezel-herbert", group: "HIGH GAIN 高增益", name: "B&F NAM Diezel Herbert", display: "B&F NAM Herbert", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "Diezel Herbert", label: "Herbert" },
+      ] },
+      { id: "v8-amp-diezel-vh4", group: "HIGH GAIN 高增益", name: "B&F NAM Diezel VH4", display: "B&F NAM VH4", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "Diezel VH4", label: "VH4" }, { pos: "Diezel VH4_2", label: "VH4_2" },
+      ] },
+      { id: "v8-amp-engl-fireball", group: "HIGH GAIN 高增益", name: "B&F NAM ENGL Fireball", display: "B&F NAM Fireball", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "ENGL Fireball", label: "Fireball" }, { pos: "ENGL Fireball_2", label: "Fireball_2" },
+      ] },
+      { id: "v8-amp-engl-powerball", group: "HIGH GAIN 高增益", name: "B&F NAM ENGL Powerball", display: "B&F NAM Powerball", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "ENGL Powerball", label: "Powerball" }, { pos: "ENGL Powerball_2", label: "Powerball_2" },
+      ] },
+      { id: "v8-amp-engl-savage", group: "HIGH GAIN 高增益", name: "B&F NAM ENGL Savage", display: "B&F NAM Savage", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "ENGL Savage", label: "Savage" }, { pos: "ENGL Savage_2", label: "Savage_2" },
+      ] },
+      { id: "v8-amp-evh-5150iii", group: "HIGH GAIN 高增益", name: "B&F NAM EVH 5150III", display: "B&F NAM 5150III", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE", "RESONANCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "EVH 5150III", label: "5150III" }, { pos: "EVH 5150III_2", label: "5150III_2" },
+      ] },
+      { id: "v8-amp-mesa-dual-rectifier", group: "HIGH GAIN 高增益", name: "B&F NAM Mesa Dual Rectifier", display: "B&F NAM Dual Rectifier", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "Mesa Dual Rectifier", label: "Dual Rectifier" }, { pos: "Mesa Dual Rectifier_2", label: "Dual Rectifier_2" },
+      ] },
+      { id: "v8-amp-mesa-mark", group: "HIGH GAIN 高增益", name: "B&F NAM Mesa Mark", display: "B&F NAM Mark", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "Mesa Mark", label: "Mark" }, { pos: "Mesa Mark_2", label: "Mark_2" },
+      ] },
+      { id: "v8-amp-soldano-slo", group: "HIGH GAIN 高增益", name: "B&F NAM Soldano SLO", display: "B&F NAM SLO", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "Soldano SLO", label: "SLO" }, { pos: "Soldano SLO_2", label: "SLO_2" },
+      ] },
+      { id: "v8-amp-prs-archon", group: "HIGH GAIN 高增益", name: "B&F NAM PRS Archon", display: "B&F NAM Archon", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "PRS Archon", label: "Archon" }, { pos: "PRS Archon_2", label: "Archon_2" },
+      ] },
+      { id: "v8-amp-peavey-5150", group: "HIGH GAIN 高增益", name: "B&F NAM Peavey 5150", display: "B&F NAM 5150", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE", "RESONANCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "Peavey 5150", label: "5150" }, { pos: "Peavey 5150_2", label: "5150_2" },
+      ] },
+      { id: "v8-amp-peavey-6505", group: "HIGH GAIN 高增益", name: "B&F NAM Peavey 6505", display: "B&F NAM 6505", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE", "RESONANCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "Peavey 6505", label: "6505" }, { pos: "Peavey 6505_2", label: "6505_2" },
+      ] },
+// 新箱头 pedalData subModels
+      { id: "v8-amp-marshall-jvm", group: "HIGH GAIN 高增益", name: "B&F NAM Marshall JVM", display: "B&F NAM JVM", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [ { pos: "Marshall JVM", label: "A1vsA2 JVM OD1 OR A1" }, { pos: "Marshall JVM_2", label: "APP JVM CLEAN Red II" }, { pos: "Marshall JVM_3", label: "APP JVM CLEAN Red IV" }, { pos: "Marshall JVM_4", label: "APP JVM CLEAN Red VIII" }, { pos: "Marshall JVM_5", label: "APP JVM CRUNCH Green VI" } ] },
+      { id: "v8-amp-marshall-jcm2000-dsl", group: "CRUNCH 过载", name: "B&F NAM Marshall JCM2000 DSL", display: "B&F NAM JCM2000 DSL", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [ { pos: "Marshall JCM2000 DSL", label: "2KDSL100 CHA CLN DI" }, { pos: "Marshall JCM2000 DSL_2", label: "2KDSL100 CHA CRN DI" }, { pos: "Marshall JCM2000 DSL_3", label: "2KDSL100 CHB ULT DI" } ] },
+      { id: "v8-amp-revv-generator", group: "HIGH GAIN 高增益", name: "B&F NAM Revv Generator", display: "B&F NAM Generator", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [ { pos: "Revv Generator", label: "REVV G2 01" }, { pos: "Revv Generator_2", label: "REVV G20 CRUNCH 1" }, { pos: "Revv Generator_3", label: "REVV G20 CRUNCH 2" }, { pos: "Revv Generator_4", label: "REVV G20 RHYTHM GAIN 1" }, { pos: "Revv Generator_5", label: "REVV G20 RHYTHM GAIN 2 T9OD" } ] },
+      { id: "v8-amp-randall-diavlo", group: "HIGH GAIN 高增益", name: "B&F NAM Randall Diavlo", display: "B&F NAM Randall Diavlo", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [ { pos: "Randall Diavlo", label: "PEAVEY Thrasher 4" }, { pos: "Randall Diavlo_2", label: "PEAVEY Thrasher 5150" }, { pos: "Randall Diavlo_3", label: "RANDALL Diavlo RD100H CH Clean" } ] },
+    ],
+    bass: [
+      { id: "v8-amp-ampeg-b-18n", group: "箱头", name: "B&F NAM Ampeg B-18N", display: "B&F NAM B-18N", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "Ampeg B-18N", label: "B-18N" },
+      ] },
+      { id: "v8-amp-ampeg-svt-4", group: "箱头", name: "B&F NAM Ampeg SVT-4", display: "B&F NAM SVT-4", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "Ampeg SVT-4", label: "SVT-4" },
+      ] },
+      { id: "v8-amp-ampeg-svt-cl", group: "箱头", name: "B&F NAM Ampeg SVT-CL", display: "B&F NAM SVT-CL", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "Ampeg SVT-CL", label: "SVT-CL" },
+      ] },
+      { id: "v8-amp-ampeg-v2", group: "箱头", name: "B&F NAM Ampeg V2", display: "B&F NAM V2", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "Ampeg V2", label: "V2" },
+      ] },
+      { id: "v8-amp-ampeg-v4b", group: "箱头", name: "B&F NAM Ampeg V4B", display: "B&F NAM V4B", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "Ampeg V4B", label: "V4B" },
+      ] },
+      { id: "v8-amp-eden", group: "箱头", name: "B&F NAM Eden", display: "B&F NAM WT800", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "Eden", label: "WT800" },
+      ] },
+      { id: "v8-amp-gallien-krueger", group: "箱头", name: "B&F NAM Gallien-Krueger", display: "B&F NAM 800RB", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "Gallien-Krueger", label: "800RB" }, { pos: "Gallien-Krueger_2", label: "800RB_2" },
+      ] },
+      { id: "v8-amp-hartke", group: "箱头", name: "B&F NAM Hartke", display: "B&F NAM LH500", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "Hartke", label: "LH500" }, { pos: "Hartke_2", label: "LH500_2" },
+      ] },
+      { id: "v8-amp-markbass-little-mark", group: "箱头", name: "B&F NAM Markbass Little Mark", display: "B&F NAM Little Mark", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [
+        { pos: "Markbass Little Mark", label: "Little Mark" }, { pos: "Markbass Little Mark_2", label: "Little Mark_2" },
+      ] },
+      { id: "v8-amp-mesa-triple-rectifier", group: "HIGH GAIN 高增益", name: "B&F NAM Mesa Triple Rectifier", display: "B&F NAM Triple Rectifier", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [ { pos: "Mesa Triple Rectifier", label: "MESA BOOGIE TRIPLE RECTIFIER PLUMES EQD" }, { pos: "Mesa Triple Rectifier_2", label: "Mesa Boogie Triple Rectifier edited" }, { pos: "Mesa Triple Rectifier_3", label: "Mesa Boogie Triple Rectifier" }, { pos: "Mesa Triple Rectifier_4", label: "Mesa Triple Rec Red No Boost" }, { pos: "Mesa Triple Rectifier_5", label: "Mesa Triple Rectifier MD421 SM57 Sphere U4" } ] },
+      { id: "v8-amp-ampeg-v4", group: "箱头", name: "B&F NAM Ampeg V4", display: "B&F NAM V4", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [ { pos: "Ampeg V4", label: "64 Bandmaster Clean Norm, V4 T6 B6" }, { pos: "Ampeg V4_2", label: "66 DR Sweet Spot Norm V4 T5 B5" }, { pos: "Ampeg V4_3", label: "71 Twin Big Clean Norm V4 T6 M7 B5" }, { pos: "Ampeg V4_4", label: "Ampeg SS 140C Martyr V4 (REVyHI Architectu" }, { pos: "Ampeg V4_5", label: "Ampeg V4 T 3 30, M 11 o'clock, B 2 30 mid " } ] },
+      { id: "v8-amp-ampeg-b15", group: "箱头", name: "B&F NAM Ampeg B15", display: "B&F NAM B15", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [ { pos: "Ampeg B15", label: "Ampeg B15 U47" }, { pos: "Ampeg B15_2", label: "Ampeg B15 Sum U47 and M80" }, { pos: "Ampeg B15_3", label: "Ampeg B15N Head Only Vol Max B&T 12 Ultra " }, { pos: "Ampeg B15_4", label: "Ampeg B15N Head Vol B&T at 12 Ultra Lo OFF" } ] },
+      { id: "v8-amp-ampeg-svt", group: "箱头", name: "B&F NAM Ampeg SVT", display: "B&F NAM SVT", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [ { pos: "Ampeg SVT", label: "AAF AMPEG SVT 4 PRO" }, { pos: "Ampeg SVT_2", label: "Ampeg SGT SGT On@ 7 SVT Voicing Bass@2 Mid" }, { pos: "Ampeg SVT_3", label: "Ampeg SGT SGT On@ 8 SVT Voicing Bass@2 Mid" }, { pos: "Ampeg SVT_4", label: "Ampeg SGT SGT On @12 SVT Voice Bass@2 Mid@" } ] },
+      { id: "v8-amp-fender-rumble", group: "箱头", name: "B&F NAM Fender Rumble", display: "B&F NAM Rumble", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [ { pos: "Fender Rumble", label: "Fender Rumble 100 Low 5, Mid 5, High 5 Bri" }, { pos: "Fender Rumble_2", label: "Fender Rumble 100 Low 5, Mid 5, High 5 Def" }, { pos: "Fender Rumble_3", label: "Your Bass Preset Fender Rumble Stage 800" } ] },
+      { id: "v8-amp-gallien-krueger-mb150", group: "箱头", name: "B&F NAM Gallien-Krueger MB150", display: "B&F NAM MB150", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [ { pos: "Gallien-Krueger MB150", label: "GK MBS150 Gritty Max" }, { pos: "Gallien-Krueger MB150_2", label: "GK MBS150 Reggae" } ] },
+      { id: "v8-amp-orange-terror-bass", group: "箱头", name: "B&F NAM Orange Terror Bass", display: "B&F NAM Terror Bass", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [ { pos: "Orange Terror Bass", label: "ORANGE TERROR BASS (DRIVEN)" } ] },
+      { id: "v8-amp-darkglass-microtubes-900", group: "箱头", name: "B&F NAM Darkglass Microtubes 900", display: "B&F NAM M900", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [ { pos: "Darkglass Microtubes 900", label: "Darkglass Microtubes 900" } ] },
+      { id: "v8-amp-mesa-bass-800d", group: "箱头", name: "B&F NAM Mesa Bass 800D", display: "B&F NAM Bass 800D", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [ { pos: "Mesa Bass 800D", label: "MESA BASS 800D SEND FAT CLASSIC ROCK" }, { pos: "Mesa Bass 800D_2", label: "MESA BASS 800D SEND MODERN ROCK METAL" }, { pos: "Mesa Bass 800D_3", label: "MESA BASS 800D SEND REGGAE" }, { pos: "Mesa Bass 800D_4", label: "MESA BASS 800D SEND ROUND R AND B" }, { pos: "Mesa Bass 800D_5", label: "MESA BASS 800D SEND SLAP FUNK FINGERSTYLE" } ] },
+      { id: "v8-amp-mesa-subway-d800", group: "箱头", name: "B&F NAM Mesa Subway D800", display: "B&F NAM Subway D800", knobs: ["GAIN", "VOLUME", "MASTER", "BASS", "MIDDLE", "TREBLE", "PRESENCE"], color: "#303030", accentColor: "#e0a040", disabled: false, captures: [ { pos: "Mesa Subway D800", label: "Mesa Subway D800+ Deep Off Voicing 50%" }, { pos: "Mesa Subway D800_2", label: "Mesa Subway D800+ Deep Off Voicing 75%" }, { pos: "Mesa Subway D800_3", label: "Mesa Subway D800+ Deep On Voicing 25%" }, { pos: "Mesa Subway D800_4", label: "Mesa Subway D800+ Deep On Voicing 50%" }, { pos: "Mesa Subway D800_5", label: "Mesa Subway D800+ Deep On Voicing 75%" } ] },
+    ],
+
+  },
+};
+
+// ─── 7. Cabinet (Warm Brown) — v? 全量: KNOB4 完整型号 + 品牌前缀命名 + 按品牌编组 ───
+const cabinet: ModuleConfig = {
+  id: 'cabinet', label: 'Cabinet', shortLabel: 'CAB',
+  hasSubModels: true,
+  subModels: {
+    guitar: [
+      { id: "v8-cab-fender-deluxe-cab", group: "Fender", name: "B&F NAM Fender Deluxe Cab", display: "Fe-Deluxe Reverb", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Fe-Deluxe Reverb", disabled: false, captures: [
+        { pos: "Fender Deluxe Cab", label: "Deluxe Cab" }, { pos: "Fender Deluxe Cab_2", label: "Deluxe Cab_2" },
+      ] },
+      { id: "v8-cab-fender-twin-cab", group: "Fender", name: "B&F NAM Fender Twin Cab", display: "Fe-Twin Reverb", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Fe-Twin Reverb", disabled: false, captures: [
+        { pos: "Fender Twin Cab", label: "Twin Reverb" }, { pos: "Fender Twin Cab_2", label: "Twin Reverb_2" },
+      ] },
+      { id: "v8-cab-fender-bassman", group: "Fender", name: "B&F NAM Fender Bassman", display: "Fe-Bassman", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Fe-Bassman", disabled: false, captures: [
+        { pos: "Fender Bassman", label: "Jensen C12N C414 Cap Edge" }, { pos: "Fender Bassman_2", label: "Jensen C12N R121 Cone" }, { pos: "Fender Bassman_3", label: "Jensen C12N SM57 Cap" }, { pos: "Fender Bassman_4", label: "Jensen C12N i5 Cap Edge" }, { pos: "Fender Bassman_5", label: "Jensen C12NA C414 Cone" },
+      ] },
+      { id: "v8-cab-vox-ac30-cab", group: "Vox", name: "B&F NAM Vox AC30 Cab", display: "Vo-AC30", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Vo-AC30", disabled: false, captures: [
+        { pos: "Vox AC30 Cab", label: "AC30" }, { pos: "Vox AC30 Cab_2", label: "AC30_2" },
+      ] },
+      { id: "v8-cab-marshall-4x12", group: "Marshall", name: "B&F NAM Marshall 4x12", display: "Ma-4x12", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Ma-4x12", disabled: false, captures: [
+        { pos: "Marshall 4x12", label: "4x12" }, { pos: "Marshall 4x12_2", label: "4x12_2" },
+      ] },
+      { id: "v8-cab-marshall-jcm800", group: "Marshall", name: "B&F NAM Marshall JCM800", display: "Ma-JCM800", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Ma-JCM800", disabled: false, captures: [
+        { pos: "Marshall JCM800", label: "Ampeg V-4B + JCM800 Bass" }, { pos: "Marshall JCM800_2", label: "JCM800 PA" }, { pos: "Marshall JCM800_3", label: "JCM800 PA G10" }, { pos: "Marshall JCM800_4", label: "JCM800 PR" }, { pos: "Marshall JCM800_5", label: "fat lead 80 JCM800 1936 2x GT75" },
+      ] },
+      { id: "v8-cab-marshall-jcm2000", group: "Marshall", name: "B&F NAM Marshall JCM2000", display: "Ma-JCM2000", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Ma-JCM2000", disabled: false, captures: [
+        { pos: "Marshall JCM2000", label: "R-IRR" }, { pos: "Marshall JCM2000_2", label: "R-IR" },
+      ] },
+      { id: "v8-cab-marshall-silver-jubilee", group: "Marshall", name: "B&F NAM Marshall Silver Jubilee", display: "Ma-Silver Jub", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Ma-Silver Jub", disabled: false, captures: [
+        { pos: "Marshall Silver Jubilee", label: "Big Muff + Fuzz" }, { pos: "Marshall Silver Jubilee_2", label: "Big Muff Metal" }, { pos: "Marshall Silver Jubilee_3", label: "Big Muff T75" }, { pos: "Marshall Silver Jubilee_4", label: "Big Muff less gain" }, { pos: "Marshall Silver Jubilee_5", label: "Fuzz Factory Greenbk" },
+      ] },
+      { id: "v8-cab-mesa-4x12", group: "Mesa", name: "B&F NAM Mesa 4x12", display: "Me-4x12", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Me-4x12", disabled: false, captures: [
+        { pos: "Mesa 4x12", label: "4x12" }, { pos: "Mesa 4x12_2", label: "4x12_2" },
+      ] },
+      { id: "v8-cab-mesa-cabmatch", group: "Mesa", name: "B&F NAM Mesa Cabmatch", display: "Me-Cabmatch", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Me-Cabmatch", disabled: false, captures: [
+        { pos: "Mesa Cabmatch", label: "100W BOLD 2x12" }, { pos: "Mesa Cabmatch_2", label: "100W VARC 4x12" }, { pos: "Mesa Cabmatch_3", label: "20W BOLD 2x12" },
+      ] },
+      { id: "v8-cab-mesa-lone-star", group: "Mesa", name: "B&F NAM Mesa Lone Star", display: "Me-Lone Star", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Me-Lone Star", disabled: false, captures: [
+        { pos: "Mesa Lone Star", label: "Lonestar 4x12 SM58" },
+      ] },
+      { id: "v8-cab-mesa-mark-4x12", group: "Mesa", name: "B&F NAM Mesa Mark 4x12", display: "Me-Mark", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Me-Mark", disabled: false, captures: [
+        { pos: "Mesa Mark 4x12", label: "Mark V MK IV LIVE" }, { pos: "Mesa Mark 4x12_2", label: "Mark V Rhythm IR" }, { pos: "Mesa Mark 4x12_3", label: "Mark IV Lead + Rivera" },
+      ] },
+      { id: "v8-cab-mesa-rectifier-4x12", group: "Mesa", name: "B&F NAM Mesa Rectifier 4x12", display: "Me-Rectifier", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Me-Rectifier", disabled: false, captures: [
+        { pos: "Mesa Rectifier 4x12", label: "Dual Rect Rev G EVH" }, { pos: "Mesa Rectifier 4x12_2", label: "DualRect ENGL V30" }, { pos: "Mesa Rectifier 4x12_3", label: "OS Rect KSM313" }, { pos: "Mesa Rectifier 4x12_4", label: "OS Rect SM57" }, { pos: "Mesa Rectifier 4x12_5", label: "OS Rect SM58" },
+      ] },
+      { id: "v8-cab-celestion-greenback", group: "Celestion", name: "B&F NAM Celestion Greenback", display: "Ce-Greenback", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Ce-Greenback", disabled: false, captures: [
+        { pos: "Celestion Greenback", label: "Greenback" }, { pos: "Celestion Greenback_2", label: "Greenback_2" },
+      ] },
+      { id: "v8-cab-celestion-v30", group: "Celestion", name: "B&F NAM Celestion V30", display: "Ce-V30", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Ce-V30", disabled: false, captures: [
+        { pos: "Celestion V30", label: "V30" }, { pos: "Celestion V30_2", label: "V30_2" },
+      ] },
+      { id: "v8-cab-evh-5150-cab", group: "EVH", name: "B&F NAM EVH 5150 Cab", display: "Ev-5150", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Ev-5150", disabled: false, captures: [
+        { pos: "EVH 5150 Cab", label: "5150" }, { pos: "EVH 5150 Cab_2", label: "5150_2" },
+      ] },
+      { id: "v8-cab-bogner-2x12", group: "Bogner", name: "B&F NAM Bogner 2x12", display: "Bo-2x12", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Bo-2x12", disabled: false, captures: [
+        { pos: "Bogner 2x12", label: "EVM12L C414 12in" }, { pos: "Bogner 2x12_2", label: "EVM12L Fredman1 Off" }, { pos: "Bogner 2x12_3", label: "EVM12L Fredman2 Off" }, { pos: "Bogner 2x12_4", label: "EVM12L i5 Cone Edge" }, { pos: "Bogner 2x12_5", label: "EVM12L i5 Cone" },
+      ] },
+      { id: "v8-cab-diezel-4x12", group: "Diezel", name: "B&F NAM Diezel 4x12", display: "Di-4x12", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Di-4x12", disabled: false, captures: [
+        { pos: "Diezel 4x12", label: "Hagen CH3 HEIL 312L" }, { pos: "Diezel 4x12_2", label: "Hagen CH3 312L 65" }, { pos: "Diezel 4x12_3", label: "Hagen CH3 PR20UT" }, { pos: "Diezel 4x12_4", label: "Hagen CH3 PR20UT 65" }, { pos: "Diezel 4x12_5", label: "Herbert CH2 Fredman" },
+      ] },
+      { id: "v8-cab-diezel-vh4", group: "Diezel", name: "B&F NAM Diezel VH4", display: "Di-VH4", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Di-VH4", disabled: false, captures: [
+        { pos: "Diezel VH4", label: "Wes BORLAND CH4 2x12" },
+      ] },
+      { id: "v8-cab-seymour-duncan-hagen", group: "Seymour Duncan", name: "B&F NAM Seymour Duncan Hagen", display: "Se-Hagen", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Se-Hagen", disabled: false, captures: [
+        { pos: "Seymour Duncan Hagen", label: "805 CH4 B431" }, { pos: "Seymour Duncan Hagen_2", label: "805 CH4 B431 2" }, { pos: "Seymour Duncan Hagen_3", label: "805 CH4 B431 3" }, { pos: "Seymour Duncan Hagen_4", label: "805 CH4 B431 4" },
+      ] },
+      { id: "v8-cab-engl-savage", group: "ENGL", name: "B&F NAM ENGL Savage", display: "En-Savage", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "En-Savage", disabled: false, captures: [
+        { pos: "ENGL Savage", label: "Mid cut + mesa 4x12" },
+      ] },
+      { id: "v8-cab-engl-thunder", group: "ENGL", name: "B&F NAM ENGL Thunder", display: "En-Thunder", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "En-Thunder", disabled: false, captures: [
+        { pos: "ENGL Thunder", label: "METALMASTER 2x12 V30" }, { pos: "ENGL Thunder_2", label: "50 4x12 Lead Cond" }, { pos: "ENGL Thunder_3", label: "50 4x12 Higain Dyn" }, { pos: "ENGL Thunder_4", label: "50 4x12 Crunch Cond" },
+      ] },
+      { id: "v8-cab-friedman-4x12", group: "Friedman", name: "B&F NAM Friedman 4x12", display: "Fr-4x12", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Fr-4x12", disabled: false, captures: [
+        { pos: "Friedman 4x12", label: "JJ100 JBE + V30" },
+      ] },
+      { id: "v8-cab-orange-2x12", group: "Orange", name: "B&F NAM Orange 2x12", display: "Or-2x12", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Or-2x12", disabled: false, captures: [
+        { pos: "Orange 2x12", label: "V30 C414 B" }, { pos: "Orange 2x12_2", label: "V30 C414 C" }, { pos: "Orange 2x12_3", label: "V30 C414 E" }, { pos: "Orange 2x12_4", label: "V30 RM700 A" }, { pos: "Orange 2x12_5", label: "V30 e906 C" },
+      ] },
+      { id: "v8-cab-orange-ppc-4x12", group: "Orange", name: "B&F NAM Orange PPC 4x12", display: "Or-PPC", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Or-PPC", disabled: false, captures: [
+        { pos: "Orange PPC 4x12", label: "PPC 4x12 V30" }, { pos: "Orange PPC 4x12_2", label: "4x12 DYN421-57-121 PR" }, { pos: "Orange PPC 4x12_3", label: "4x12 DYN421-57-121" }, { pos: "Orange PPC 4x12_4", label: "4x12 DYN57" }, { pos: "Orange PPC 4x12_5", label: "4x12 DYN7B" },
+      ] },
+      { id: "v8-cab-orange-rockerverb", group: "Orange", name: "B&F NAM Orange Rockerverb", display: "Or-Rockerverb", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Or-Rockerverb", disabled: false, captures: [
+        { pos: "Orange Rockerverb", label: "+5150 Cab" },
+      ] },
+      { id: "v8-cab-carvin-4x12", group: "Carvin", name: "B&F NAM Carvin 4x12", display: "Ca-4x12", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Ca-4x12", disabled: false, captures: [
+        { pos: "Carvin 4x12", label: "All Mic Blend 3" }, { pos: "Carvin 4x12_2", label: "Mackie EM89D" }, { pos: "Carvin 4x12_3", label: "Sennheiser e835" }, { pos: "Carvin 4x12_4", label: "Sennheiser e835 2" },
+      ] },
+      { id: "v8-cab-framus-4x12", group: "Framus", name: "B&F NAM Framus 4x12", display: "Fra-4x12", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Fra-4x12", disabled: false, captures: [
+        { pos: "Framus 4x12", label: "DB 4x12 G12M" }, { pos: "Framus 4x12_2", label: "V30 SM57" },
+      ] },
+      { id: "v8-cab-sunn-4x12", group: "Sunn", name: "B&F NAM Sunn 4x12", display: "Sun-4x12", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Sun-4x12", disabled: false, captures: [
+        { pos: "Sunn 4x12", label: "G12T-75 Fredman1 Off" }, { pos: "Sunn 4x12_2", label: "G12T-75 Fredman1 On" }, { pos: "Sunn 4x12_3", label: "G12T-75 Fredman2 On" }, { pos: "Sunn 4x12_4", label: "G12T-75 Fredman3 On" }, { pos: "Sunn 4x12_5", label: "G12T-75 i5 Cap Edge" },
+      ] },
+      { id: "v8-cab-vintage-30-4x12", group: "Vintage 30", name: "B&F NAM Vintage 30 4x12", display: "Vi-V30", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Vi-V30", disabled: false, captures: [
+        { pos: "Vintage 30 4x12", label: "big" }, { pos: "Vintage 30 4x12_2", label: "Default" },
+      ] },
+      { id: "v8-cab-randall-satan", group: "Randall", name: "B&F NAM Randall Satan", display: "Ra-Satan", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Ra-Satan", disabled: false, captures: [
+        { pos: "Randall Satan", label: "Satan 50 + Fortin 4x12" }, { pos: "Randall Satan_2", label: "randallsatanwcab" },
+      ] },
+      { id: "v8-cab-revv-4x12", group: "Revv", name: "B&F NAM Revv 4x12", display: "Re-4x12", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Re-4x12", disabled: false, captures: [
+        { pos: "Revv 4x12", label: "v30" },
+      ] },
+      { id: "v8-cab-soldano-slo", group: "Soldano", name: "B&F NAM Soldano SLO", display: "So-SLO", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "So-SLO", disabled: false, captures: [
+        { pos: "Soldano SLO", label: "Classic Tube Comp 1030" }, { pos: "Soldano SLO_2", label: "Fat Fingerstyle" }, { pos: "Soldano SLO_3", label: "Funk and Slap" }, { pos: "Soldano SLO_4", label: "Motown Sound" }, { pos: "Soldano SLO_5", label: "Pick Attack" },
+      ] },
+      { id: "v8-cab-suhr-2x12", group: "Suhr", name: "B&F NAM Suhr 2x12", display: "Su-2x12", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Su-2x12", disabled: false, captures: [
+        { pos: "Suhr 2x12", label: "CB 77 121 i" }, { pos: "Suhr 2x12_2", label: "CB 77 121 r" },
+      ] },
+      { id: "v8-cab-yerasov-bulldozer", group: "Yerasov", name: "B&F NAM Yerasov Bulldozer", display: "Ye-Bulldozer", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Ye-Bulldozer", disabled: false, captures: [
+        { pos: "Yerasov Bulldozer", label: "50 6L6 MODERN EL" }, { pos: "Yerasov Bulldozer_2", label: "50 6L6 MODERN EL TS1" }, { pos: "Yerasov Bulldozer_3", label: "50 6L6 MODERN V30 PST" }, { pos: "Yerasov Bulldozer_4", label: "50 6L6 MODERN V30 TS1" }, { pos: "Yerasov Bulldozer_5", label: "50 6L6 VINTAGE EL TS1" },
+      ] },
+    ],
+    bass: [
+      { id: "v8-cab-ampeg-svt-8x10", group: "Ampeg", name: "B&F NAM Ampeg SVT 8x10", display: "Am-SVT 8x10", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Am-SVT 8x10", disabled: false, captures: [
+        { pos: "Ampeg SVT 8x10", label: "SVT 8x10" },
+      ] },
+      { id: "v8-cab-ampeg-b15", group: "Ampeg", name: "B&F NAM Ampeg B15", display: "Am-B15", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Am-B15", disabled: false, captures: [
+        { pos: "Ampeg B15", label: "B15N SM57+R121" },
+      ] },
+      { id: "v8-cab-ampeg-svt", group: "Ampeg", name: "B&F NAM Ampeg SVT", display: "Am-SVT", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Am-SVT", disabled: false, captures: [
+        { pos: "Ampeg SVT", label: "B15N+SVT410HLF" },
+      ] },
+      { id: "v8-cab-ampeg-8x10", group: "Ampeg", name: "B&F NAM Ampeg 8x10", display: "Am-8x10", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Am-8x10", disabled: false, captures: [
+        { pos: "Ampeg 8x10", label: "8x10 Cap" }, { pos: "Ampeg 8x10_2", label: "8x10 Cone" }, { pos: "Ampeg 8x10_3", label: "8x10 4033 A107" }, { pos: "Ampeg 8x10_4", label: "8x10 4033 AH" }, { pos: "Ampeg 8x10_5", label: "8x10 57 A107" },
+      ] },
+      { id: "v8-cab-mesa-subway-1x15", group: "Mesa", name: "B&F NAM Mesa Subway 1x15", display: "Me-Subway", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Me-Subway", disabled: false, captures: [
+        { pos: "Mesa Subway 1x15", label: "Subway" }, { pos: "Mesa Subway 1x15_2", label: "Subway_2" },
+      ] },
+      { id: "v8-cab-darkglass-adam", group: "Darkglass", name: "B&F NAM Darkglass ADAM", display: "Da-ADAM", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Da-ADAM", disabled: false, captures: [
+        { pos: "Darkglass ADAM", label: "ADAM" }, { pos: "Darkglass ADAM_2", label: "ADAM_2" },
+      ] },
+      { id: "v8-cab-darkglass-b7k", group: "Darkglass", name: "B&F NAM Darkglass B7K", display: "Da-B7K", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Da-B7K", disabled: false, captures: [
+        { pos: "Darkglass B7K", label: "B7K Ultra Cab" }, { pos: "Darkglass B7K_2", label: "B7K Ultra No Cab" },
+      ] },
+      { id: "v8-cab-darkglass-cab", group: "Darkglass", name: "B&F NAM Darkglass Cab", display: "Da-Cab", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Da-Cab", disabled: false, captures: [
+        { pos: "Darkglass Cab", label: "Default" }, { pos: "Darkglass Cab_2", label: "Crunch Vintage Deluxe" }, { pos: "Darkglass Cab_3", label: "Distortion ALPHA" }, { pos: "Darkglass Cab_4", label: "Drive B7K Ultra" }, { pos: "Darkglass Cab_5", label: "Fuzz OMEGA" },
+      ] },
+      { id: "v8-cab-darkglass-x7", group: "Darkglass", name: "B&F NAM Darkglass X7", display: "Da-X7", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Da-X7", disabled: false, captures: [
+        { pos: "Darkglass X7", label: "X7 Cab" },
+      ] },
+      { id: "v8-cab-eden-410", group: "Eden", name: "B&F NAM Eden 410", display: "Ed-410", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Ed-410", disabled: false, captures: [
+        { pos: "Eden 410", label: "410" },
+      ] },
+      { id: "v8-cab-hartke-410", group: "Hartke", name: "B&F NAM Hartke 410", display: "Ha-410", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Ha-410", disabled: false, captures: [
+        { pos: "Hartke 410", label: "410" }, { pos: "Hartke 410_2", label: "410_2" },
+      ] },
+      { id: "v8-cab-hartke-vxl", group: "Hartke", name: "B&F NAM Hartke VXL", display: "Ha-VXL", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Ha-VXL", disabled: false, captures: [
+        { pos: "Hartke VXL", label: "VXL" },
+      ] },
+      { id: "v8-cab-hartke-hydrive", group: "Hartke", name: "B&F NAM Hartke Hydrive", display: "Ha-Hydrive", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Ha-Hydrive", disabled: false, captures: [
+        { pos: "Hartke Hydrive", label: "410 Beta52+KSM44" }, { pos: "Hartke Hydrive_2", label: "410 Beta52+SM57+KSM44" }, { pos: "Hartke Hydrive_3", label: "410 Beta52+SM57" }, { pos: "Hartke Hydrive_4", label: "410 Beta52" }, { pos: "Hartke Hydrive_5", label: "410 KSM44" },
+      ] },
+      { id: "v8-cab-origin-bassrig", group: "Origin", name: "B&F NAM Origin BASSRIG", display: "Ori-BASSRIG", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Ori-BASSRIG", disabled: false, captures: [
+        { pos: "Origin BASSRIG_2", label: "BASSRIG_2" },
+      ] },
+      { id: "v8-cab-sunn", group: "Sunn", name: "B&F NAM Sunn", display: "Sun-Model T", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Sun-Model T", disabled: false, captures: [
+        { pos: "Sunn", label: "Model T" },
+      ] },
+      { id: "v8-cab-fender-rumble", group: "Fender", name: "B&F NAM Fender Rumble", display: "Fe-Rumble", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Fe-Rumble", disabled: false, captures: [
+        { pos: "Fender Rumble", label: "Rumble 800 2x10 contour" },
+      ] },
+      { id: "v8-cab-laney-bass-100", group: "Laney", name: "B&F NAM Laney Bass 100", display: "La-Bass 100", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "La-Bass 100", disabled: false, captures: [
+        { pos: "Laney Bass 100", label: "4x12 Goodmans Back" }, { pos: "Laney Bass 100_2", label: "4x12 Goodmans" },
+      ] },
+      { id: "v8-cab-markbass-151hr", group: "Markbass", name: "B&F NAM Markbass 151HR", display: "Mk-151HR", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Mk-151HR", disabled: false, captures: [
+        { pos: "Markbass 151HR", label: "TA501 151HR Beta52" },
+      ] },
+      { id: "v8-cab-aguilar", group: "Aguilar", name: "B&F NAM Aguilar", display: "Ag-Cab", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Ag-Cab", disabled: false, captures: [
+        { pos: "Aguilar", label: "DB751 cab" },
+      ] },
+      { id: "v8-cab-tech21-sansamp", group: "Tech21", name: "B&F NAM Tech21 SansAmp", display: "Te-SansAmp", knobs: [], color: "#3a2818", accentColor: "#c8a060", speakerLabel: "Te-SansAmp", disabled: false, captures: [
+        { pos: "Tech21 SansAmp", label: "BASS SansAmp Cab RE20" },
+      ] },
+    ],
+  },
+};
+
+// ─── 8. Chorus (Teal) ─────────────────────────────────────────────────
+const chorus: ModuleConfig = {
+  id: 'chorus', label: 'Chorus', shortLabel: 'CHOR',
+  hasSubModels: true,
+  subModels: {
+    guitar: [
+      { id:'ce-2',name:'CE-2 Standard',knobs:['RATE','DEPTH','LEVEL'],color:'#2a3a38',accentColor:'#40c0c0'},
+      { id:'ce-1',name:'CE-1 Vintage',knobs:['RATE','DEPTH','LEVEL'],color:'#2a3e38',accentColor:'#50d0d0'},
+      { id:'dim-c',name:'Dimension',knobs:['RATE','WIDTH','DEPTH','LEVEL'],color:'#2e3a3c',accentColor:'#60b8d0'},
+      { id:'leslie',name:'Leslie Sim',knobs:['SPEED','DEPTH','LEVEL'],color:'#3a3428',accentColor:'#d0b858'},
+    ],
+    bass: [
+      { id:'bass-chorus',name:'Bass Chorus',knobs:['RATE','DEPTH','LEVEL'],color:'#2a3638',accentColor:'#4098b0'},
+      { id:'bass-vibrato',name:'Bass Vibrato',knobs:['RATE','DEPTH','LEVEL'],color:'#362e3a',accentColor:'#a070c0'},
+    ],
+  },
+  bodyColor: '#2a3a38', accentColor: '#40c0c0',
+};
+
+// ─── 9. Delay (Sky Blue) — 两级: 模拟/数字 两型号 ──────────────────────
+const delay: ModuleConfig = {
+  id: 'delay', label: 'Delay', shortLabel: 'DLY',
+  hasSubModels: true,
+  subModels: {
+    guitar: [
+      { id:'delay-analog', name:'Analog Delay', knobs:['TIME','REPEAT'], color:'#3a3028', accentColor:'#d8b04a' },
+      { id:'delay-digital',name:'Digital Delay',knobs:['TIME','REPEAT'], color:'#2a3640', accentColor:'#48b0e0' },
+    ],
+    bass: [
+      { id:'delay-analog-b', name:'Analog Delay', knobs:['TIME','REPEAT'], color:'#3a3028', accentColor:'#d8b04a' },
+      { id:'delay-digital-b',name:'Digital Delay',knobs:['TIME','REPEAT'], color:'#2a3640', accentColor:'#48b0e0' },
+    ],
+  },
+  bodyColor: '#2a3640', accentColor: '#48b0e0',
+};
+
+// ─── 10. Reverb (Violet) ──────────────────────────────────────────────
+const reverb: ModuleConfig = {
+  id: 'reverb', label: 'Reverb', shortLabel: 'VERB',
+  hasSubModels: true,
+  subModels: {
+    guitar: [
+      { id:'spring',name:'Spring',knobs:['DWELL','MIX'],color:'#3a3028',accentColor:'#d8b858'},
+      { id:'hall',name:'Hall',knobs:['DECAY','MIX','PRE','TONE'],color:'#2e3440',accentColor:'#6890c8'},
+      { id:'plate',name:'Plate',knobs:['DECAY','MIX','TONE'],color:'#3a3038',accentColor:'#c0a0c8'},
+      { id:'room',name:'Room',knobs:['SIZE','MIX'],color:'#30383a',accentColor:'#60a0a8'},
+      { id:'ambient',name:'Ambient',knobs:['DECAY','MIX','SPREAD'],color:'#2e2840',accentColor:'#8068d0'},
+      { id:'cathedral',name:'Cathedral',knobs:['DECAY','MIX','PRE'],color:'#342e3a',accentColor:'#9078b8'},
+    ],
+    bass: [
+      { id:'bass-room',name:'Bass Room',knobs:['SIZE','MIX'],color:'#2e383a',accentColor:'#50a0a8'},
+      { id:'bass-hall',name:'Bass Hall',knobs:['DECAY','MIX','PRE','TONE'],color:'#2e3040',accentColor:'#6088c0'},
+    ],
+  },
+  bodyColor: '#362e44', accentColor: '#8060d0',
+};
+
+export const MODULES: ModuleConfig[] = [
+  noiseGate, boost, compressor, overdrive, dist, ampHead, cabinet,
+  chorus, delay, reverb,
+];
+
+export function getSubModels(module: ModuleConfig, mode: PlayMode): SubModel[] {
+  if (!module.hasSubModels || !module.subModels) return [];
+  return mode === 'guitar' ? (module.subModels.guitar ?? []) : (module.subModels.bass ?? []);
+}
+
+// 合并吉他+贝斯为单一下拉列表 (前端统一显示, 分区靠 group 表头)
+export function getMergedSubModels(module: ModuleConfig): SubModel[] {
+  if (!module.hasSubModels || !module.subModels) return [];
+  return [...(module.subModels.guitar ?? []), ...(module.subModels.bass ?? [])];
+}
+
+export function getKnobsForModule(module: ModuleConfig, subModelId: string | null, mode: PlayMode): string[] {
+  if (!module.hasSubModels) return module.knobs ?? [];
+  const models = getSubModels(module, mode);
+  const found = models.find((m) => m.id === subModelId);
+  return found?.knobs ?? [];
+}
+
+// ─── 两级结构辅助: 组合键 = "硬件名/位置id" (与 presetData/parameterMap 组合键一致) ───
+
+export function getSubModelCaptures(sm: SubModel | undefined): { pos: string }[] {
+  return sm?.captures ?? [];
+}
+
+// 默认组合键: 硬件 + 首个位置快照; 无 captures 的模块返回硬件名本身
+export function getDefaultSubModelName(sm: SubModel): string {
+  if (sm.captures?.length) return `${sm.name}/${sm.captures[0].pos}`;
+  return sm.name;
+}
+
+// 拆分组合键 "硬件/位置" -> { hardware, pos? }
+export function splitSubModelName(composed: string): { hardware: string; pos?: string } {
+  const i = composed.lastIndexOf('/');
+  if (i <= 0) return { hardware: composed };
+  return { hardware: composed.slice(0, i), pos: composed.slice(i + 1) };
+}

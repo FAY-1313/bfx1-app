@@ -1,0 +1,707 @@
+439:   // ═══ 箱头 (所有 NAM 箱头共用, 2nd OD PrePEQ) ═════════════
+441:   // PreOD PEQ1/3/4 (reg74/76/77), 寄存器与 NAM 捕获烧录曲线一一对应:
+447:   // 组合键 "B&F NAM 硬件/位置" 无 BASS/MIDDLE/TREBLE 键,
+470:     LEVEL: [{ regAddr: 13, min: 0, max: 12, compute: (n) => Math.round(n * 12) }],
+511:     LEVEL: [{ regAddr: 13, min: 0, max: 12, compute: (n) => Math.round(n * 12) }],
+763:     LEVEL: [{ regAddr: 216, min: 0, max: 20, compute: (n) => Math.round(n * 20) }],
+768:     LEVEL: [{ regAddr: 216, min: 0, max: 20, compute: (n) => Math.round(n * 20) }],
+774:     LEVEL: [{ regAddr: 216, min: 0, max: 20, compute: (n) => Math.round(n * 20) }],
+779:     LEVEL: [{ regAddr: 216, min: 0, max: 20, compute: (n) => Math.round(n * 20) }],
+784:     LEVEL: [{ regAddr: 216, min: 0, max: 20, compute: (n) => Math.round(n * 20) }],
+789:     LEVEL: [{ regAddr: 216, min: 0, max: 20, compute: (n) => Math.round(n * 20) }],
+794:     LEVEL: [{ regAddr: 216, min: 0, max: 20, compute: (n) => Math.round(n * 20) }],
+799:     LEVEL: [{ regAddr: 216, min: 0, max: 20, compute: (n) => Math.round(n * 20) }],
+810:     TONE: [{ regAddr: 228, min: 0, max: 158, compute: (n) => Math.round(n * 158) }],
+815:     TONE: [{ regAddr: 228, min: 0, max: 158, compute: (n) => Math.round(n * 158) }],
+839:     TONE: [{ regAddr: 228, min: 0, max: 158, compute: (n) => Math.round(n * 158) }],
+842:   // ─── B&F NAM 精选合集 (OD+DIST+箱头) 两级 ─────────────────────
+843: "B&F NAM OD-3/Crate Flexwave 120H & Boss OD-3": {
+844:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+845:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+846:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+848: "B&F NAM SD-1/23 Block grnHG - SD-1": {
+849:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+850:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+851:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+853: "B&F NAM SD-1/Boss SD-1 - Level500 Tone1030 Drive300": {
+854:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+855:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+856:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+858: "B&F NAM SD-1/Boss SD-1 - Level500 Tone1030 Drive500": {
+859:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+860:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+861:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+863: "B&F NAM SD-1/Boss SD-1 - Level500 Tone1030 Drive900": {
+864:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+865:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+866:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+868: "B&F NAM SD-1/Boss SD-1 - Level500 Tone1200 Drive1200": {
+869:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+870:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+871:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+873: "B&F NAM Browne Protein/Protein V3 Browne Amplification (Green)": {
+874:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+875:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+876:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+878: "B&F NAM Plumes/4 Archon - midpush plumes3": {
+879:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+880:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+881:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+883: "B&F NAM Plumes/EQD Plumes (Mode 3 All At Noon)": {
+884:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+885:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+886:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+888: "B&F NAM Plumes/EQDPlumes-SLO30NaturalRhythmG6-OSAngledV30UK+Vintage30+G12k100-SM57": {
+889:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+890:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+891:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+893: "B&F NAM Plumes/GK Backline 600 (Normal Ch & Russian Muff V5 T7 S3 & EQD Plumes Mode 2)": {
+894:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+895:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+896:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+898: "B&F NAM Plumes/GK Backline 600 (Normal Ch & Russian Muff V5 T7 S5 & EQD Plumes Mode 2)": {
+899:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+900:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+901:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+903: "B&F NAM Fortin Dirty Tree/Crate BV120H Ch2 Volume 6 Gain 5 & Pepers Dirty Tree DT Mode": {
+904:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+905:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+906:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+908: "B&F NAM Fortin Dirty Tree/Crate Flexwave 120H Pepers Dirty Tree": {
+909:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+910:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+911:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+913: "B&F NAM TS808/Hiwatt DR 103 TS808_Archer Klon high gain": {
+914:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+915:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+916:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+918: "B&F NAM TS808/IBA 808 OVERDRIVE": {
+919:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+920:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+921:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+923: "B&F NAM TS9/AMP TS9": {
+924:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+925:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+926:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+928: "B&F NAM TS9/AMP TS9 LOW": {
+929:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+930:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+931:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+933: "B&F NAM TS9/Cold Shot B + TS9": {
+934:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+935:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+936:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+938: "B&F NAM TS9/Cold Shot C + TS9": {
+939:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+940:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+941:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+943: "B&F NAM TS9/Concert Clean Bright TS9": {
+944:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+945:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+946:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+948: "B&F NAM Tube Screamer/82 Ibanez Tube Screamer": {
+949:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+950:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+951:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+953: "B&F NAM Tube Screamer/Blackstar CH 3 + Tube Screamer (Fractal FM3) (Old)": {
+954:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+955:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+956:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+958: "B&F NAM Tube Screamer/Ibanez TS9 Tube Screamer Drive 0 Tone 6 Level 6": {
+959:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+960:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+961:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+963: "B&F NAM Tube Screamer/Ibanez TS9 Tube Screamer Drive 0 Tone 7 Level 7": {
+964:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+965:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+966:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+968: "B&F NAM Tube Screamer/Ibanez TS9 Tube Screamer Drive 0 Tone 9 Level 9": {
+969:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+970:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+971:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+973: "B&F NAM King of Tone Bluesbreaker/King of Drive Blues Breaker": {
+974:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+975:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+976:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+978: "B&F NAM Centaur/EVH 5153S 50W Blue + Klon": {
+979:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+980:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4100), Math.round(60 + n * 120), 16, 10) }],
+981:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+983: "B&F NAM Centaur/EVH 5153S 50W Red + Klon": {
+984:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+985:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4100), Math.round(60 + n * 120), 16, 10) }],
+986:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+988: "B&F NAM Centaur/G4 + KLON": {
+989:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+990:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4100), Math.round(60 + n * 120), 16, 10) }],
+991:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+993: "B&F NAM Centaur/G5 + KLON": {
+994:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+995:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4100), Math.round(60 + n * 120), 16, 10) }],
+996:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+998: "B&F NAM Centaur/G6 + KLON": {
+999:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+1000:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4100), Math.round(60 + n * 120), 16, 10) }],
+1001:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1003: "B&F NAM Ly Pedals Gladio/LY-Pedals Gladio Clone Overdrive Ch OD": {
+1004:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+1005:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1006:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1008: "B&F NAM MXR M77/5153 M77-50K_REV2": {
+1009:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+1010:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1011:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1013: "B&F NAM MXR M77/5153 M77-STD_REV2": {
+1014:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+1015:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1016:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1018: "B&F NAM ZW44 Wylde Overdrive/DRPS MXR ZW44 Zakk Wylde Overdrive All Knobs 12 o Clock": {
+1019:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+1020:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1021:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1023: "B&F NAM ZW44 Wylde Overdrive/DRPS MXR ZW44 Zakk Wylde Overdrive Gain 0  Tone 10 Output 10": {
+1024:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+1025:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1026:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1028: "B&F NAM ZW44 Wylde Overdrive/DRPS MXR ZW44 Zakk Wylde Overdrive Gain 0  Tone 3 Output 10": {
+1029:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+1030:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1031:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1033: "B&F NAM ZW44 Wylde Overdrive/DRPS MXR ZW44 Zakk Wylde Overdrive Gain 1 Tone 5 Output 5": {
+1034:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+1035:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1036:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1038: "B&F NAM ZW44 Wylde Overdrive/DRPS MXR ZW44 Zakk Wylde Overdrive Gain 10  Tone 10 Output 10": {
+1039:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+1040:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1041:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1043: "B&F NAM OD808/03 Block red - od808 bal": {
+1044:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+1045:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1046:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1048: "B&F NAM OD808/04 Block red - od808 drk": {
+1049:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+1050:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1051:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1053: "B&F NAM OD808/05 Block red - od808x brt": {
+1054:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+1055:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1056:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1058: "B&F NAM OD808/1 boog33 ch3 od808 scooped": {
+1059:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+1060:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1061:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1063: "B&F NAM OD808/2 boog33 ch3 od808 mids": {
+1064:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+1065:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1066:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1068: "B&F NAM OD9/Maxon OD9": {
+1069:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+1070:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1071:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1073: "B&F NAM OD9/Maxon OD9Pro+": {
+1074:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+1075:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1076:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1078: "B&F NAM ST9Pro+/Maxon ST9Pro+": {
+1079:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+1080:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1081:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1083: "B&F NAM Mezzabarba MZero OD/MZERO-OVERDRIVE": {
+1084:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+1085:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1086:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1088: "B&F NAM Mezzabarba MZero OD/Mezzabarba Mzero Overdrive": {
+1089:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+1090:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1091:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1093: "B&F NAM Mezzabarba MZero OD/Mezzabarba Mzero Overdrive higain": {
+1094:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+1095:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1096:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1098: "B&F NAM Proco RAT/[AMP] CHUPA50W NORMAL Instant gratification #01 (Factory)": {
+1099:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+1100:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1101:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1103: "B&F NAM Proco RAT/[AMP] Lynx50-CL Ch2-Hi Stratus - STD": {
+1104:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+1105:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1106:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1108: "B&F NAM Proco RAT/[AMP] TREC-150BLD-DIO-CLN Instant gratification - BLEND #3 [REVyHI]": {
+1109:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+1110:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1111:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1113: "B&F NAM Proco RAT/[AMP] TREC-150BLD-DIO-CLN Instant gratification - DI": {
+1114:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+1115:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1116:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1118: "B&F NAM Proco RAT/[AMP] TREC-150BLD-DIO-CLN Instant gratification - DI [REVyHI]": {
+1119:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+1120:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1121:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1123: "B&F NAM Turbo RAT/Donner Giant Metal Turbo Rat": {
+1124:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+1125:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1126:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1128: "B&F NAM Turbo RAT/Turbo RAT": {
+1129:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+1130:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1131:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1133: "B&F NAM Seymour Duncan 805/001_Seymour Duncan 805 Overdrive, 800 BIG, Marshall 1960BV (Celestion G12 Vintage), SM57, LANG 312L": {
+1134:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+1135:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1136:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1138: "B&F NAM Seymour Duncan 805/002_Seymour Duncan 805 Overdrive, 800 BIG, Marshall 1960BV (Celestion G12 Vintage), SM57, LANG 312L": {
+1139:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+1140:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1141:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1143: "B&F NAM Seymour Duncan 805/003_Seymour Duncan 805 Overdrive, 800 BIG, Marshall 1960BV (Celestion G12 Vintage), SM57, LANG 312L": {
+1144:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+1145:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1146:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1148: "B&F NAM Seymour Duncan 805/004_Seymour Duncan 805 Overdrive, 800 BIG, Marshall 1960BV (Celestion G12 Vintage), SM57, LANG 312L": {
+1149:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+1150:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1151:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1153: "B&F NAM Seymour Duncan 805/005_Seymour Duncan 805 Overdrive, 800 FOCUS, Marshall 1960BV (Celestion G12 Vintage), SM57, LANG 312L": {
+1154:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+1155:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1156:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1158: "B&F NAM SansAmp/Tech21 - Steve Harris preamp pedal - JZ": {
+1159:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+1160:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1161:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1163: "B&F NAM SansAmp/Tech21 - Steve Harris preamp pedal v2 - less highs - JZ": {
+1164:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+1165:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1166:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1168: "B&F NAM BB Preamp/BB preamp": {
+1169:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+1170:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1171:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1173: "B&F NAM BB Preamp/Bb Preamp all at 12 o'clock": {
+1174:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+1175:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1176:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1178: "B&F NAM BB Preamp/Cold Shot A + BB Preamp": {
+1179:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+1180:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1181:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1183: "B&F NAM BB Preamp/Fender Twin + bb preamp 2 full rig 212": {
+1184:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+1185:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1186:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1188: "B&F NAM BB Preamp/Fender Twin + bb preamp 2 head": {
+1189:   DRIVE: [{ regAddr: 49, min: 0, max: 92, compute: (n) => Math.round(n * 92) }],
+1190:   TONE: [{ regAddr: 45, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1191:   LEVEL: [{ regAddr: 51, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1193: "B&F NAM DS-1/BOSS DISTORTION DS-1 All 12 o Clock": {
+1195:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1196:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1198: "B&F NAM DS-1/BOSS DISTORTION DS-1 T10 L5 D4": {
+1200:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1201:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1203: "B&F NAM DS-1/BOSS DISTORTION DS-1 T4 L10 D8": {
+1205:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1206:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1208: "B&F NAM DS-1/BOSS DISTORTION DS-1 T5 L10 D10": {
+1210:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1211:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1213: "B&F NAM DS-1/BOSS DISTORTION DS-1 T5 L10 D3": {
+1215:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1216:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1218: "B&F NAM DS-2/Boss Turbodistorsion DS-2 I": {
+1220:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1221:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1223: "B&F NAM DS-2/Boss Turbodistorsion DS-2 II": {
+1225:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1226:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1228: "B&F NAM HM-2/Boss HM-2 Lo=6, Hi=6, Gain=10": {
+1230:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(2500), Math.round(60 + n * 120), 16, 10) }],
+1231:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1233: "B&F NAM HM-2/Boss HM-2 Lv-10 L-10 H-10 D-0": {
+1235:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(2500), Math.round(60 + n * 120), 16, 10) }],
+1236:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1238: "B&F NAM HM-2/Boss HM-2 Lv-10 L-5 H-8 D-5": {
+1240:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(2500), Math.round(60 + n * 120), 16, 10) }],
+1241:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1243: "B&F NAM HM-2/Boss HM-2 Lv-10 L-7 H-5 D-0": {
+1245:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(2500), Math.round(60 + n * 120), 16, 10) }],
+1246:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1248: "B&F NAM HM-2/Boss HM-2 Lv-10 L-7 H-5 D-10": {
+1250:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(2500), Math.round(60 + n * 120), 16, 10) }],
+1251:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1253: "B&F NAM MT-2/Boss Metal Zone Waza - Deftones (Custom Mode)": {
+1255:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1256:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1258: "B&F NAM MT-2/Boss Metal Zone Waza - Deftones (Standard Mode)": {
+1260:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1261:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1263: "B&F NAM MT-2/DRPS BOSS Metal Zone MT-2 Everything 12 0 clock": {
+1265:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1266:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1268: "B&F NAM MT-2/DRPS BOSS Metal Zone MT-2 L5 H5 M5 MF5 DIST 10": {
+1270:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1271:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1273: "B&F NAM MT-2/DRPS BOSS Metal Zone MT-2 L5 H5 M5 MF5 DIST 3": {
+1275:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1276:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1278: "B&F NAM Metal Muff/Metal Muff Swedish Chainsaw-ish": {
+1280:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1281:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1283: "B&F NAM Metal Muff/Nano Metal Muff - Alice in Chainsaw": {
+1285:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1286:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1288: "B&F NAM OS-2/DRPS BOSS OS-2  Everything at 4 o clock": {
+1290:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1291:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1293: "B&F NAM OS-2/DRPS BOSS OS-2  Everything at 6 o clock": {
+1295:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1296:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1298: "B&F NAM OS-2/DRPS BOSS OS-2  Tone5 Drive0 Color5": {
+1300:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1301:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1303: "B&F NAM OS-2/DRPS BOSS OS-2  Tone5 Drive3 Color0": {
+1305:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1306:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1308: "B&F NAM OS-2/DRPS BOSS OS-2  Tone5 Drive5 Color10": {
+1310:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1311:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1313: "B&F NAM Rockman Sustainor Dist/Rockman Sustainor Distortion Channel - Pre gain 4, Comp 15": {
+1315:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1316:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1318: "B&F NAM DOD FX56 American Metal/DOD FX56 American Metal - 100%0%50%": {
+1320:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1321:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1323: "B&F NAM DOD FX56 American Metal/DOD FX56 American Metal - 100%1000%100%(all Out!)": {
+1325:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1326:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1328: "B&F NAM DOD FX56 American Metal/DOD FX56 American Metal - 100%50%50%": {
+1330:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1331:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1333: "B&F NAM DOD FX56 American Metal/DOD FX56 American Metal - 50%0%100%": {
+1335:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1336:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1338: "B&F NAM DOD FX56 American Metal/DOD FX56 American Metal - 50%0%50%": {
+1340:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1341:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1343: "B&F NAM Grind/BOSS MICRO BR  GRINDER": {
+1345:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1346:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1348: "B&F NAM Grind/Grind": {
+1350:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1351:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1353: "B&F NAM Grind/Grind sweetspot": {
+1355:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1356:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1358: "B&F NAM Grind/Messy Double Recto_Grind": {
+1360:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1361:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1363: "B&F NAM Grind/nasty deathgrind tone": {
+1365:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1366:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1368: "B&F NAM Meshuggah/Fortin Meshuggah  2": {
+1370:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1371:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1373: "B&F NAM Meshuggah/Fortin Meshuggah 1": {
+1375:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1376:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1378: "B&F NAM Meshuggah/Fortin Meshuggah High Gain_ Open settings": {
+1380:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1381:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1383: "B&F NAM Meshuggah/Fortin Meshuggah Low Gain_ Modern settings": {
+1385:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1386:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1388: "B&F NAM Meshuggah/Fortin Meshuggah Low Gain_ Vintage settings": {
+1390:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1391:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1393: "B&F NAM 204 Distortion+/MXR M-204 Distortion + 1982 - 1984 - drive 100%": {
+1395:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1396:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1398: "B&F NAM 204 Distortion+/MXR M-204 Distortion + 1982 - 1984 - drive 50%": {
+1400:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1401:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1403: "B&F NAM 204 Distortion+/MXR M-204 Distortion + 1982 - 1984 - drive 75%": {
+1405:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1406:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1408: "B&F NAM 204 Distortion+/MXR M-204 Distortion 1982 - 1984 - drive 25%": {
+1410:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1411:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1413: "B&F NAM Distortion+/GP MXR Distortion+ [O10 D00] PDC": {
+1415:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1416:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1418: "B&F NAM Distortion+/GP MXR Distortion+ [O10 D01] PDC": {
+1420:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1421:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1423: "B&F NAM Distortion+/GP MXR Distortion+ [O10 D03] PDC": {
+1425:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1426:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1428: "B&F NAM Distortion+/GP MXR Distortion+ [O10 D04] PDC": {
+1430:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1431:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1433: "B&F NAM Distortion+/GP MXR Distortion+ [O10 D05] PDC": {
+1435:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1436:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1438: "B&F NAM Rockman X100 Dist/RR MXR Rockman X100 DIST": {
+1440:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1441:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1443: "B&F NAM Rockman X100 Dist/SLAMMIN_MXR_X100_DISTORTION_FULL_C": {
+1445:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1446:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1448: "B&F NAM Rockman X100 Dist/SLAMMIN_MXR_X100_DISTORTION_FULL_XS": {
+1450:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1451:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1453: "B&F NAM Rockman X100 Dist/SLAMMIN_MXR_X100_DISTORTION_HALF_S": {
+1455:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1456:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1458: "B&F NAM Grind 2/SLAMMIN_MARSHALL_JMP_GRIND_KTT_EVENBRIGHTER_S": {
+1460:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1461:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1463: "B&F NAM Grind 2/SLAMMIN_MARSHALL_JMP_IAN_GRIND_C": {
+1465:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1466:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1468: "B&F NAM Grind 2/SLAMMIN_MARSHALL_JMP_IAN_GRIND_S": {
+1470:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1471:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1473: "B&F NAM Grind 2/SLAMMIN_MARSHALL_JMP_KTT_GRIND_C": {
+1475:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(1000), Math.round(60 + n * 120), 16, 10) }],
+1476:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1478: "B&F NAM Marshall Guvnor/DRPS BOSS PW-10 GUV Dist Drive 7": {
+1480:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1481:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1483: "B&F NAM G3/DISTO (G2+G3+MV-50)#02": {
+1485:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1486:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1488: "B&F NAM Darkglass B7K Ultra 2/B7K Distortion": {
+1490:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1491:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1493: "B&F NAM Darkglass Ultra V Bass/DarkGlass Ultra V BASS for metal": {
+1495:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1496:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1498: "B&F NAM MXR M80 Bass DI 2/m80-dist-all12-blendfull-gain14-volume14": {
+1500:   TONE: [{ regAddr: 60, min: 0, max: 0xFFFFFFFF, compute: (n) => buildPEQData(PEQ_TYPE.PEAK, freqToIndex(4000), Math.round(60 + n * 120), 16, 10) }],
+1501:   LEVEL: [{ regAddr: 66, min: 0, max: 288, compute: (n) => Math.round(n * 288) }],
+1503: "B&F NAM Ecstasy/[ReactEQ] Bogner Ecstasy Blue #02": {
+1508: "B&F NAM Ecstasy/[ReactEQ] Bogner Ecstasy Blue #02 - xSTD": {
+1513: "B&F NAM Ecstasy/[ReactEQ] Bogner Ecstasy Blue #06": {
+1518: "B&F NAM Ecstasy/[ReactEQ] Bogner Ecstasy Blue #06 - xSTD": {
+1523: "B&F NAM Ecstasy/[ReactEQ] Bogner Ecstasy Blue #08": {
+1528: "B&F NAM Uberschall/AFTERLIFE_BOGNER UBERSCHALL_BLENDER ( R & L)": {
+1533: "B&F NAM Uberschall/AFTERLIFE_BOGNER UBERSCHALL_BLENDER_ DIREITO ( 1 LINHA)": {
+1538: "B&F NAM Uberschall/AFTERLIFE_BOGNER UBERSCHALL_BLENDER_ DIREITO ( 2 LINHAS)": {
+1543: "B&F NAM Uberschall/AFTERLIFE_BOGNER UBERSCHALL_ESQUERDO ( 1 LINHA)": {
+1548: "B&F NAM Uberschall/AFTERLIFE_BOGNER UBERSCHALL_ESQUERDO ( 2 LINHAS )": {
+1553: "B&F NAM Herbert/Diezel - Herbert MK3 (Ch 1) CLN bal [18dBu]": {
+1558: "B&F NAM Herbert/Diezel - Herbert MK3 (Ch 2+ MC) HG fat [18dBu]": {
+1563: "B&F NAM Herbert/Diezel - Herbert MK3 (Ch 2-) - MG bal [18dBu]": {
+1568: "B&F NAM Herbert/Diezel - Herbert MK3 (Ch 2-) - MG fat [18dBu]": {
+1573: "B&F NAM Herbert/Diezel - Herbert MK3 (Ch 2-) EOB fat [18dBu]": {
+1578: "B&F NAM VH4/[AMP] DiZLVH4-CH1 Breakup - DI": {
+1583: "B&F NAM VH4/[AMP] DiZLVH4-CH1 Breakup - SM57": {
+1588: "B&F NAM VH4/[AMP] DiZLVH4-CH2 Those Bones - BLEND #1": {
+1593: "B&F NAM VH4/[AMP] DiZLVH4-CH2 Those Bones - BLEND #2": {
+1598: "B&F NAM VH4/[AMP] DiZLVH4-CH2 Those Bones - DI": {
+1603: "B&F NAM Fireball/APP-Fireball-Brootz": {
+1608: "B&F NAM Fireball/ENGL FIREBALL 100": {
+1613: "B&F NAM Fireball/ENGL Fireball + Ts808": {
+1618: "B&F NAM Fireball/ENGL Fireball +line driver": {
+1623: "B&F NAM Fireball/Engl Fireball": {
+1628: "B&F NAM Powerball/ENGL Powerball Clean": {
+1633: "B&F NAM Powerball/ENGL Powerball Crunch": {
+1638: "B&F NAM Powerball/ENGL Powerball Deimos": {
+1643: "B&F NAM Powerball/Engl Powerball II - Clean (G2 B5 M4 T6 V6 P7 DP6 MAS3 BRIoff BOToff MBoff)": {
+1648: "B&F NAM Powerball/Engl Powerball II - Clean Bright-Bottom (G2 B6 M6 T6 V6 P7 DP6 MAS3 BRIon BOTon MBoff)": {
+1653: "B&F NAM Savage/ANGRY SAVAGE": {
+1658: "B&F NAM Savage/ENGL - SAVAGE 120 + BROWN SUGAR": {
+1663: "B&F NAM Savage/Engl Savage": {
+1668: "B&F NAM Savage/Engl Savage 120": {
+1673: "B&F NAM Savage/Engl Savage 120 - Clean": {
+1678: "B&F NAM 5150 III/5150 iii 50s 6L6 CH1 X4465 P5": {
+1683: "B&F NAM 5150 III/5150 iii 50s 6L6 CH2 57446 P4": {
+1688: "B&F NAM 5150 III/5150 iii 50s 6L6 CH2 86365 P5": {
+1693: "B&F NAM 5150 III/5150 iii 50s 6L6 CH3 57375 P7": {
+1698: "B&F NAM 5150 III/5150 iii 50s 6L6 CH3 74655 P4": {
+1703: "B&F NAM Bassman/64bassman amp": {
+1708: "B&F NAM Bassman/71 Bassman - 80's Clean - V5 T8 B5": {
+1713: "B&F NAM Bassman/71 Bassman - All on 10 - Bright - V10 T10 B10": {
+1718: "B&F NAM Bassman/71 Bassman - All on 10 - Norm - V10 T10 B10": {
+1723: "B&F NAM Bassman/71 Bassman - All on 5 - Norm - V10 T10 B10": {
+1728: "B&F NAM Champ/65Champion amp": {
+1733: "B&F NAM Champ/CHAMP V10 T7 B5": {
+1738: "B&F NAM Champ/CHAMP V8 T9 B6": {
+1743: "B&F NAM Champ/Champ V7 T7 B5": {
+1748: "B&F NAM Champ/Champ V9  T7 B5": {
+1753: "B&F NAM Princeton/_62 CS Princeton V7 T10": {
+1758: "B&F NAM Princeton/_62 CS Princeton V7 T3": {
+1763: "B&F NAM Princeton/_62 CS Princeton V7 T8": {
+1768: "B&F NAM Princeton/_62 CS Princeton V8 T10": {
+1773: "B&F NAM Princeton/_62 CS Princeton V8 T3": {
+1778: "B&F NAM Twin Reverb/02 Fender Twin Reverb TS808 g-17 di 5": {
+1783: "B&F NAM Twin Reverb/05 Fender Twin Reverb TS808 g-05 di half": {
+1788: "B&F NAM Twin Reverb/05 Fender Twin Reverb TS808 g-11 di half": {
+1793: "B&F NAM Twin Reverb/08 Fender Twin Reverb TS808 g-5 di 75": {
+1798: "B&F NAM Twin Reverb/10 Fender Twin Reverb TS10 g0 difull": {
+1803: "B&F NAM Friedman/Friedman  HBE   Amp DI": {
+1808: "B&F NAM Friedman/FRIEDMAN": {
+1813: "B&F NAM Friedman/FRIEDMAN BE V3": {
+1818: "B&F NAM Friedman/FRIEDMAN BE100": {
+1823: "B&F NAM Friedman/Friedman BE‑100": {
+1828: "B&F NAM Horizon Precision Drive/grushenka-high-gain--precision-drive": {
+1833: "B&F NAM Horizon Precision Drive/grushenka-low-gain--precision-drive": {
+1838: "B&F NAM Horizon Precision Drive/grushenka-mid-gain--precision-drive": {
+1843: "B&F NAM Horizon Precision Drive/marshall-6100--channel2-crunch-b--low-gain--precision-drive": {
+1848: "B&F NAM Horizon Precision Drive/marshall-6100--channel2-crunch-c--mid-gain--precision-drive": {
+1853: "B&F NAM JCM2000 DSL/2KDSL100 - CHA - CLN - DI": {
+1858: "B&F NAM JCM2000 DSL/2KDSL100 - CHA - CRN - DI": {
+1863: "B&F NAM JCM2000 DSL/2KDSL100 - CHB - ULT - DI": {
+1868: "B&F NAM JCM800/#0b 1989 Marshall JCM800 2203 suhrRL-vossen": {
+1873: "B&F NAM JCM800/#0d 1989 Marshall JCM800 2203 + SD1 suhrRL-vossen": {
+1878: "B&F NAM JCM800/#1 1989 Marshall JCM800 2203 suhrRL P5-B6-M8-T6-MV6_G7-vossen": {
+1883: "B&F NAM JCM800/#2 1989 Marshall JCM800 2203 suhrRL P5-B6-M8-T6-MV4_G10-vossen": {
+1888: "B&F NAM JCM800/#3 1989 Marshall JCM800 2203 suhrRL P5-B4-M7-T9-MV6_G10-vossen": {
+1893: "B&F NAM JCM900/AP JCM900-pre_01_CH1_G4": {
+1898: "B&F NAM JCM900/AP JCM900-pre_02_CH1_G8": {
+1903: "B&F NAM JCM900/AP JCM900-pre_03_CH1_G10": {
+1908: "B&F NAM JCM900/AP JCM900-pre_04_CH2_G4": {
+1913: "B&F NAM JCM900/AP JCM900-pre_05_CH2_G8": {
+1918: "B&F NAM JVM/A1vsA2-JVM-OD1-OR-A1": {
+1923: "B&F NAM JVM/APP-JVM-CLEAN-Red-II": {
+1928: "B&F NAM JVM/APP-JVM-CLEAN-Red-IV": {
+1933: "B&F NAM JVM/APP-JVM-CLEAN-Red-VIII": {
+1938: "B&F NAM JVM/APP-JVM-CRUNCH-Green-VI": {
+1943: "B&F NAM Plexi/1 Plexi - Emil Rohbe": {
+1948: "B&F NAM Plexi/1 Plexi 67 Low G8 - Emil Rohbe": {
+1953: "B&F NAM Plexi/10 Plexi 67 Normal Dark - Emil Rohbe": {
+1958: "B&F NAM Plexi/11 Plexi 67 Bonus Low Epona - Emil Rohbe": {
+1963: "B&F NAM Plexi/14 Plexi 67 Crazy Plexi - Emil Rohbe": {
+1968: "B&F NAM Mesa Dual Rectifier/Bray 4550 SS Rectifier": {
+1973: "B&F NAM Mesa Dual Rectifier/Bray 4550 Tube Rectifier": {
+1978: "B&F NAM Mesa Dual Rectifier/CavLabs Rectifier - Gain 2": {
+1983: "B&F NAM Mesa Dual Rectifier/CavLabs Rectifier - Gain 4": {
+1988: "B&F NAM Mesa Dual Rectifier/CavLabs Rectifier - Gain 6": {
+1993: "B&F NAM Mesa Mark/Mark IV Morton Live": {
+1998: "B&F NAM Mesa Mark/Mark IV ch2": {
+2003: "B&F NAM Mesa Mark/Mark IV ch2 Mudkiller": {
+2008: "B&F NAM Mesa Mark/Mark IV ch3 triode harmonics": {
+2013: "B&F NAM Mesa Mark/Mark IV ch4 pentode midgain": {
+2018: "B&F NAM Mesa Triple Rectifier/MESA BOOGIE - TRIPLE RECTIFIER - PLUMES_EQD": {
+2023: "B&F NAM Mesa Triple Rectifier/Mesa Boogie Triple Rectifier": {
+2028: "B&F NAM Mesa Triple Rectifier/Mesa Boogie Triple Rectifier edited": {
+2033: "B&F NAM Mesa Triple Rectifier/Mesa Triple Rec Red No Boost": {
+2038: "B&F NAM Mesa Triple Rectifier/Mesa Triple Rectifier MD421_SM57_Sphere U47": {
+2043: "B&F NAM Rockerverb/OR15 (V9 T8 M1 B8 G2 + The Dualgun Heavy Hand D5 T6 V6 Fat)": {
+2048: "B&F NAM Rockerverb/OR15 (V9 T8 M1 B8 G2 + The Dualgun Heavy Hand D5 T6 V6 Stock)": {
+2053: "B&F NAM Rockerverb/OR15 British Crunch (Vol 5 Treble 4 Mid 6 Bass 4 Gain 5)": {
+2058: "B&F NAM Rockerverb/OR15 Clean Tone (Vol 9 Treble 8 Mid 3 Bass 8 Gain 3)": {
+2063: "B&F NAM Rockerverb/OR15-Preamp-Pedal": {
+2068: "B&F NAM Archon/02 Archon - ts7 - xSTD": {
+2073: "B&F NAM Archon/05 Archon - ts7 - standard": {
+2078: "B&F NAM Archon/1 Archon - midpush 808": {
+2083: "B&F NAM Archon/2 Archon - midpush Kuro": {
+2088: "B&F NAM Archon/8 Archon - midpush ts7": {
+2093: "B&F NAM 5150/Peavy 5150    Amp DI": {
+2098: "B&F NAM 5150/11-C2IR_20_SL_412_Peavey_5150_B-consolidated": {
+2103: "B&F NAM 5150/15 5150 Block (Red) Russian Pickle B-Fuzz": {
+2108: "B&F NAM 5150/16 5150 Block (Red) TwiNote-Fuzz": {
+2113: "B&F NAM 5150/19 5150 Block (Red) Pepers ROT A-Distortion": {
+2118: "B&F NAM 6505/6505 1992 Ld Pr-2 B-6 M-5 T-7 Po-3 R-9 P-7": {
+2123: "B&F NAM 6505/6505 1992 Ld Pr-3 B-5 M-6 T-5 Po-3 R-7 P-8": {
+2128: "B&F NAM 6505/6505 1992 Ld Pr-3 B-6 M-4 T-6 Po-3 R-9 P-8": {
+2133: "B&F NAM 6505/[PRE] PV6505-OG1992-RHYT Wishful Dreamin": {
+2138: "B&F NAM 6505/[PRE] PV6505-OG1992-RHYT Wishful Dreamin [REVyHI]": {
+2143: "B&F NAM Randall/PEAVEY Thrasher 4": {
+2148: "B&F NAM Randall/PEAVEY _ Thrasher _ 5150": {
+2153: "B&F NAM Randall/RANDALL Diavlo RD100H CH Clean": {
+2158: "B&F NAM Generator/REVV G2#01": {
+2163: "B&F NAM Generator/REVV G20 CRUNCH #1": {
+2168: "B&F NAM Generator/REVV G20 CRUNCH #2": {
+2173: "B&F NAM Generator/REVV G20 RHYTHM GAIN #1": {
+2178: "B&F NAM Generator/REVV G20 RHYTHM GAIN #2 T9OD": {
+2183: "B&F NAM SLO-100/[AMP] SLO100-NRM-CLN Journeyvan - BLEND #1": {
+2188: "B&F NAM SLO-100/[AMP] SLO100-NRM-CLN Journeyvan - BLEND #2 [REVyHI]": {
+2193: "B&F NAM SLO-100/[AMP] SLO100-NRM-CLN Journeyvan - BLEND #3": {
+2198: "B&F NAM SLO-100/[AMP] SLO100-NRM-CLN Journeyvan - DI": {
+2203: "B&F NAM SLO-100/[AMP] SLO100-NRM-CLN Journeyvan - DI [REVyHI]": {
+2208: "B&F NAM Riot/suhr_riot_drive100_level50_tone100_vMID": {
+2213: "B&F NAM Riot/suhr_riot_drive25_level50_tone0_vMID": {
+2218: "B&F NAM Riot/suhr_riot_drive25_level50_tone100_vMID": {
+2223: "B&F NAM Riot/suhr_riot_drive25_level50_tone25_vMID": {
+2228: "B&F NAM Riot/suhr_riot_drive50_level50_tone100_vMID": {
+2233: "B&F NAM AC30/01-vox_ac30_tb_hg_CLEAN": {
+2238: "B&F NAM AC30/02-vox_ac30_tb_hg_EDGE": {
+2243: "B&F NAM AC30/06-FET_NAM+oct_IR_20_SL_212_Vox_AC30_B-consolidated": {
+2248: "B&F NAM AC30/60's Tube Amp (Similar to Vox AC30)": {
+2253: "B&F NAM AC30/[NST] A clean VOX AC30 + 65Prince 906 1-2": {
+2258: "B&F NAM Aguilar Tone Hammer 500/Aguilar Tone Hammer 500": {
+2263: "B&F NAM B15/Ampeg B15  U47": {
+2268: "B&F NAM B15/Ampeg B15 Sum - U47 and M80": {
+2273: "B&F NAM B15/Ampeg B15N Head Only Vol Max B&T 12 Ultra Lo On": {
+2278: "B&F NAM B15/Ampeg B15N Head Vol B&T at 12 Ultra Lo OFF": {
+2283: "B&F NAM SVT/AAF AMPEG SVT-4 PRO": {
+2288: "B&F NAM SVT/Ampeg SGT - SGT On@ 7 SVT Voicing Bass@2 Mid@11 Treb@10 UL Off": {
+2293: "B&F NAM SVT/Ampeg SGT - SGT On@ 8 SVT Voicing Bass@2 Mid@2 Treb@11 UL Off": {
+2298: "B&F NAM SVT/Ampeg SGT- SGT On @12 SVT Voice Bass@2 Mid@11 Treb@10 UL Off": {
+2303: "B&F NAM Scrambler/AMPEG Scrambler V6 D2 T3": {
+2308: "B&F NAM Scrambler/AMPEG Scrambler V6 D2 T4": {
+2313: "B&F NAM Scrambler/AMPEG Scrambler V6 D2 T7": {
+2318: "B&F NAM Scrambler/AMPEG Scrambler V6 D4 T2": {
+2323: "B&F NAM Scrambler/AMPEG Scrambler V6 D4 T3": {
+2328: "B&F NAM V4/64 Bandmaster - Clean - Norm, V4 T6 B6": {
+2333: "B&F NAM V4/66 DR - Sweet Spot Norm - V4 T5 B5": {
+2338: "B&F NAM V4/71 Twin - Big Clean - Norm - V4 T6 M7 B5": {
+2343: "B&F NAM V4/Ampeg SS-140C Martyr V4  (REVyHI Architecture)": {
+2348: "B&F NAM V4/Ampeg V4 T 3_30, M 11 o'clock, B 2_30 mid switch middle pos": {
+2353: "B&F NAM ODB-3/BOSS ODB3": {
+2358: "B&F NAM ODB-3/Boss ODB-3 L12 L12 H12 B08 G09": {
+2363: "B&F NAM ODB-3/Boss ODB-3 L14 L12 H12 B09 G14": {
+2368: "B&F NAM ODB-3/Boss ODB-3 L14 L17 H17 B17 G17": {
+2373: "B&F NAM ODB-3/ODB3 0 gain 10 level": {
+2378: "B&F NAM Darkglass Alpha Omega/ALPHA OMEGA": {
+2383: "B&F NAM Darkglass Alpha Omega/Alpha EQ Modified": {
+2388: "B&F NAM Darkglass Alpha Omega/Alpha_B10_L5_AO0_D5_Gon_Boff": {
+2393: "B&F NAM Darkglass Alpha Omega/Alpha_B10_L5_AO0_D5_Gon_Bon": {
+2398: "B&F NAM Darkglass Alpha Omega/Alpha_Omicon_B10_L5_AO0_D5_Gon_Boff_v3": {
+2403: "B&F NAM Darkglass B3K/Darkglass B3K Drive 2": {
+2408: "B&F NAM Darkglass B3K/Darkglass B3K Drive 3": {
+2413: "B&F NAM Darkglass B3K/Darkglass B3K Drive 4": {
+2418: "B&F NAM Darkglass B3K/Darkglass B3K Drive 7": {
+2423: "B&F NAM Darkglass B3K/Darkglass B3K Drive 8": {
+2428: "B&F NAM Darkglass B7K Ultra/B7K - Bass Comp Jr": {
+2433: "B&F NAM Darkglass B7K Ultra/B7K Clean": {
+2438: "B&F NAM Darkglass B7K Ultra/B7K Djent": {
+2443: "B&F NAM Darkglass B7K Ultra/B7K Hard Rock": {
+2448: "B&F NAM Darkglass Microtubes 900/Darkglass Microtubes 900": {
+2453: "B&F NAM Darkglass Microtubes Infinity/Cleaner Microtubes Infinity": {
+2458: "B&F NAM Darkglass Microtubes Infinity/Dirty Microtubes Infinity": {
+2463: "B&F NAM Darkglass VMT (Vintage Microtubes)/DarkGlass Ultra Vintage Bass Drive": {
+2468: "B&F NAM Darkglass VMT (Vintage Microtubes)/Darkglass VMT Drive 10": {
+2473: "B&F NAM Darkglass VMT (Vintage Microtubes)/Darkglass VMT Drive 5": {
+2478: "B&F NAM Darkglass VMT (Vintage Microtubes)/Darkglass VMT Drive 7": {
+2483: "B&F NAM Darkglass VMT (Vintage Microtubes)/Darkglass VMT Drive 8": {
+2488: "B&F NAM Rumble/Fender Rumble 100 - Low 5, Mid 5, High 5 - Bright": {
+2493: "B&F NAM Rumble/Fender Rumble 100 - Low 5, Mid 5, High 5 - Default": {
+2498: "B&F NAM Rumble/Your Bass Preset Fender Rumble Stage 800": {
+2503: "B&F NAM Gallien-Krueger MB150/GK MB150 AMPLITUBE": {
+2508: "B&F NAM Gallien-Krueger MB150/GK MBS150 - Fuzz": {
+2513: "B&F NAM Gallien-Krueger MB150/GK MBS150 - Fuzzy DI Max": {
+2518: "B&F NAM Gallien-Krueger MB150/GK MBS150 - Gritty Max": {
+2523: "B&F NAM Gallien-Krueger MB150/GK MBS150 - Reggae": {
+2528: "B&F NAM MXR M80 Bass DI/m80-color-all12": {
+2533: "B&F NAM MXR M80 Bass DI/m80-color-b12-m14-t13": {
+2538: "B&F NAM MXR M80 Bass DI/m80-color-bass13-mid11-treble14": {
+2543: "B&F NAM MXR M80 Bass DI/m80-color-bass13-mid12-treble13": {
+2548: "B&F NAM Mesa Bass 800D/MESA BASS 800D - SEND - FAT CLASSIC ROCK": {
+2553: "B&F NAM Mesa Bass 800D/MESA BASS 800D - SEND - MODERN ROCK METAL": {
+2558: "B&F NAM Mesa Bass 800D/MESA BASS 800D - SEND - REGGAE": {
+2563: "B&F NAM Mesa Bass 800D/MESA BASS 800D - SEND - ROUND R AND B": {
+2568: "B&F NAM Mesa Bass 800D/MESA BASS 800D - SEND - SLAP FUNK FINGERSTYLE": {
+2573: "B&F NAM Mesa Subway D800/Mesa Subway D800+ Deep Off Voicing 50%": {
+2578: "B&F NAM Mesa Subway D800/Mesa Subway D800+ Deep Off Voicing 75%": {
+2583: "B&F NAM Mesa Subway D800/Mesa Subway D800+ Deep On Voicing 25%": {
+2588: "B&F NAM Mesa Subway D800/Mesa Subway D800+ Deep On Voicing 50%": {
+2593: "B&F NAM Mesa Subway D800/Mesa Subway D800+ Deep On Voicing 75%": {
+2598: "B&F NAM Terror Bass/ORANGE TERROR BASS (DRIVEN)": {
+2603: "B&F NAM SansAmp Bass Driver/01 CLEAN (SANS AMP)#02": {
+2608: "B&F NAM SansAmp Bass Driver/02 DRIVE (SANS AMP)#03": {
+2613: "B&F NAM SansAmp Bass Driver/03 FUZZ (MASTOTRON+SANS AMP)#01": {
+2618: "B&F NAM SansAmp Bass Driver/MG-Fingers-SansAmp": {

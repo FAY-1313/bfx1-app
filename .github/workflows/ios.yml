@@ -1,0 +1,133 @@
+name: iOS CI (TestFlight)
+
+on:
+  workflow_dispatch:        # 手动触发（Actions 页面 ▸ Run workflow）
+  push:
+    branches: [ ios-ci ]    # 推到 ios-ci 分支自动构建
+
+# 必须权限：读取代码 + 上传产物
+permissions:
+  contents: read
+
+jobs:
+  build-ios:
+    runs-on: macos-latest   # 自带 Xcode + Swift；Capacitor 8 SPM 模式无需 CocoaPods
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Build web bundle
+        run: npm run build     # 产出 dist/（capacitor.config.webDir）
+
+      - name: Sync Capacitor iOS
+        run: npx cap sync ios
+
+      # ★ 关键：cap sync 会重置 Info.plist，必须再注入 iOS 必需键
+      - name: Patch Info.plist (BLE / mic / ATS)
+        run: bash scripts/patch_ios_plist.sh ios/App/App/Info.plist
+
+      - name: Decode signing cert & profile
+        env:
+          P12_B64:        ${{ secrets.IOS_CERT_P12 }}
+          P12_PW:         ${{ secrets.IOS_CERT_PASSWORD }}
+          PROFILE_B64:    ${{ secrets.IOS_PROVISIONING_PROFILE }}
+          KEYCHAIN_PW:    ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          security create-keychain -p "$KEYCHAIN_PW" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$KEYCHAIN_PW" build.keychain
+          security set-keychain-settings -t 3600 -u build.keychain
+          echo "$P12_B64" | base64 --decode > cert.p12
+          security import cert.p12 -k build.keychain -P "$P12_PW" -T /usr/bin/codesign
+          # ★ 关键：不放开私钥访问权限，codesign 会以 “interaction is not allowed” 失败
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PW" build.keychain > /dev/null
+          security list-keychains -d user -s build.keychain login.keychain-db
+          security find-identity -v -p codesigning build.keychain
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo "$PROFILE_B64" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
+
+      # ★ p12 里只有叶子证书：codesign 需要 WWDR G3 中间证书才能建立完整信任链。
+      #   必须在上一步 import p12 之后、archive 之前安装。
+      - name: Install WWDR G3 intermediate
+        run: |
+          curl -fsSL -o /tmp/AppleWWDRCAG3.cer https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer
+          security import /tmp/AppleWWDRCAG3.cer -k build.keychain -T /usr/bin/codesign
+          security find-identity -v -p codesigning build.keychain
+
+      - name: Resolve workspace/scheme
+        id: cap
+        working-directory: ios/App
+        run: |
+          if [ -d App.xcworkspace ]; then
+            echo "wsflag=workspace" >> "$GITHUB_OUTPUT"
+            echo "ws=App.xcworkspace" >> "$GITHUB_OUTPUT"
+          else
+            echo "wsflag=project" >> "$GITHUB_OUTPUT"
+            echo "ws=App.xcodeproj" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Archive
+        working-directory: ios/App
+        env:
+          TEAM:    ${{ secrets.APPLE_TEAM_ID }}
+          PROFILE: ${{ secrets.IOS_PROFILE_NAME }}
+        run: |
+          WSFLAG="${{ steps.cap.outputs.wsflag }}"
+          WS="${{ steps.cap.outputs.ws }}"
+          # ★ 每次上传 TestFlight 的 build 号必须比上一次大，否则 altool 直接拒收。
+          #   基准 122（与 app build.gradle 对齐），用 CI 运行序号叠加，永不重复。
+          BUILD_NO=$(( 122 + GITHUB_RUN_NUMBER ))
+          echo "build number = $BUILD_NO"
+          xcodebuild -$WSFLAG "$WS" -scheme App -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath build/App.xcarchive \
+            CURRENT_PROJECT_VERSION="$BUILD_NO" \
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM="$TEAM" \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            PROVISIONING_PROFILE_SPECIFIER="$PROFILE" \
+            clean archive
+
+      - name: Export IPA
+        working-directory: ios/App
+        env:
+          TEAM: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          sed -i '' "s/YOUR_TEAM_ID/$TEAM/" ../../scripts/exportOptions.plist
+          xcodebuild -exportArchive \
+            -archivePath build/App.xcarchive \
+            -exportPath build \
+            -exportOptionsPlist ../../scripts/exportOptions.plist
+
+      - name: Upload to TestFlight (App Store Connect API)
+        env:
+          API_P8_B64: ${{ secrets.APPSTORE_API_KEY_P8 }}
+          KEY_ID:     ${{ secrets.APPSTORE_KEY_ID }}
+          ISSUER:     ${{ secrets.APPSTORE_ISSUER_ID }}
+        run: |
+          mkdir -p ~/.private_keys
+          echo "$API_P8_B64" | base64 --decode > ~/.private_keys/AuthKey_${KEY_ID}.p8
+          xcrun altool --upload-app \
+            -f ios/App/build/App.ipa \
+            --apiKey "$KEY_ID" \
+            --apiIssuer "$ISSUER"
+          # 注：若 Xcode 移除 altool，改用 fastlane pilot：
+          #   fastlane pilot upload -i ios/App/build/App.ipa -u <appleid> --api_key_path AuthKey.json
+
+      - name: Upload artifact (fallback)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: BFX1-iOS-IPA
+          path: ios/App/build/App.ipa
+          if-no-files-found: ignore

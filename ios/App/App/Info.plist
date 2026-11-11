@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CAPACITOR_DEBUG</key>
+	<string>$(CAPACITOR_DEBUG)</string>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleDisplayName</key>
+        <string>BFX1</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
+	<key>UIMainStoryboardFile</key>
+	<string>Main</string>
+	<!-- ★ 2026-11-07：删掉模板遗留的 armv7 能力声明（部署目标已是 iOS 15，
+	     只支持 arm64；留着会在新版 App Store 校验里被当成过时配置） -->
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<true/>
+	<!-- ★ 2026-10-17：iOS 必需 —— BLE 扫描/连接不写这两条会直接被系统拒绝 -->
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>BFX1 需要通过蓝牙连接你的 BFX-1 效果器，用来发送与读取音色参数。</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>BFX1 需要通过蓝牙连接你的 BFX-1 效果器。</string>
+	<!-- ★ 2026-11-02：iOS 录音必需 —— LooperPanel:319 调用 getUserMedia({audio:true}) -->
+	<key>NSMicrophoneUsageDescription</key>
+	<string>BFX1 需要麦克风用于循环录音（Looper）与音色试听录制。</string>
+	<!-- ★ 2026-11-07：出口合规 —— 本 App 只用系统标准 HTTPS/BLE，不含非豁免加密，
+	     声明 false 可免去每次上传 TestFlight 时的加密问答 -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<!-- ★ 2026-10-17：切到后台/锁屏后仍保持 BLE 连接（对应安卓端的"保持后台运行"） -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>bluetooth-central</string>
+	</array>
+	<!-- ★ 2026-10-17：音频分段服务目前是明文 HTTP（124.223.119.201:8000），
+	     iOS 的 ATS 默认会拦。测试期先整体放行；**上架 App Store 前必须改成
+	     具体域名的 NSExceptionDomains 或直接把服务切到 HTTPS**。 -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
+</dict>
+</plist>

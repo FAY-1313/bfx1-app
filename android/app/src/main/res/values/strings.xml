@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <!-- ★ v3.78 bilingual: default (non-Chinese system) shows English -->
+    <string name="app_name">BFX-1 Processor</string>
+    <string name="title_activity_main">BFX-1 Processor</string>
+    <string name="package_name">com.bfx1.processor</string>
+    <string name="custom_url_scheme">com.bfx1.processor</string>
+</resources>

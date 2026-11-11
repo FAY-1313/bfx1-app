@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ★ 2026-10-17（BFX1 换标）：Android 12+ 走系统 SplashScreen，
+         不走 @drawable/splash（旧版主题的 windowBackground）。
+         这里只把系统 splash 的底色压到品牌深色，视觉上与 splash.png / 应用内开屏动画一致，
+         避免"白屏一闪"。
+
+         ★ 2026-10-18（用户反馈「开屏的第一个 LOGO 不要有黑底外框」）：
+           系统 splash 默认直接显示 launcher 图标 —— 那是「深色圆角方块 + 橙字标」的
+           自适应图标，在深色背景上看起来就是一块黑底方框。
+           改用 drawable-nodpi/splash_icon.png（透明底、只有 B&F 字标），
+           并把图标底色显式置透明，彻底去掉方框。 -->
+    <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
+        <item name="android:windowSplashScreenBackground">@color/bfx_splash_bg</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_icon</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@android:color/transparent</item>
+        <item name="android:background">@drawable/splash</item>
+    </style>
+</resources>

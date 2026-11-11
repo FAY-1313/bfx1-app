@@ -1,0 +1,47 @@
+# BFX-1 AI 分轨服务 — 腾讯云轻量应用服务器编排
+# 组成:
+#   app   分轨服务 (本目录 Dockerfile 构建, 模型已烘焙进镜像)
+#   caddy 反向代理 + 自动 HTTPS (有域名模式; 域名经 Caddyfile 里的 {env.DOMAIN} 注入)
+#
+# 用法见 deploy_lighthouse.sh / LIGHTHOUSE_DEPLOY.md
+services:
+  app:
+    build: .
+    image: bfx1-stem-split:latest
+    restart: unless-stopped
+    # IP 模式(无域名)时直接暴露 8000; 域名模式可不用, 但留着无妨
+    ports:
+      - "8000:8000"
+    environment:
+      # 分段推理控制 2C4G 内存峰值. 注意: 段长必须是 htdemucs_6s 内部训练段长 39/5=7.8s 的
+      # 整倍数, 否则 htdemucs.py forward 的 view(B,S,-1,training_length) 会因尺寸不匹配崩溃
+      # (实测 DEMUCS_SEGMENT=8 -> RuntimeError; =7.8 -> OK). 整段推理(删此行)则无此限制但峰值 3~4GB.
+      DEMUCS_SEGMENT: "7.8"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8000/health',timeout=5)"]
+      interval: 60s
+      timeout: 10s
+      retries: 6
+      start_period: 180s
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    # 域名模式需要控制台防火墙放行 80/443
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      # 有域名模式由 deploy_lighthouse.sh 注入; 无域名模式不启动 caddy
+      DOMAIN: ${DOMAIN:-}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+
+volumes:
+  caddy_data:
+  caddy_config:

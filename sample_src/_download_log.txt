@@ -1,0 +1,48 @@
+rock hihat.flac 122698 <= Samples/mid/hh/mid_hh_closed_vl4_rr1.flac
+rock floortom.flac 577393 <= Samples/mid/ltom/mid_ltom_center_vl14.flac
+rock crash.flac 1832655 <= Samples/mid/crash/mid_crash_crash_vl3_rr1.flac
+rock ride.flac 1058738 <= Samples/mid/ride/mid_ride_ride_vl3_rr1.flac
+lofi kick.flac 149522 <= Samples/lofi/kick/lofi_kick_snon_vl4_rr1.flac
+lofi snare.flac 136628 <= Samples/lofi/snare/lofi_snare_center_vl32.flac
+lofi hihat.flac 61209 <= Samples/lofi/hh/lofi_hh_closed_vl4_rr1.flac
+lofi openhat.flac 786021 <= Samples/lofi/hh/lofi_hh_open_vl4_rr1.flac
+lofi tom.flac 133898 <= Samples/lofi/htom/lofi_htom_center_vl14.flac
+lofi floortom.flac 301772 <= Samples/lofi/ltom/lofi_ltom_center_vl14.flac
+lofi crash.flac 953801 <= Samples/lofi/crash/lofi_crash_crash_vl3_rr1.flac
+lofi ride.flac 529795 <= Samples/lofi/ride/lofi_ride_ride_vl3_rr1.flac
+lofi shaker.wav 138788 <= Samples/perc/close/shaker/LShaker_Shake1D_rr1_Close.wav
+funk zip 3662602
+funk zip entries=36
+funk kick.wav <- kick.wav (18090B)
+funk snare.wav <- snare-m.wav (12444B)
+funk hihat.wav <- hihat-closed-short.wav (4550B)
+funk openhat.wav <- hihat-open.wav (42048B)
+funk clap.wav <- clap.wav (17064B)
+funk tom.wav <- tom-m.wav (36078B)
+funk crash.wav <- crash.wav (109012B)
+funk ride.wav <- ride.wav (111852B)
+funk cowbell.wav <- cowb.wav (15674B)
+funk tambourine.wav <- tamb.wav (14150B)
+house kick.wav 20838 <= kick/01.wav
+house snare.wav 19154 <= snare electric.wav
+house hihat.wav 7980 <= hihat closed/01.wav
+house openhat.wav 210606 <= hihat open.wav
+house clap.wav 12678 <= clap electric.wav
+house tom.wav 33088 <= toms/middle.wav
+house crash.wav 271638 <= crash.wav
+house ride.wav 424888 <= ride.wav
+house shaker.wav 7264 <= shaker/01.wav
+house cowbell.wav 28678 <= cowbell.wav
+hiphop kick.wav 528488 <= drums/one shot/808/fat 808 c 1 @TeaBoi.wav
+hiphop kick_alt.wav 165524 <= drums/one shot/kicks/punchy kick 1 @TeaBoi.wav
+hiphop snare.wav 211724 <= drums/one shot/snares/Snare 1 @Klassic.wav
+hiphop snare2.wav 216312 <= drums/one shot/snares/snare 5 @TeaBoi.wav
+hiphop hihat.wav 14596 <= drums/one shot/hi hats/ch 1 @TeaBoi.wav
+hiphop openhat.wav 87706 <= drums/one shot/hi hats/Open Hat 1 @TeaBoi.wav
+hiphop clap.wav 31580 <= drums/one shot/claps/trap clap 1 @TeaBoi.wav
+hiphop rim.wav 528488 <= drums/one shot/rimshots/rim 1 @TeaBoi.wav
+hiphop perc.wav 189068 <= drums/one shot/perc/perc 1 @TeaBoi.wav
+license saved virtuosity_drums_LICENSE.txt
+license saved BillieDrum_LICENSE.txt
+license saved BushDrum_LICENSE.txt
+license saved libre-sample-pack_README.md

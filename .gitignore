@@ -1,0 +1,50 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ─────────────────────────────────────────────────────────────
+# ★ 2026-11-07：为 iOS CI（GitHub Actions）瘦身
+#   · 只忽略「构建产物 / 本机配置」，src、public（179MB 的模型与音频）、
+#     ios 原生工程、android 源码都必须进仓库，否则 CI 构建出来的 App 会缺资源。
+#   · 单文件上限 100MB —— public 下最大文件 26.5MB，安全。
+# ─────────────────────────────────────────────────────────────
+# iOS 构建产物（由 npm run build + npx cap sync ios 重新生成）
+ios/App/App/public
+ios/App/App/capacitor.config.json
+ios/App/build
+ios/capacitor-cordova-ios-plugins
+*.ipa
+
+# Android 构建产物与本机 SDK 路径
+android/app/build
+android/build
+android/.gradle
+android/capacitor-cordova-android-plugins
+android/local.properties
+
+# 本机临时 / 备份 / 验证输出
+_tmp
+_verify
+src_backup_*
+*.apk

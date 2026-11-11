@@ -1,0 +1,221 @@
+freqToIndex(120) -> 94 (120 Hz)
+freqToIndex(800) -> 192 (794 Hz)
+freqToIndex(900) -> 199 (908 Hz)
+freqToIndex(1000) -> 204 (1000 Hz)
+freqToIndex(1500) -> 225 (1500 Hz)
+freqToIndex(2500) -> 252 (2520 Hz)
+freqToIndex(3000) -> 261 (3000 Hz)
+freqToIndex(4000) -> 276 (4000 Hz)
+freqToIndex(5000) -> 288 (5040 Hz)
+freqToIndex(5990) -> 297 (5990 Hz)
+freqToIndex(12900) -> 337 (12900 Hz)
+freqToIndex(13700) -> 340 (13700 Hz)
+freqToIndex(15700) -> 347 (15700 Hz)
+
+Gain dB mapping:
+  -8.0 dB -> gainIdx 80 (re-encodes to -8.0 dB)
+  -6.0 dB -> gainIdx 90 (re-encodes to -6.0 dB)
+  -5.0 dB -> gainIdx 95 (re-encodes to -5.0 dB)
+  -4.0 dB -> gainIdx 100 (re-encodes to -4.0 dB)
+  -3.0 dB -> gainIdx 105 (re-encodes to -3.0 dB)
+  -2.0 dB -> gainIdx 110 (re-encodes to -2.0 dB)
+  -1.0 dB -> gainIdx 115 (re-encodes to -1.0 dB)
+  +0.0 dB -> gainIdx 120 (re-encodes to +0.0 dB)
+  +1.0 dB -> gainIdx 125 (re-encodes to +1.0 dB)
+  +2.0 dB -> gainIdx 130 (re-encodes to +2.0 dB)
+  +3.0 dB -> gainIdx 135 (re-encodes to +3.0 dB)
+  +4.0 dB -> gainIdx 140 (re-encodes to +4.0 dB)
+
+==== ARCHETYPE REFERENCE DESIGN ====
+
+[O-TS]
+   B1 LOW | type=1 LOW_SHELF  | 120Hz(->idx 94=120Hz) |  -6.0dB(->gain90=-6.0dB) | Qidx=16 Sidx=10 | uint32=0x5105A2F1 = 1359323889
+   B2 MID | type=0 PEAK       | 800Hz(->idx192=794Hz) |  +4.0dB(->gain140=+4.0dB) | Qidx=16 Sidx=10 | uint32=0x5108C600 = 1359529472
+  B3 PRES | type=0 PEAK       | 2500Hz(->idx252=2520Hz) |  -1.0dB(->gain115=-1.0dB) | Qidx=16 Sidx=10 | uint32=0x510737E0 = 1359427552
+  B4 HIGH | type=2 HIGH_SHELF | 5990Hz(->idx297=5990Hz) |  -3.0dB(->gain105=-3.0dB) | Qidx=16 Sidx=10 | uint32=0x5106994A = 1359386954
+
+[O-SD]
+   B1 LOW | type=1 LOW_SHELF  | 120Hz(->idx 94=120Hz) |  -4.0dB(->gain100=-4.0dB) | Qidx=16 Sidx=10 | uint32=0x510642F1 = 1359364849
+   B2 MID | type=0 PEAK       | 900Hz(->idx199=908Hz) |  +2.0dB(->gain130=+2.0dB) | Qidx=16 Sidx=10 | uint32=0x51082638 = 1359488568
+  B3 PRES | type=0 PEAK       | 3000Hz(->idx261=3000Hz) |  +1.0dB(->gain125=+1.0dB) | Qidx=16 Sidx=10 | uint32=0x5107D828 = 1359468584
+  B4 HIGH | type=2 HIGH_SHELF | 5990Hz(->idx297=5990Hz) |  +0.0dB(->gain120=+0.0dB) | Qidx=16 Sidx=10 | uint32=0x5107894A = 1359448394
+
+[O-CENTAUR]
+   B1 LOW | type=1 LOW_SHELF  | 120Hz(->idx 94=120Hz) |  -3.0dB(->gain105=-3.0dB) | Qidx=16 Sidx=10 | uint32=0x510692F1 = 1359385329
+   B2 MID | type=0 PEAK       | 1000Hz(->idx204=1000Hz) |  +2.0dB(->gain130=+2.0dB) | Qidx=16 Sidx=10 | uint32=0x51082660 = 1359488608
+  B3 PRES | type=0 PEAK       | 3000Hz(->idx261=3000Hz) |  +1.0dB(->gain125=+1.0dB) | Qidx=16 Sidx=10 | uint32=0x5107D828 = 1359468584
+  B4 HIGH | type=2 HIGH_SHELF | 5990Hz(->idx297=5990Hz) |  +1.0dB(->gain125=+1.0dB) | Qidx=16 Sidx=10 | uint32=0x5107D94A = 1359468874
+
+[O-BB]
+   B1 LOW | type=1 LOW_SHELF  | 120Hz(->idx 94=120Hz) |  -4.0dB(->gain100=-4.0dB) | Qidx=16 Sidx=10 | uint32=0x510642F1 = 1359364849
+   B2 MID | type=0 PEAK       | 900Hz(->idx199=908Hz) |  +2.0dB(->gain130=+2.0dB) | Qidx=16 Sidx=10 | uint32=0x51082638 = 1359488568
+  B3 PRES | type=0 PEAK       | 3000Hz(->idx261=3000Hz) |  +1.0dB(->gain125=+1.0dB) | Qidx=16 Sidx=10 | uint32=0x5107D828 = 1359468584
+  B4 HIGH | type=2 HIGH_SHELF | 5990Hz(->idx297=5990Hz) |  +0.0dB(->gain120=+0.0dB) | Qidx=16 Sidx=10 | uint32=0x5107894A = 1359448394
+
+[O-RAT]
+   B1 LOW | type=1 LOW_SHELF  | 120Hz(->idx 94=120Hz) |  -8.0dB(->gain80=-8.0dB) | Qidx=16 Sidx=10 | uint32=0x510502F1 = 1359282929
+   B2 MID | type=0 PEAK       | 1500Hz(->idx225=1500Hz) |  +3.0dB(->gain135=+3.0dB) | Qidx=16 Sidx=10 | uint32=0x51087708 = 1359509256
+  B3 PRES | type=0 PEAK       | 4000Hz(->idx276=4000Hz) |  +2.0dB(->gain130=+2.0dB) | Qidx=16 Sidx=10 | uint32=0x510828A0 = 1359489184
+  B4 HIGH | type=2 HIGH_SHELF | 5990Hz(->idx297=5990Hz) |  +2.0dB(->gain130=+2.0dB) | Qidx=16 Sidx=10 | uint32=0x5108294A = 1359489354
+
+[O-FORTIN]
+   B1 LOW | type=1 LOW_SHELF  | 120Hz(->idx 94=120Hz) |  -5.0dB(->gain95=-5.0dB) | Qidx=16 Sidx=10 | uint32=0x5105F2F1 = 1359344369
+   B2 MID | type=0 PEAK       | 1000Hz(->idx204=1000Hz) |  +4.0dB(->gain140=+4.0dB) | Qidx=16 Sidx=10 | uint32=0x5108C660 = 1359529568
+  B3 PRES | type=0 PEAK       | 5000Hz(->idx288=5040Hz) |  +1.0dB(->gain125=+1.0dB) | Qidx=16 Sidx=10 | uint32=0x5107D900 = 1359468800
+  B4 HIGH | type=2 HIGH_SHELF | 13700Hz(->idx340=13700Hz) |  +2.0dB(->gain130=+2.0dB) | Qidx=16 Sidx=10 | uint32=0x51082AA2 = 1359489698
+
+[O-SANSA]
+   B1 LOW | type=1 LOW_SHELF  | 120Hz(->idx 94=120Hz) |  -3.0dB(->gain105=-3.0dB) | Qidx=16 Sidx=10 | uint32=0x510692F1 = 1359385329
+   B2 MID | type=0 PEAK       | 1000Hz(->idx204=1000Hz) |  +1.0dB(->gain125=+1.0dB) | Qidx=16 Sidx=10 | uint32=0x5107D660 = 1359468128
+  B3 PRES | type=0 PEAK       | 4000Hz(->idx276=4000Hz) |  +0.0dB(->gain120=+0.0dB) | Qidx=16 Sidx=10 | uint32=0x510788A0 = 1359448224
+  B4 HIGH | type=2 HIGH_SHELF | 5990Hz(->idx297=5990Hz) |  +1.0dB(->gain125=+1.0dB) | Qidx=16 Sidx=10 | uint32=0x5107D94A = 1359468874
+
+[O-PLUMES]
+   B1 LOW | type=1 LOW_SHELF  | 120Hz(->idx 94=120Hz) |  -5.0dB(->gain95=-5.0dB) | Qidx=16 Sidx=10 | uint32=0x5105F2F1 = 1359344369
+   B2 MID | type=0 PEAK       | 1000Hz(->idx204=1000Hz) |  +3.0dB(->gain135=+3.0dB) | Qidx=16 Sidx=10 | uint32=0x51087660 = 1359509088
+  B3 PRES | type=0 PEAK       | 3000Hz(->idx261=3000Hz) |  +1.0dB(->gain125=+1.0dB) | Qidx=16 Sidx=10 | uint32=0x5107D828 = 1359468584
+  B4 HIGH | type=2 HIGH_SHELF | 5990Hz(->idx297=5990Hz) |  +1.0dB(->gain125=+1.0dB) | Qidx=16 Sidx=10 | uint32=0x5107D94A = 1359468874
+
+[D-MID]
+   B1 LOW | type=1 LOW_SHELF  | 120Hz(->idx 94=120Hz) |  -4.0dB(->gain100=-4.0dB) | Qidx=16 Sidx=10 | uint32=0x510642F1 = 1359364849
+   B2 MID | type=0 PEAK       | 1000Hz(->idx204=1000Hz) |  +3.0dB(->gain135=+3.0dB) | Qidx=16 Sidx=10 | uint32=0x51087660 = 1359509088
+  B3 PRES | type=0 PEAK       | 3000Hz(->idx261=3000Hz) |  +1.0dB(->gain125=+1.0dB) | Qidx=16 Sidx=10 | uint32=0x5107D828 = 1359468584
+  B4 HIGH | type=2 HIGH_SHELF | 5990Hz(->idx297=5990Hz) |  -1.0dB(->gain115=-1.0dB) | Qidx=16 Sidx=10 | uint32=0x5107394A = 1359427914
+
+[D-SCOOP]
+   B1 LOW | type=1 LOW_SHELF  | 120Hz(->idx 94=120Hz) |  +3.0dB(->gain135=+3.0dB) | Qidx=16 Sidx=10 | uint32=0x510872F1 = 1359508209
+   B2 MID | type=0 PEAK       | 1000Hz(->idx204=1000Hz) |  -4.0dB(->gain100=-4.0dB) | Qidx=16 Sidx=10 | uint32=0x51064660 = 1359365728
+  B3 PRES | type=0 PEAK       | 4000Hz(->idx276=4000Hz) |  +1.0dB(->gain125=+1.0dB) | Qidx=16 Sidx=10 | uint32=0x5107D8A0 = 1359468704
+  B4 HIGH | type=2 HIGH_SHELF | 5990Hz(->idx297=5990Hz) |  +3.0dB(->gain135=+3.0dB) | Qidx=16 Sidx=10 | uint32=0x5108794A = 1359509834
+
+[D-HM2]
+   B1 LOW | type=1 LOW_SHELF  | 120Hz(->idx 94=120Hz) |  +2.0dB(->gain130=+2.0dB) | Qidx=16 Sidx=10 | uint32=0x510822F1 = 1359487729
+   B2 MID | type=0 PEAK       | 1000Hz(->idx204=1000Hz) |  -1.0dB(->gain115=-1.0dB) | Qidx=16 Sidx=10 | uint32=0x51073660 = 1359427168
+  B3 PRES | type=0 PEAK       | 4000Hz(->idx276=4000Hz) |  +3.0dB(->gain135=+3.0dB) | Qidx=16 Sidx=10 | uint32=0x510878A0 = 1359509664
+  B4 HIGH | type=2 HIGH_SHELF | 12900Hz(->idx337=12900Hz) |  +4.0dB(->gain140=+4.0dB) | Qidx=16 Sidx=10 | uint32=0x5108CA8A = 1359530634
+
+[D-FORTIN]
+   B1 LOW | type=1 LOW_SHELF  | 120Hz(->idx 94=120Hz) |  -6.0dB(->gain90=-6.0dB) | Qidx=16 Sidx=10 | uint32=0x5105A2F1 = 1359323889
+   B2 MID | type=0 PEAK       | 1000Hz(->idx204=1000Hz) |  +4.0dB(->gain140=+4.0dB) | Qidx=16 Sidx=10 | uint32=0x5108C660 = 1359529568
+  B3 PRES | type=0 PEAK       | 4000Hz(->idx276=4000Hz) |  +2.0dB(->gain130=+2.0dB) | Qidx=16 Sidx=10 | uint32=0x510828A0 = 1359489184
+  B4 HIGH | type=2 HIGH_SHELF | 13700Hz(->idx340=13700Hz) |  +3.0dB(->gain135=+3.0dB) | Qidx=16 Sidx=10 | uint32=0x51087AA2 = 1359510178
+
+[D-BASS]
+   B1 LOW | type=1 LOW_SHELF  | 120Hz(->idx 94=120Hz) |  +2.0dB(->gain130=+2.0dB) | Qidx=16 Sidx=10 | uint32=0x510822F1 = 1359487729
+   B2 MID | type=0 PEAK       | 1000Hz(->idx204=1000Hz) |  +1.0dB(->gain125=+1.0dB) | Qidx=16 Sidx=10 | uint32=0x5107D660 = 1359468128
+  B3 PRES | type=0 PEAK       | 4000Hz(->idx276=4000Hz) |  +2.0dB(->gain130=+2.0dB) | Qidx=16 Sidx=10 | uint32=0x510828A0 = 1359489184
+  B4 HIGH | type=2 HIGH_SHELF | 12900Hz(->idx337=12900Hz) |  +4.0dB(->gain140=+4.0dB) | Qidx=16 Sidx=10 | uint32=0x5108CA8A = 1359530634
+
+[A-FENDER-SCOOP]
+   B1 LOW | type=1 LOW_SHELF  | 120Hz(->idx 94=120Hz) |  +3.0dB(->gain135=+3.0dB) | Qidx=16 Sidx=10 | uint32=0x510872F1 = 1359508209
+   B2 MID | type=0 PEAK       | 1000Hz(->idx204=1000Hz) |  -3.0dB(->gain105=-3.0dB) | Qidx=16 Sidx=10 | uint32=0x51069660 = 1359386208
+  B3 PRES | type=0 PEAK       | 4000Hz(->idx276=4000Hz) |  +0.0dB(->gain120=+0.0dB) | Qidx=16 Sidx=10 | uint32=0x510788A0 = 1359448224
+  B4 HIGH | type=2 HIGH_SHELF | 5990Hz(->idx297=5990Hz) |  +2.0dB(->gain130=+2.0dB) | Qidx=16 Sidx=10 | uint32=0x5108294A = 1359489354
+
+[A-FENDER-SMALL]
+   B1 LOW | type=1 LOW_SHELF  | 120Hz(->idx 94=120Hz) |  +2.0dB(->gain130=+2.0dB) | Qidx=16 Sidx=10 | uint32=0x510822F1 = 1359487729
+   B2 MID | type=0 PEAK       | 1000Hz(->idx204=1000Hz) |  -1.0dB(->gain115=-1.0dB) | Qidx=16 Sidx=10 | uint32=0x51073660 = 1359427168
+  B3 PRES | type=0 PEAK       | 3000Hz(->idx261=3000Hz) |  +0.0dB(->gain120=+0.0dB) | Qidx=16 Sidx=10 | uint32=0x51078828 = 1359448104
+  B4 HIGH | type=2 HIGH_SHELF | 5990Hz(->idx297=5990Hz) |  +1.0dB(->gain125=+1.0dB) | Qidx=16 Sidx=10 | uint32=0x5107D94A = 1359468874
+
+[A-VOX]
+   B1 LOW | type=1 LOW_SHELF  | 120Hz(->idx 94=120Hz) |  -3.0dB(->gain105=-3.0dB) | Qidx=16 Sidx=10 | uint32=0x510692F1 = 1359385329
+   B2 MID | type=0 PEAK       | 1000Hz(->idx204=1000Hz) |  +3.0dB(->gain135=+3.0dB) | Qidx=16 Sidx=10 | uint32=0x51087660 = 1359509088
+  B3 PRES | type=0 PEAK       | 3000Hz(->idx261=3000Hz) |  +1.0dB(->gain125=+1.0dB) | Qidx=16 Sidx=10 | uint32=0x5107D828 = 1359468584
+  B4 HIGH | type=2 HIGH_SHELF | 5990Hz(->idx297=5990Hz) |  +2.0dB(->gain130=+2.0dB) | Qidx=16 Sidx=10 | uint32=0x5108294A = 1359489354
+
+[A-MARSHALL]
+   B1 LOW | type=1 LOW_SHELF  | 120Hz(->idx 94=120Hz) |  -3.0dB(->gain105=-3.0dB) | Qidx=16 Sidx=10 | uint32=0x510692F1 = 1359385329
+   B2 MID | type=0 PEAK       | 1000Hz(->idx204=1000Hz) |  +3.0dB(->gain135=+3.0dB) | Qidx=16 Sidx=10 | uint32=0x51087660 = 1359509088
+  B3 PRES | type=0 PEAK       | 4000Hz(->idx276=4000Hz) |  +2.0dB(->gain130=+2.0dB) | Qidx=16 Sidx=10 | uint32=0x510828A0 = 1359489184
+  B4 HIGH | type=2 HIGH_SHELF | 5990Hz(->idx297=5990Hz) |  +2.0dB(->gain130=+2.0dB) | Qidx=16 Sidx=10 | uint32=0x5108294A = 1359489354
+
+[A-SLO]
+   B1 LOW | type=1 LOW_SHELF  | 120Hz(->idx 94=120Hz) |  -2.0dB(->gain110=-2.0dB) | Qidx=16 Sidx=10 | uint32=0x5106E2F1 = 1359405809
+   B2 MID | type=0 PEAK       | 1000Hz(->idx204=1000Hz) |  +3.0dB(->gain135=+3.0dB) | Qidx=16 Sidx=10 | uint32=0x51087660 = 1359509088
+  B3 PRES | type=0 PEAK       | 4000Hz(->idx276=4000Hz) |  +2.0dB(->gain130=+2.0dB) | Qidx=16 Sidx=10 | uint32=0x510828A0 = 1359489184
+  B4 HIGH | type=2 HIGH_SHELF | 5990Hz(->idx297=5990Hz) |  +2.0dB(->gain130=+2.0dB) | Qidx=16 Sidx=10 | uint32=0x5108294A = 1359489354
+
+[A-HIGAIN-TIGHT]
+   B1 LOW | type=1 LOW_SHELF  | 120Hz(->idx 94=120Hz) |  -4.0dB(->gain100=-4.0dB) | Qidx=16 Sidx=10 | uint32=0x510642F1 = 1359364849
+   B2 MID | type=0 PEAK       | 1000Hz(->idx204=1000Hz) |  +1.0dB(->gain125=+1.0dB) | Qidx=16 Sidx=10 | uint32=0x5107D660 = 1359468128
+  B3 PRES | type=0 PEAK       | 3000Hz(->idx261=3000Hz) |  +2.0dB(->gain130=+2.0dB) | Qidx=16 Sidx=10 | uint32=0x51082828 = 1359489064
+  B4 HIGH | type=2 HIGH_SHELF | 5990Hz(->idx297=5990Hz) |  +3.0dB(->gain135=+3.0dB) | Qidx=16 Sidx=10 | uint32=0x5108794A = 1359509834
+
+[A-HIGAIN-FULL]
+   B1 LOW | type=1 LOW_SHELF  | 120Hz(->idx 94=120Hz) |  -2.0dB(->gain110=-2.0dB) | Qidx=16 Sidx=10 | uint32=0x5106E2F1 = 1359405809
+   B2 MID | type=0 PEAK       | 1000Hz(->idx204=1000Hz) |  +2.0dB(->gain130=+2.0dB) | Qidx=16 Sidx=10 | uint32=0x51082660 = 1359488608
+  B3 PRES | type=0 PEAK       | 3000Hz(->idx261=3000Hz) |  +2.0dB(->gain130=+2.0dB) | Qidx=16 Sidx=10 | uint32=0x51082828 = 1359489064
+  B4 HIGH | type=2 HIGH_SHELF | 5990Hz(->idx297=5990Hz) |  +3.0dB(->gain135=+3.0dB) | Qidx=16 Sidx=10 | uint32=0x5108794A = 1359509834
+
+[A-MESA-RECTO]
+   B1 LOW | type=1 LOW_SHELF  | 120Hz(->idx 94=120Hz) |  +4.0dB(->gain140=+4.0dB) | Qidx=16 Sidx=10 | uint32=0x5108C2F1 = 1359528689
+   B2 MID | type=0 PEAK       | 1000Hz(->idx204=1000Hz) |  -3.0dB(->gain105=-3.0dB) | Qidx=16 Sidx=10 | uint32=0x51069660 = 1359386208
+  B3 PRES | type=0 PEAK       | 3000Hz(->idx261=3000Hz) |  +1.0dB(->gain125=+1.0dB) | Qidx=16 Sidx=10 | uint32=0x5107D828 = 1359468584
+  B4 HIGH | type=2 HIGH_SHELF | 5990Hz(->idx297=5990Hz) |  +3.0dB(->gain135=+3.0dB) | Qidx=16 Sidx=10 | uint32=0x5108794A = 1359509834
+
+[A-MESA-MARK]
+   B1 LOW | type=1 LOW_SHELF  | 120Hz(->idx 94=120Hz) |  -2.0dB(->gain110=-2.0dB) | Qidx=16 Sidx=10 | uint32=0x5106E2F1 = 1359405809
+   B2 MID | type=0 PEAK       | 1000Hz(->idx204=1000Hz) |  +3.0dB(->gain135=+3.0dB) | Qidx=16 Sidx=10 | uint32=0x51087660 = 1359509088
+  B3 PRES | type=0 PEAK       | 4000Hz(->idx276=4000Hz) |  +2.0dB(->gain130=+2.0dB) | Qidx=16 Sidx=10 | uint32=0x510828A0 = 1359489184
+  B4 HIGH | type=2 HIGH_SHELF | 5990Hz(->idx297=5990Hz) |  +2.0dB(->gain130=+2.0dB) | Qidx=16 Sidx=10 | uint32=0x5108294A = 1359489354
+
+[A-ORANGE]
+   B1 LOW | type=1 LOW_SHELF  | 120Hz(->idx 94=120Hz) |  +2.0dB(->gain130=+2.0dB) | Qidx=16 Sidx=10 | uint32=0x510822F1 = 1359487729
+   B2 MID | type=0 PEAK       | 1000Hz(->idx204=1000Hz) |  +3.0dB(->gain135=+3.0dB) | Qidx=16 Sidx=10 | uint32=0x51087660 = 1359509088
+  B3 PRES | type=0 PEAK       | 3000Hz(->idx261=3000Hz) |  -1.0dB(->gain115=-1.0dB) | Qidx=16 Sidx=10 | uint32=0x51073828 = 1359427624
+  B4 HIGH | type=2 HIGH_SHELF | 5990Hz(->idx297=5990Hz) |  -2.0dB(->gain110=-2.0dB) | Qidx=16 Sidx=10 | uint32=0x5106E94A = 1359407434
+
+[A-BASS-FLAT]
+   B1 LOW | type=1 LOW_SHELF  | 120Hz(->idx 94=120Hz) |  +2.0dB(->gain130=+2.0dB) | Qidx=16 Sidx=10 | uint32=0x510822F1 = 1359487729
+   B2 MID | type=0 PEAK       | 1000Hz(->idx204=1000Hz) |  -1.0dB(->gain115=-1.0dB) | Qidx=16 Sidx=10 | uint32=0x51073660 = 1359427168
+  B3 PRES | type=0 PEAK       | 3000Hz(->idx261=3000Hz) |  +0.0dB(->gain120=+0.0dB) | Qidx=16 Sidx=10 | uint32=0x51078828 = 1359448104
+  B4 HIGH | type=2 HIGH_SHELF | 5990Hz(->idx297=5990Hz) |  +1.0dB(->gain125=+1.0dB) | Qidx=16 Sidx=10 | uint32=0x5107D94A = 1359468874
+
+[A-BASS-DRIVE]
+   B1 LOW | type=1 LOW_SHELF  | 120Hz(->idx 94=120Hz) |  +3.0dB(->gain135=+3.0dB) | Qidx=16 Sidx=10 | uint32=0x510872F1 = 1359508209
+   B2 MID | type=0 PEAK       | 1000Hz(->idx204=1000Hz) |  -2.0dB(->gain110=-2.0dB) | Qidx=16 Sidx=10 | uint32=0x5106E660 = 1359406688
+  B3 PRES | type=0 PEAK       | 4000Hz(->idx276=4000Hz) |  +2.0dB(->gain130=+2.0dB) | Qidx=16 Sidx=10 | uint32=0x510828A0 = 1359489184
+  B4 HIGH | type=2 HIGH_SHELF | 12900Hz(->idx337=12900Hz) |  +3.0dB(->gain135=+3.0dB) | Qidx=16 Sidx=10 | uint32=0x51087A8A = 1359510154
+
+[A-BASS-HIFI]
+   B1 LOW | type=1 LOW_SHELF  | 120Hz(->idx 94=120Hz) |  +1.0dB(->gain125=+1.0dB) | Qidx=16 Sidx=10 | uint32=0x5107D2F1 = 1359467249
+   B2 MID | type=0 PEAK       | 1000Hz(->idx204=1000Hz) |  +0.0dB(->gain120=+0.0dB) | Qidx=16 Sidx=10 | uint32=0x51078660 = 1359447648
+  B3 PRES | type=0 PEAK       | 4000Hz(->idx276=4000Hz) |  +1.0dB(->gain125=+1.0dB) | Qidx=16 Sidx=10 | uint32=0x5107D8A0 = 1359468704
+  B4 HIGH | type=2 HIGH_SHELF | 5990Hz(->idx297=5990Hz) |  +2.0dB(->gain130=+2.0dB) | Qidx=16 Sidx=10 | uint32=0x5108294A = 1359489354
+
+==== MODEL ASSIGNMENT ====
+-- overdrive (22) --
+  O-TS                 6 models
+  O-SD                 2 models
+  O-CENTAUR            6 models
+  O-BB                 3 models
+  O-RAT                2 models
+  O-FORTIN             1 models
+  O-SANSA              1 models
+  O-PLUMES             1 models
+  TOTAL: 22
+-- dist (19) --
+  D-MID                6 models
+  D-SCOOP              7 models
+  D-HM2                2 models
+  D-FORTIN             1 models
+  D-BASS               3 models
+  TOTAL: 19
+-- amp (50) --
+  A-FENDER-SCOOP       2 models
+  A-FENDER-SMALL       2 models
+  A-VOX                1 models
+  A-MARSHALL           5 models
+  A-SLO                2 models
+  A-HIGAIN-TIGHT      13 models
+  A-HIGAIN-FULL        1 models
+  A-MESA-RECTO         2 models
+  A-MESA-MARK          1 models
+  A-ORANGE             2 models
+  A-BASS-FLAT          4 models
+  A-BASS-DRIVE        10 models
+  A-BASS-HIFI          5 models
+  TOTAL: 50
+
+Dup check: [] [] ['nam-b-f-nam-jcm2000-dsl']
