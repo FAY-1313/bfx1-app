@@ -102,8 +102,10 @@ jobs:
         working-directory: ios/App
         env:
           TEAM: ${{ secrets.APPLE_TEAM_ID }}
+          PROFILE: ${{ secrets.IOS_PROFILE_NAME }}
         run: |
           sed -i '' "s/YOUR_TEAM_ID/$TEAM/" ../../scripts/exportOptions.plist
+          sed -i '' "s/__PROFILE_NAME__/$PROFILE/" ../../scripts/exportOptions.plist
           xcodebuild -exportArchive \
             -archivePath build/App.xcarchive \
             -exportPath build \

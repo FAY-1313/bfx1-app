@@ -2,14 +2,21 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <!-- TestFlight / App Store 分发 -->
+    <!-- TestFlight / App Store 分发（Xcode 26 起 app-store 已改名 app-store-connect） -->
     <key>method</key>
-    <string>app-store</string>
+    <string>app-store-connect</string>
     <!-- CI 会自动把 YOUR_TEAM_ID 替换为 secrets.APPLE_TEAM_ID -->
     <key>teamID</key>
     <string>YOUR_TEAM_ID</string>
     <key>signingStyle</key>
     <string>manual</string>
+    <!-- ★ 手动签名必须显式给出 Bundle ID → 描述文件名，否则 exportArchive 报
+         “requires a provisioning profile”。CI 会把占位符替换为 secrets.IOS_PROFILE_NAME -->
+    <key>provisioningProfiles</key>
+    <dict>
+        <key>com.bfx1.processor</key>
+        <string>__PROFILE_NAME__</string>
+    </dict>
     <!-- 现代 Xcode 不再支持 bitcode -->
     <key>uploadBitcode</key>
     <false/>
