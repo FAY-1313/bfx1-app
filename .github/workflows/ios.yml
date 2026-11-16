@@ -206,11 +206,15 @@ jobs:
             xcrun simctl bootstatus "$UDID" -b || true
             xcrun simctl install "$UDID" "$APP_DIR"
 
-            # 先 dump 一次视图层级：Maestro 断言失败时用它核对真实文案
-            echo "--- hierarchy snapshot ---"
-            maestro hierarchy --device "$UDID" 2>&1 | head -80 || true
-
-            maestro test .maestro --device "$UDID" || FAILED=1
+            # 失败时补一份视图层级 + 截图 + App 日志，便于定位「文案断言不中」
+            if ! maestro test .maestro --device "$UDID"; then
+              FAILED=1
+              echo "--- hierarchy after failure ---"
+              maestro hierarchy 2>&1 | head -80 || true
+              echo "--- app log (last 3m) ---"
+              xcrun simctl spawn "$UDID" log show --last 3m --predicate 'process == "App"' 2>&1 | tail -50 || true
+              xcrun simctl io "$UDID" screenshot "$RUNNER_TEMP/fail-$(echo "$NAME" | tr ' ()' '____').png" || true
+            fi
             xcrun simctl shutdown "$UDID" || true
           done
           exit $FAILED
@@ -223,5 +227,6 @@ jobs:
           path: |
             ~/.maestro/tests
             maestro-artifacts
+            ${{ runner.temp }}/fail-*.png
             build/DerivedData/Build/Products/Debug-iphonesimulator/App.app
           if-no-files-found: ignore
