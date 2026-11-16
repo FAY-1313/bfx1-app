@@ -1,0 +1,59 @@
+# BFX1 iOS 冒烟流程（Maestro）
+# 目的：无硬件时用「演示模式」连虚拟设备，走主界面 / 本地库 / 预设库 / 账号，每步留截图。
+# 文案同时匹配中英文，避免模拟器语言不同导致假失败。
+appId: com.bfx1.processor
+---
+- launchApp:
+    clearState: true
+
+# 1) 启动：等加载遮罩消失、蓝牙连接面板出现（未连设备时锁定显示）
+- extendedWaitUntil:
+    visible: ".*(演示模式|DEMO MODE).*"
+    timeout: 45000
+- takeScreenshot: 01-connect-panel
+
+# 2) 开启演示模式（无需硬件），等虚拟设备连上并进入音色页
+- tapOn: ".*(演示模式|DEMO MODE).*"
+- extendedWaitUntil:
+    visible: ".*(音色|TONE).*"
+    timeout: 45000
+- takeScreenshot: 02-tone-page
+
+# 3) 音色页：点一下噪声门卡片，确认点击有响应
+- tapOn:
+    text: ".*(噪声门|NOISE GATE|GATE).*"
+    optional: true
+- takeScreenshot: 03-tone-after-tap
+
+# 4) 本地音色库
+- tapOn: ".*(我的音色库|LOCAL).*"
+- extendedWaitUntil:
+    visible: ".*(我的音色库|DIRECT|DI-PASSIVE).*"
+    timeout: 20000
+- takeScreenshot: 04-local-bank
+- tapOn:
+    text: ".*(DI-PASSIVE|DIRECT).*"
+    optional: true
+- takeScreenshot: 05-local-bank-selected
+
+# 5) 预设库
+- tapOn: ".*(预设库|PRESETS).*"
+- extendedWaitUntil:
+    visible: ".*(预设库|PRESETS|调音器|TUNER).*"
+    timeout: 20000
+- takeScreenshot: 06-presets
+
+# 6) 社区（未登录显示连接门/登录页，属预期）
+- tapOn: ".*(社区|SOCIAL).*"
+- extendedWaitUntil:
+    visible: ".*(先连接 BFX1 设备|音色社区|用户名|Connect|Username).*"
+    timeout: 25000
+- takeScreenshot: 07-community
+
+# 7) 账号入口
+- tapOn: ".*(音色|TONE).*"
+- tapOn: ".*(我的账号|My account).*"
+- extendedWaitUntil:
+    visible: ".*(我的账号|用户名|Username).*"
+    timeout: 20000
+- takeScreenshot: 08-account

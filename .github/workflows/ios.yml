@@ -133,3 +133,89 @@ jobs:
           name: BFX1-iOS-IPA
           path: ios/App/build/App.ipa
           if-no-files-found: ignore
+
+  # ══════════════════════════════════════════════════════════════════
+  # 模拟器 UI 冒烟（Maestro · 多机型）
+  #   不签名、不上传，只在 iPhone / iPad 模拟器上跑 .maestro/*.yaml，
+  #   每步截图；任一机型失败即整体失败。用于 UI 回归，不替代真机蓝牙测试。
+  # ══════════════════════════════════════════════════════════════════
+  maestro-smoke:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Build web bundle
+        run: npm run build
+
+      - name: Sync Capacitor iOS
+        run: npx cap sync ios
+
+      - name: Patch Info.plist (BLE / mic / ATS)
+        run: bash scripts/patch_ios_plist.sh ios/App/App/Info.plist
+
+      - name: Build for simulator
+        run: |
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build/DerivedData \
+            CODE_SIGNING_ALLOWED=NO build
+
+      - name: Install Maestro
+        run: |
+          curl -Ls "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
+      - name: Run smoke flows on iPhone / iPad simulators
+        run: |
+          set -o pipefail
+          APP_DIR=$(find build/DerivedData/Build/Products/Debug-iphonesimulator -maxdepth 1 -name "App.app" | head -1)
+          echo "app bundle: $APP_DIR"
+          if [ -z "$APP_DIR" ]; then echo "::error::App.app not found"; exit 1; fi
+
+          FAILED=0
+          for DEV in "iPhone SE (3rd generation)" "iPhone 16" "iPad mini (A17 Pro)" "iPhone 16 Pro Max"; do
+            LINE=$(xcrun simctl list devices available | grep -F "$DEV (" | head -1 || true)
+            if [ -z "$LINE" ]; then
+              echo "::warning::skip $DEV (simulator not installed on this runner)"
+              continue
+            fi
+            UDID=$(echo "$LINE" | sed -E 's/.*\(([0-9A-Fa-f-]{36})\).*/\1/')
+            echo "=== $DEV / $UDID ==="
+
+            xcrun simctl boot "$UDID" 2>/dev/null || true
+            xcrun simctl bootstatus "$UDID" -b || true
+            # 统一中文界面，避免语言不同导致文案断言失败
+            xcrun simctl spawn "$UDID" defaults write .GlobalPreferences AppleLanguages -array zh-Hans || true
+            xcrun simctl spawn "$UDID" defaults write .GlobalPreferences AppleLocale -string zh_CN || true
+            xcrun simctl shutdown "$UDID" || true
+            xcrun simctl boot "$UDID" 2>/dev/null || true
+            xcrun simctl bootstatus "$UDID" -b || true
+
+            xcrun simctl install "$UDID" "$APP_DIR"
+            maestro test .maestro --device "$UDID" || FAILED=1
+            xcrun simctl shutdown "$UDID" || true
+          done
+          exit $FAILED
+
+      - name: Upload Maestro artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro-artifacts
+          path: |
+            ~/.maestro/tests
+            maestro-artifacts
+            build/DerivedData/Build/Products/Debug-iphonesimulator/App.app
+          if-no-files-found: ignore
