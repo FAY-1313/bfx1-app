@@ -184,26 +184,32 @@ jobs:
           echo "app bundle: $APP_DIR"
           if [ -z "$APP_DIR" ]; then echo "::error::App.app not found"; exit 1; fi
 
+          LIST=$(xcrun simctl list devices available)
+          echo "--- available simulators (前 40 行) ---"
+          echo "$LIST" | sed -n '1,40p'
+          pick_line() { echo "$LIST" | grep -E "^[[:space:]]+$1" | head -1 || true; }
+
+          # 机型名因 Xcode 版本而异，这里按「优先 SE，其次任意 iPhone」和「优先 iPad mini」动态挑
+          IPHONE=$(pick_line 'iPhone.*SE')
+          [ -z "$IPHONE" ] && IPHONE=$(pick_line 'iPhone')
+          IPAD=$(pick_line 'iPad mini')
+          [ -z "$IPAD" ] && IPAD=$(pick_line 'iPad')
+
           FAILED=0
-          for DEV in "iPhone SE (3rd generation)" "iPhone 16" "iPad mini (A17 Pro)" "iPhone 16 Pro Max"; do
-            LINE=$(xcrun simctl list devices available | grep -F "$DEV (" | head -1 || true)
-            if [ -z "$LINE" ]; then
-              echo "::warning::skip $DEV (simulator not installed on this runner)"
-              continue
-            fi
+          for LINE in "$IPHONE" "$IPAD"; do
+            [ -z "$LINE" ] && continue
+            NAME=$(echo "$LINE" | sed -E 's/^[[:space:]]+//; s/ \([0-9A-Fa-f-]{36}\).*//')
             UDID=$(echo "$LINE" | sed -E 's/.*\(([0-9A-Fa-f-]{36})\).*/\1/')
-            echo "=== $DEV / $UDID ==="
+            echo "=== $NAME / $UDID ==="
 
             xcrun simctl boot "$UDID" 2>/dev/null || true
             xcrun simctl bootstatus "$UDID" -b || true
-            # 统一中文界面，避免语言不同导致文案断言失败
-            xcrun simctl spawn "$UDID" defaults write .GlobalPreferences AppleLanguages -array zh-Hans || true
-            xcrun simctl spawn "$UDID" defaults write .GlobalPreferences AppleLocale -string zh_CN || true
-            xcrun simctl shutdown "$UDID" || true
-            xcrun simctl boot "$UDID" 2>/dev/null || true
-            xcrun simctl bootstatus "$UDID" -b || true
-
             xcrun simctl install "$UDID" "$APP_DIR"
+
+            # 先 dump 一次视图层级：Maestro 断言失败时用它核对真实文案
+            echo "--- hierarchy snapshot ---"
+            maestro hierarchy --device "$UDID" 2>&1 | head -80 || true
+
             maestro test .maestro --device "$UDID" || FAILED=1
             xcrun simctl shutdown "$UDID" || true
           done
