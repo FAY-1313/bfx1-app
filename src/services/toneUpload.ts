@@ -89,6 +89,10 @@ export function buildUploadTable(
     const a = Number(k);
     if (!isToneTableAddr(a)) delete out[a];
   }
+  /* ★ 2026-11-16（用户要求）：**253（限幅旁路）随频道表一起写** ——
+     A 组 = 1、其余组 = 0。它不在固件 117 条地址表里，所以上面的过滤会把它删掉，
+     这里单独补回；回读比对仍然跳过它（UPLOAD_SKIP 已包含 253）。 */
+  if (typeof registers[253] === 'number') out[253] = registers[253];
   /* ★ 2026-11-04：**253 不随音色上传**。固件规则固定为「1 组=1，其余组=0」，
    *   由切档时按目标组现算；上传写它会被忽略（也不参与回读比对）。 */
   void slot;

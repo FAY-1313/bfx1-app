@@ -6,9 +6,50 @@
  *   - 连上未登录：锁屏 —— 模糊的音色墙当背景，中间一张登录卡
  * 顺序不能反：先登录再要求连设备，会让「只想看看」的人白跑一次验证码。
  */
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { C, IconBluetooth, IconBack } from './parts';
 import LoginForm from './LoginForm';
+import type { Account } from '../../services/account';
+
+/**
+ * ★ 2026-11-16（第二次修键盘错位）：
+ *   上一次只改 padding 不够 —— Capacitor WebView 在键盘弹出时**整个 WebView 会被
+ *   resize**（adjustResize），`window.innerHeight` 一起变小，于是
+ *   ① 贴底布局的表单被压到最小高度里、输入框被键盘盖住；
+ *   ② 底部 tab 栏跟着布局一起上移，看起来"菜单弹到键盘上方"。
+ *
+ *   现在改成：登录锁屏 **portal 到 document.body + position:fixed**，
+ *   并用 visualViewport 的 height/offsetTop 精确贴合**可视区**（不是布局视口），
+ *   键盘弹出时它仍覆盖整屏（包括底部菜单），表单从顶部排 + 可滚动 + 聚焦自动滚动。
+ */
+function useVisualViewport(): { height: number; top: number } {
+  const read = () => {
+    if (typeof window === 'undefined') return { height: 600, top: 0 };
+    const vv = window.visualViewport;
+    return {
+      height: Math.round(vv?.height ?? window.innerHeight),
+      top: Math.round(vv?.offsetTop ?? 0),
+    };
+  };
+  const [vp, setVp] = useState(read);
+  useEffect(() => {
+    const vv = typeof window !== 'undefined' ? window.visualViewport : null;
+    const update = () => setVp(read());
+    update();
+    window.addEventListener('resize', update);
+    window.addEventListener('orientationchange', update);
+    vv?.addEventListener('resize', update);
+    vv?.addEventListener('scroll', update);
+    return () => {
+      window.removeEventListener('resize', update);
+      window.removeEventListener('orientationchange', update);
+      vv?.removeEventListener('resize', update);
+      vv?.removeEventListener('scroll', update);
+    };
+  }, []);
+  return vp;
+}
 
 export function ConnectGate({ onConnect, connecting, onClose }: {
   onConnect: () => void;
@@ -69,39 +110,90 @@ export function ConnectGate({ onConnect, connecting, onClose }: {
  *   不再「只有一个手机号登录按钮 → 跳到账号面板再填一次」。
  *   旧链路还会让 CommunityPanel 卸载重挂 → 回来页签跳回「推荐」、滚动位置丢失。
  */
-export function LoginLock({ onLoggedIn, onClose, lang = 'zh' }: { onLoggedIn: () => void; onClose: () => void; lang?: string }) {
-  // 背景音色墙：纯装饰，不请求云端（未登录不联网）
+/**
+ * ★ 2026-11-16（第三次）：社区锁屏与顶栏账号入口**共用同一个登录页**。
+ *   以前两处各写一套容器：社区是整屏浮层、账号页是面板内嵌表单，观感和键盘行为都不一样。
+ *   现在抽出 `LoginScreen`：
+ *     · 社区锁屏 = LoginScreen（带模糊音色墙装饰，标题「音色社区」）
+ *     · 顶栏账号 = LoginScreen（标题「账号」，无装饰）
+ *   两处都用 portal + visualViewport 贴可视区，键盘弹出表现一致。
+ */
+export function LoginScreen({
+  title, subtitle, onSuccess, onClose, lang = 'zh', decor = false,
+}: {
+  title: string;
+  subtitle?: string;
+  onSuccess: (acc: Account) => void;
+  onClose: () => void;
+  lang?: string;
+  decor?: boolean;
+}) {
   const cells = Array.from({ length: 12 }, (_, i) => i);
-  return (
-    <div style={{ position: 'absolute', inset: 0, background: C.bg, display: 'flex', flexDirection: 'column', overflow: 'hidden', zIndex: 5 }}>
-      <div style={{ position: 'absolute', top: 52, left: 12, right: 12, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, opacity: 0.16, filter: 'blur(7px)' }}>
-        {cells.map((i) => (
-          <div key={i} style={{
-            height: 92, borderRadius: 14, border: `1px solid ${C.line2}`,
-            background: `linear-gradient(150deg, hsl(${(i * 37) % 360} 42% 30%), hsl(${(i * 37) % 360} 36% 16%))`,
-          }} />
-        ))}
-      </div>
-      <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(180deg, rgba(11,13,17,0.55), ${C.bg} 52%)` }} />
+  const vp = useVisualViewport();
+  const overlay = (
+    <div
+      style={{
+        position: 'fixed', left: 0, right: 0, top: vp.top, height: vp.height,
+        background: C.bg, display: 'flex', flexDirection: 'column',
+        overflow: 'hidden', zIndex: 4000,
+      }}
+    >
+      {decor && (
+        <>
+          <div style={{ position: 'absolute', top: 52, left: 12, right: 12, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, opacity: 0.16, filter: 'blur(7px)' }}>
+            {cells.map((i) => (
+              <div key={i} style={{
+                height: 92, borderRadius: 14, border: `1px solid ${C.line2}`,
+                background: `linear-gradient(150deg, hsl(${(i * 37) % 360} 42% 30%), hsl(${(i * 37) % 360} 36% 16%))`,
+              }} />
+            ))}
+          </div>
+          <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(180deg, rgba(11,13,17,0.55), ${C.bg} 52%)` }} />
+        </>
+      )}
 
       <div style={{ position: 'relative', height: 52, display: 'flex', alignItems: 'center', gap: 4, padding: '0 8px', flexShrink: 0 }}>
         <button onClick={onClose} style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <IconBack />
         </button>
-        <span style={{ fontSize: 14, fontWeight: 750, color: C.text, fontFamily: C.font }}>音色社区</span>
+        <span style={{ fontSize: 14, fontWeight: 750, color: C.text, fontFamily: C.font }}>{title}</span>
       </div>
 
-      <div style={{ position: 'relative', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '0 20px 24px', overflowY: 'auto' }} className="no-scrollbar">
+      {/* ★ 从顶部排 + 可滚动：键盘弹出时输入框永远在可视区内，不会被盖住 */}
+      <div
+        style={{
+          position: 'relative', flex: 1, minHeight: 0,
+          display: 'flex', flexDirection: 'column', justifyContent: 'flex-start',
+          padding: '8px 20px max(24px, env(safe-area-inset-bottom))',
+          overflowY: 'auto', WebkitOverflowScrolling: 'touch',
+        }}
+        className="no-scrollbar"
+      >
         <LoginForm
           variant="card"
           lang={lang}
-          subtitle={lang === 'en'
-            ? 'Browsing, trying, saving and uploading all need an account. Phone + code, no password.'
-            : '浏览、试用、收藏和上传都需要账号。手机号 + 验证码，首次登录自动建号。'}
-          onSuccess={() => onLoggedIn()}
+          subtitle={subtitle}
+          onSuccess={onSuccess}
           onCancel={onClose}
         />
       </div>
     </div>
+  );
+  /* portal 到 body：不再受社区面板/底部 tab 栏的布局影响 */
+  return typeof document !== 'undefined' ? createPortal(overlay, document.body) : overlay;
+}
+
+export function LoginLock({ onLoggedIn, onClose, lang = 'zh' }: { onLoggedIn: () => void; onClose: () => void; lang?: string }) {
+  return (
+    <LoginScreen
+      title="音色社区"
+      decor
+      lang={lang}
+      subtitle={lang === 'en'
+        ? 'Browsing, trying, saving and uploading all need an account. Username + password, synced to the cloud.'
+        : '浏览、试用、收藏和上传都需要账号。用户名 + 密码登录，作品存云端。'}
+      onSuccess={onLoggedIn}
+      onClose={onClose}
+    />
   );
 }

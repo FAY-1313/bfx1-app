@@ -129,7 +129,7 @@ KEEP.dist = {
   '复古失真': ['Distortion+'],
   // 贝斯
   '贝斯失真法兹': ['Bass Big Muff'],
-  '贝斯 DG': ['B7K Ultra'],
+  '贝斯 DG': ['Ultra V Bass'],
 };
 
 export interface TrimResult {

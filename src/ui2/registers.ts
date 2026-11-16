@@ -242,6 +242,7 @@ export const INTERNAL_BYPASS: Record<string, number> = {
 export const MODULE_ON_OFF: Record<string, { reg: number; on: number; off: number }> = {
   'noise-gate': { reg: 0,   on: 0, off: 1 },
   compressor:   { reg: 7,   on: 0, off: 1 },
+  overdrive:    { reg: 42,  on: 0, off: 1 },
   /** ★ BOOST 走 PGA（无寄存器）—— reg: -1 是哨兵，on/off 由 writePGA 表达 */
   boost:        { reg: -1,  on: 0, off: 0 },
   chorus:       { reg: 215, on: 0, off: 1 },

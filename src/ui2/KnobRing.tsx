@@ -21,11 +21,6 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react';
  */
 let ACTIVE_KNOB: object | null = null;
 
-/** 短震（WebView 未必支持；失败静默）——WO-04 长按/手势反馈 */
-export function buzz(ms = 15): void {
-  try { navigator.vibrate?.(ms); } catch { /* ignore */ }
-}
-
 import { KNOB, BRAND } from './tokens';
 
 /** 品牌橙（= tokens.BRAND，保持既有导出名） */
@@ -128,7 +123,6 @@ export default function KnobRing({
       if (lt && now - lt.t <= 320 && Math.abs(e.clientY - lt.y) <= 24 && Math.abs(e.clientX - lt.x) <= 24) {
         lastTap.current = null;
         e.preventDefault();
-        buzz(10);
         onReset();
         return;
       }
@@ -147,9 +141,8 @@ export default function KnobRing({
     (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
     if (onLongPress) {
       setPressing(true);
-      buzz(12);                                   // ★ WO-04：按下即反馈
       lpTimer.current = setTimeout(() => {
-        lpFired.current = true; setPressing(false); buzz(24);
+        lpFired.current = true; setPressing(false);
         onLongPress();
       }, pressMs);
     }
@@ -167,7 +160,6 @@ export default function KnobRing({
       drag.current.moved = true;
       if (lpTimer.current) {
         clearTimeout(lpTimer.current); lpTimer.current = null;
-        if (onLongPress) buzz(8);                 // ★ WO-04：手势被判为拖动 → 轻震告知
       }
       setPressing(false);
     }

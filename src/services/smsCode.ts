@@ -1,37 +1,61 @@
 /**
- * 短信验证码 (CloudBase auth 原生能力) — 复用用户已开通的腾讯云短信验证码登录.
+ * 短信验证码登录 — CloudBase Auth v3 OTP flow.
  *
- * 流程 (与旧版 backup-20260806-ui L3663-3699 一致):
- *  - getVerification({phone_number}) 发真实短信, 返回 {verification_id, is_user};
- *  - signInWithSms({verificationInfo, verificationCode, phoneNum}) 校验验证码,
- *    同时建立手机号云会话 (仅本次注册使用);
- *  - resetToAnonymous 注册成功后 signOut 清掉手机会话并复位社区 signedIn,
- *    社区 ensureSignIn() 重新匿名登录, _openid 保持匿名身份不受手机号影响.
+ * 旧实现使用 v1 `getVerification` + `signInWithSms`，SDK 已明确标记为
+ * deprecated；新版 CloudBase 短信登录使用 `signInWithOtp`，返回的
+ * `verifyOtp` 回调完成“验证码 → 会话”闭环。手机号必须使用 +86 前缀，
+ * 且初始化 region 必须是 ap-shanghai（cloudbase.ts 已满足）。
  */
 import { auth } from './cloudbase';
 import { resetSignInFlag } from './toneCommunity';
 
 export interface SmsVerificationInfo {
-  verification_id: string;
-  is_user: boolean;
+  phone: string;
+  /** auth.signInWithOtp() 返回的一次性验证回调 */
+  verifyOtp: (params: { token: string }) => Promise<any>;
 }
 
 export function normalizePhone(raw: string): string {
   return (raw || '').replace(/\s/g, '');
 }
 
+function errorText(e: any): string {
+  if (!e) return 'unknown';
+  if (typeof e === 'string') return e;
+  return e.code || e.message || String(e);
+}
+
+function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('timeout')), ms);
+    p.then(
+      (v) => { clearTimeout(timer); resolve(v); },
+      (e) => { clearTimeout(timer); reject(e); },
+    );
+  });
+}
+
 export async function sendSmsCode(raw: string): Promise<{ success: boolean; verificationInfo?: SmsVerificationInfo; error?: string }> {
   const phone = normalizePhone(raw);
   if (!/^1[3-9]\d{9}$/.test(phone)) return { success: false, error: 'phone_invalid' };
+
   try {
-    const res = await (auth as any).getVerification({ phone_number: '+86 ' + phone });
-    const vi = res?.verification_id
-      ? { verification_id: res.verification_id, is_user: Boolean(res.is_user) }
-      : null;
-    if (!vi) return { success: false, error: 'no_verification_id' };
-    return { success: true, verificationInfo: vi };
+    const res: any = await withTimeout(
+      (auth as any).signInWithOtp({ phone: '+86' + phone }),
+      20000,
+    );
+    if (res?.error) return { success: false, error: errorText(res.error) };
+
+    const verifyOtp = res?.data?.verifyOtp ?? res?.verifyOtp;
+    if (typeof verifyOtp !== 'function') {
+      return { success: false, error: 'no_verifyOtp' };
+    }
+    return {
+      success: true,
+      verificationInfo: { phone, verifyOtp },
+    };
   } catch (e: any) {
-    return { success: false, error: e?.code || e?.message || 'send_failed' };
+    return { success: false, error: errorText(e) };
   }
 }
 
@@ -41,15 +65,18 @@ export async function verifySmsCode(
   code: string,
 ): Promise<{ success: boolean; error?: string }> {
   const phone = normalizePhone(raw);
+  if (!verificationInfo?.verifyOtp) return { success: false, error: 'no_verifyOtp' };
+  if (verificationInfo.phone !== phone) return { success: false, error: 'phone_mismatch' };
+
   try {
-    await (auth as any).signInWithSms({
-      verificationInfo,
-      verificationCode: code,
-      phoneNum: '+86 ' + phone,
-    });
+    const res: any = await withTimeout(
+      verificationInfo.verifyOtp({ token: code }),
+      20000,
+    );
+    if (res?.error) return { success: false, error: errorText(res.error) };
     return { success: true };
   } catch (e: any) {
-    return { success: false, error: e?.code || e?.message || 'verify_failed' };
+    return { success: false, error: errorText(e) };
   }
 }
 

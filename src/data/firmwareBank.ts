@@ -386,3 +386,62 @@ export const FW_BANK: readonly FwChannel[] = [
     },
   },
 ];
+
+/* ══════════════════════════════════════════════════════════════════════
+ * ★★★ 2026-11-16（按固件文档纠正 A 组四档）
+ *
+ * 依据：《BFX1_频道1_A组_四档开机下发参数.docx》（tone_channels_v1.c chf_A1~A4，
+ *       tone_slot.c s_kf_a_group 关键帧位图，2026-11-13 构建）。
+ *
+ * 原来这四档用的是旧表，与固件实际下发不一致（用户听感"加载不对"）。要点：
+ *   · 23 帧里 **四档只有 5 个地址不同**：42 / 45 / 46 / 49 / 56；
+ *   · **A1 的 42 = 1（1ST OD 旁路）**，A2–A4 的 42 = 0（1ST OD 参与链路）；
+ *   · 107（箱体开关）四档都是 1，箱体 EQ（108–142）不在开机关键帧内；
+ *   · 57 / 72 都是 1（箱头旁路），215 / 221 / 224 都是 1；
+ *   · 253：**A 组写 1，其余组写 0**（固件在跨组切换时追加这一帧）；
+ *   · PGA 激励 = 0x10（0 dB），四档一致（不在 117 表中，走 I2C 帧）。
+ *
+ * ⛔ 不要再把这四档改回"全旁路"：A2–A4 的 1ST OD 是固件设计的一部分，
+ *    它们的音色差异就来自 42=0 + 45/46/49/56。
+ * ══════════════════════════════════════════════════════════════════════ */
+(() => {
+  /** 四档共用的 23 帧 */
+  const COMMON: Record<number, number> = {
+    0: 0x1, 1: 0x3, 7: 0x1, 44: 0x50A781D6, 47: 0x50A78AE7,
+    50: 0x32, 51: 0x114, 53: 0x50A781D6, 54: 0xC1384430, 55: 0x50A78A6F,
+    57: 0x1, 72: 0x1, 107: 0x1, 215: 0x1, 221: 0x1, 224: 0x1,
+    239: 0x1F4, 260: 0x0, 261: 0x32,
+    /* ★ 253：A 组写 1。固件跨组切换时会追加这一帧；频道表也带上，
+       保证"1 组=1、其余组=0"（其余组见 buildPreset25 / localBank2026）。 */
+    253: 0x1,
+  };
+  const DIFF: Array<Record<number, number>> = [
+    /* A1 DIRECT：1ST OD 旁路 */
+    { 42: 0x1, 45: 0x50A78A6F, 46: 0xC1882540, 49: 0x8, 56: 0x5106EAEA },
+    /* A2 DI-PASSIVE：1ST OD 启用，drive=4，PRE EQ 第 3 段不同 */
+    { 42: 0x0, 45: 0x50A78A6F, 46: 0x5188C540, 49: 0x4, 56: 0x5106EAEA },
+    /* A3 CABLE-20FT：drive=12，PRE EQ 第 2 段不同 */
+    { 42: 0x0, 45: 0x50A787AF, 46: 0xC1882540, 49: 0xC, 56: 0x5106EAEA },
+    /* A4 CABLE-10FT-SILVER：drive=8，POST EQ 末段不同 */
+    { 42: 0x0, 45: 0x50A78A6F, 46: 0xC1882540, 49: 0x8, 56: 0x50A78AEA },
+  ];
+  DIFF.forEach((diff, i) => {
+    const ch = FW_BANK[i];
+    if (!ch) return;
+    Object.assign(ch.registers, COMMON, diff);
+    /* A2–A4 的 1ST OD 是启用的 → modules.overdrive 必须为 true，
+       否则 withSwitchPlan 会把 42 覆盖回 1（旁路）。 */
+    ch.modules = {
+      ...ch.modules,
+      'noise-gate': false,
+      boost: false,
+      compressor: false,
+      overdrive: i > 0,
+      'amp-head': false,
+      cabinet: false,
+      chorus: false,
+      delay: false,
+      reverb: false,
+    };
+  });
+})();

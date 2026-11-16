@@ -176,7 +176,6 @@ export const MODULE_PARAM_MAP: Record<string, Record<string, ParamDef>> = {
     BASS:     { regAddr: 45, min: 0, max: 361, isPEQ: true, peqType: PEQ_TYPE.LOW_SHELF, fixedQ: 16, fixedS: 10 },
     PRESENCE: { regAddr: 47, min: 0, max: 361, isPEQ: true, peqType: PEQ_TYPE.HIGH_SHELF, fixedQ: 16, fixedS: 10 },
     MID:      { regAddr: 46, min: 0, max: 361, isPEQ: true, peqType: PEQ_TYPE.PEAK, fixedQ: 16, fixedS: 10 },
-    BLEND:    { regAddr: 50, min: 0, max: 100 },
   },
 
   // ── Distortion (DIST 段 57-71, 共享 OD 前端 42) ────────────────

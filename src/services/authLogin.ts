@@ -14,8 +14,8 @@
  *   现在保持手机号会话，uid 一次登录终身稳定。
  */
 import type { SmsVerificationInfo } from './smsCode';
-import { verifySmsCode } from './smsCode';
-import { resetSignInFlag, getMyProfileEx, saveMyProfile } from './toneCommunity';
+import { verifySmsCode, normalizePhone } from './smsCode';
+import { resetSignInFlag, getMyProfileEx, saveMyProfile, ensureSignIn } from './toneCommunity';
 import { ensureUid, saveLocalAccount, readLocalAccount } from './account';
 import type { Account } from './account';
 
@@ -109,8 +109,63 @@ export async function loginWithPhone(phone: string, code: string, info: SmsVerif
   return { ok: true, account };
 }
 
-export type RenameResult = { ok: boolean; name?: string; error?: NameError | 'session' };
+/**
+ * ★ 2026-11-16（用户报障「短信验证码不可用」）：**免验证码登录（本机账号）**。
+ *
+ * 为什么能这样做：社区的身份来源是 CloudBase 匿名会话的 uid（`ensureUid`），
+ * 短信只是把手机号绑定到账号上，**社区读写并不依赖短信**。所以验证码通道不可用时，
+ * 仍然可以：匿名会话 → 本地建档（手机号仅作显示/标识）→ 正常刷社区、上传音色。
+ *
+ * 代价（必须让用户知道）：
+ *   · 手机号未验证，任何人可填任意号码；
+ *   · 账号绑定在**本机**（清数据/换机后找不回，除非之后用短信登录同一 uid —— 做不到）。
+ * 因此 UI 上必须明确标注「本机账号」，并在短信恢复后引导回归短信登录。
+ */
+export async function loginWithoutSms(rawPhone: string, nickname?: string): Promise<LoginResult & { nameError?: NameError }> {
+  const phone = normalizePhone(rawPhone);
+  if (!/^1[3-9]\d{9}$/.test(phone)) return { ok: false, error: 'verify' };
 
+  /* 先建/复用云会话：匿名 uid 也是社区数据的归属键 */
+  const uid = await ensureUid(true);
+  if (!uid) return { ok: false, error: 'session' };
+
+  const prof = await getMyProfileEx();
+  const cloud = prof.profile;
+  const idx = readIndex();
+  const existing = Object.entries(idx).find(([, a]) => a.phone === phone);
+
+  let name = (nickname || '').trim();
+  if (!name) name = (cloud.name || '').trim();
+  if (!name && existing) name = existing[0];
+  if (!name) name = suggestName(phone);
+
+  const v = validateName(name);
+  if (!v.ok) return { ok: false, error: 'verify', nameError: v.error };
+  name = v.name;
+
+  idx[name] = { ...(idx[name] || {}), c: (idx[name] || {}).c || new Date().toISOString(), phone };
+  writeIndex(idx);
+
+  const account: Account = { uid, name, phone, bio: cloud.bio };
+  saveLocalAccount(account);
+  /* 云端能读才写 —— 读失败时绝不覆盖历史昵称（与短信登录同一口径） */
+  if (prof.ok) await saveMyProfile({ name });
+  resetSignInFlag();
+  return { ok: true, account };
+}
+
+/** 社区后台自检：验证匿名会话 + users 集合是否可读写（用户排查「社区空白」用） */
+export async function probeCommunity(): Promise<{ ok: boolean; error?: string }> {
+  try {
+    await ensureSignIn();
+    const p = await getMyProfileEx();
+    return { ok: p.ok, error: p.ok ? undefined : 'db_unreadable' };
+  } catch (e: any) {
+    return { ok: false, error: String(e?.code || e?.message || e) };
+  }
+}
+
+export type RenameResult = { ok: boolean; name?: string; error?: NameError | 'session' };
 /** 改用户名：本地账号 + 本机索引 + 云端 users 三处一起改 */
 export async function renameUser(raw: string): Promise<RenameResult> {
   const cur = readLocalAccount();

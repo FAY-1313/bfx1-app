@@ -2,8 +2,10 @@
  * BFX1 本地预设库（LIBRARY · v9 · 2026-10-22）
  *
  * ★★★ 2026-10-30（用户要求）：本地库是**独立音色库**，标号一律 1–16，
- *   不再冒充硬件的 A/B/C/D 分组（A 组 1–4 是锁定基准、不可覆盖）。
- *   上传时才用硬件频道名：**只能整组**选 B/C/D 其中一组（2026-11-03 起取消单频道上传）。
+ *   不再冒充硬件的 A/B/C/D 分组。
+ *   ★ 2026-11-16（用户拍板）：**取消 A 组（1–4）不可覆盖的限制** —— 本地库第 1 组
+ *   本身就是线材直通四档，它就该覆盖硬件 1a–1d。上传按整组进行；
+ *   新增「四组上传」一键把 1–16 覆盖到硬件 1a–4d。
  *
  * ★★ v3.52 用户拍板（与预设库完全同构，方便对照调试）：
  *   · 每屏 4 格，组头色点 + 选中金色，不可达置灰
@@ -17,7 +19,7 @@
  */
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useI18n } from '../i18n';
-import { seedLocalBankOnce, restoreLocalBankTwinSlotsOnce } from '../data/builtinPresets';
+import { seedLocalBankOnce } from '../data/builtinPresets';
 import { PanelHeader } from '../ui/PanelHeader';
 /* ★ 2026-11-05（用户拍板「统一整改」）：通用弹窗容器 —— 卡片限高 + 中间可滚动 +
    底部固定，解决小屏/大字体下"上传确认框显示不全"。 */
@@ -61,7 +63,8 @@ const slotLabel = (s: number) => String(s);
 const hwLabel = (s: number) => `${Math.floor((s - 1) / 4) + 1}${['a', 'b', 'c', 'd'][(s - 1) % 4]}`;
 /** 每屏 4 格的区间标题，如 "1–4" */
 const bankName = (g: number) => `${g * 4 + 1}–${g * 4 + 4}`;
-const UPLOAD_GROUPS = [1, 2, 3];       // 组下标 1/2/3 = 第 5–8 / 9–12 / 13–16 格
+/** 上传目标组：★ 2026-11-16 起四组都可覆盖（第 1 组本身就是线材直通四档） */
+const UPLOAD_GROUPS = [0, 1, 2, 3];
 
 /* ★ 2026-11-04（用户拍板）：按键上的切换延迟角标已全部移除，fmtMs 一并删除。 */
 
@@ -94,17 +97,19 @@ interface Props {
    *  ★ 2026-10-26：改回 Promise<boolean> —— 旧实现返回 void，本页在调用后
    *  立刻 flash('已上传到硬件 A1')，未连接 / 忙碌时硬件 0 字节却报成功，
    *  而且这条成功胶囊会按同一 OP_ID 覆盖掉 Index 那条真实的「请先连蓝牙」。
-   *  ★★ 2026-10-30（用户要求）：新增 dst —— 目标硬件频道（5–16，A 组锁定）。
+   *  ★★ 2026-10-30（用户要求）：新增 dst —— 目标硬件频道（1–16）。
    *   mode='one' 时 dst 是单个频道；mode='group' 时 dst 是目标组的第 1 格。 */
   onUploadToPreset?: (slot: number, mode?: 'one' | 'group', dst?: number) => Promise<boolean> | void;
+  /** ★ 2026-11-16（用户要求）：四组上传 —— 本地库 1–16 一次覆盖硬件 1a–4d 全部 16 档 */
+  onUploadAllGroups?: () => Promise<boolean> | void;
 }
 
-export default function LocalBankPage({ visible, onClose, getCurrentTone, onApply, onUploadToPreset }: Props) {
+export default function LocalBankPage({
+  visible, onClose, getCurrentTone, onApply, onUploadToPreset, onUploadAllGroups,
+}: Props) {
   const { lang } = useI18n();
   const [slots, setSlots] = useState<BankItem[]>(() => {
     try { seedLocalBankOnce(); } catch { /* ignore */ }
-    /* ★★★ 2026-10-31：撤销上一版对 1–4 格的线材覆盖，恢复本地库自己的 Twin 四档 */
-    try { restoreLocalBankTwinSlotsOnce(); } catch { /* ignore */ }
     return loadBankSlots();
   });
   const [cur, setCur] = useState<number>(() => {
@@ -123,7 +128,7 @@ export default function LocalBankPage({ visible, onClose, getCurrentTone, onAppl
   /* ★★ v3.62（2026-10-24 用户拍板）：保存 / 上传都要有确认提示框 ——
        保存：告知保存位置 + 重命名方式（长按格子 0.5 秒）
        上传：告知这是把当前频道参数以 EB 发给硬件，并整组同步 4 格 */
-  const [dlg, setDlg] = useState<'save' | 'upload' | null>(null);
+  const [dlg, setDlg] = useState<'save' | 'upload' | 'uploadAll' | null>(null);
   /* ★★★ 2026-11-03（用户拍板）：**取消单频道上传，只保留整组上传**。
        原因：单格写入会让目标组内 4 格箱头/箱体型号不一致，
        固件切档就得重建箱头 + 35 段箱体，组内快切直接失效。
@@ -179,6 +184,23 @@ export default function LocalBankPage({ visible, onClose, getCurrentTone, onAppl
     srcFirst,
   );
   const upReason = groupCheckReason(upCheck, lang === 'en');
+  /* ★ 2026-11-16（用户要求）：四组上传的预检 —— 任一组不合格就禁用按钮，
+     具体原因由 Index 在点击后按组提示（这里只给"能不能点"的信号）。 */
+  const allChecks = [0, 1, 2, 3].map((g) => {
+    const first = g * 4 + 1;
+    return checkGroupModels(
+      [0, 1, 2, 3].map((k) => slots.find((x) => x.slot === first + k) ?? null),
+      first,
+    );
+  });
+  const allOk = allChecks.every((c) => c.ok);
+  /* ★ 2026-11-16（用户反馈「四组上传是灰的，不知道为什么」）：
+     按钮不再做成"点了没反应"的灰色禁用态 —— 永远可点，
+     点下去直接说清是哪一组、为什么不能传；按钮下方也常驻一行原因。 */
+  const allBadIdx = allChecks.findIndex((c) => !c.ok);
+  const allBadReason = allBadIdx >= 0
+    ? `第 ${allBadIdx + 1} 组：${groupCheckReason(allChecks[allBadIdx], lang === 'en')}`
+    : '';
   const idxCur = (cur - 1) % 4;
   const prevS = gCur * 4 + ((idxCur + 3) % 4) + 1;
   const nextS = gCur * 4 + ((idxCur + 1) % 4) + 1;
@@ -252,6 +274,26 @@ export default function LocalBankPage({ visible, onClose, getCurrentTone, onAppl
        同一 OP_ID 覆盖掉；isBusy() 时 Index 静默 return，界面照样说成功。
        成功提示统一由 Index 的 notifyOk（带"整组已上传 N 格"）负责，这里不再自报。 */
     const r = onUploadToPreset(upCheck.first, 'group', dst) as unknown;
+    if (r && typeof (r as Promise<unknown>).then === 'function') {
+      void (r as Promise<boolean | void>);
+    }
+  };
+
+  /** ★ 2026-11-16：四组上传 —— 先弹确认框（覆盖 16 档是不可逆动作） */
+  const openUploadAll = () => {
+    if (!onUploadAllGroups) { flash('上传通道未就绪', false); return; }
+    if (!allOk) {
+      const bad = allChecks.findIndex((c) => !c.ok);
+      flash(`第 ${bad + 1} 组：${groupCheckReason(allChecks[bad], lang === 'en')}`, false);
+      return;
+    }
+    setDlg('uploadAll');
+  };
+
+  const doUploadAll = () => {
+    if (!onUploadAllGroups) { setDlg(null); flash('上传通道未就绪', false); return; }
+    setDlg(null);
+    const r = onUploadAllGroups() as unknown;
     if (r && typeof (r as Promise<unknown>).then === 'function') {
       void (r as Promise<boolean | void>);
     }
@@ -477,8 +519,27 @@ export default function LocalBankPage({ visible, onClose, getCurrentTone, onAppl
         </button>
       </ModalBody>
 
-      {/* 底部固定操作位：只有「保存本地 / 整组上传」两键（导出/JSON 导入已移除） */}
+      {/* 底部固定操作位：「保存本地 / 整组上传」+ ★ 2026-11-16 新增「四组上传」 */}
       <ModalFooter style={{ padding: '10px 12px 12px', borderTop: `1px solid ${LINE}` }}>
+        {/* ★ 2026-11-16（用户要求）：四组上传 —— 一次覆盖硬件 1a–4d 全部 16 档。
+            不合格时不再禁用（禁用会变成"灰色但不知道为什么"），点一下直接说明原因。 */}
+        <button onClick={openUploadAll} style={{
+          width: '100%', height: 44, borderRadius: 10, marginBottom: allOk ? 8 : 6,
+          cursor: 'pointer',
+          background: 'rgba(240,80,80,0.10)',
+          border: `1px solid ${allOk ? APPLIED : 'rgba(240,80,80,0.5)'}`,
+          color: allOk ? APPLIED : '#E08A8A',
+          fontSize: 12, fontWeight: 800, letterSpacing: '0.04em',
+          fontFamily: '"Barlow-Regular_2",sans-serif',
+        }}>{lang === 'en' ? 'UPLOAD ALL 4 GROUPS' : '四组上传（覆盖 1a–4d）'}</button>
+        {!allOk && (
+          <div style={{
+            marginBottom: 8, padding: '5px 8px', borderRadius: 8,
+            background: 'rgba(240,80,80,0.10)', border: '1px solid rgba(240,80,80,0.35)',
+            fontSize: 10, lineHeight: 1.45, color: '#F0A0A0',
+            fontFamily: '"Barlow-Regular_2",sans-serif',
+          }}>{allBadReason}</div>
+        )}
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={openSave} style={{
             flex: 1, height: 44, borderRadius: 10, cursor: 'pointer',
@@ -595,7 +656,9 @@ export default function LocalBankPage({ visible, onClose, getCurrentTone, onAppl
               }}>
                 {dlg === 'save'
                   ? (lang === 'en' ? `Save to ${LOCAL_BANK_EN.toLowerCase()}` : `保存到${LOCAL_BANK_ZH}`)
-                  : (lang === 'en' ? 'Upload to hardware' : '上传到硬件')}
+                  : dlg === 'uploadAll'
+                    ? (lang === 'en' ? 'Overwrite all 16 channels' : '覆盖硬件全部 16 档')
+                    : (lang === 'en' ? 'Upload to hardware' : '上传到硬件')}
               </span>
             </div>
 
@@ -616,9 +679,11 @@ export default function LocalBankPage({ visible, onClose, getCurrentTone, onAppl
                 }}>
                   {dlg === 'save'
                     ? (lang === 'en' ? `LOCAL ${cur}` : `本地第 ${cur} 格`)
-                    : (upDst
-                      ? `${hwLabel(upDst)}–${hwLabel(upDst + 3)}`
-                      : (lang === 'en' ? 'not selected' : '未选择'))}
+                    : dlg === 'uploadAll'
+                      ? '1a–4d（16 档）'
+                      : (upDst
+                        ? `${hwLabel(upDst)}–${hwLabel(upDst + 3)}`
+                        : (lang === 'en' ? 'not selected' : '未选择'))}
                 </span>
               </div>
 
@@ -655,6 +720,56 @@ export default function LocalBankPage({ visible, onClose, getCurrentTone, onAppl
                     {lang === 'en' ? 'Saved on this phone only · hardware is not touched.' : `只写入${LOCAL_BANK_ZH}，不动硬件。`}
                   </div>
                 </>
+              ) : dlg === 'uploadAll' ? (
+                <>
+                  {/* ★ 2026-11-16：四组上传确认 —— 逐组显示是否合格 */}
+                  <div style={{
+                    marginTop: 10, fontSize: 10.5, fontWeight: 700, color: '#7C8494',
+                    letterSpacing: '0.08em', fontFamily: '"Barlow-Regular_2",sans-serif',
+                  }}>
+                    {lang === 'en' ? 'ALL GROUPS' : '四组状态'}
+                  </div>
+                  <div style={{
+                    marginTop: 5, borderRadius: 9, overflow: 'hidden', border: `1px solid ${LINE}`,
+                  }}>
+                    {allChecks.map((c, gi) => (
+                      <div key={c.first} style={{
+                        display: 'flex', alignItems: 'center', gap: 8, padding: '7px 9px',
+                        background: gi % 2 ? 'rgba(255,255,255,0.025)' : 'transparent',
+                        borderTop: gi ? `1px solid ${LINE}` : 'none',
+                      }}>
+                        <span style={{
+                          width: 18, flexShrink: 0, fontSize: 10.5, fontWeight: 800, color: '#7C8494',
+                          fontFamily: '"Barlow-Regular_2",sans-serif',
+                        }}>{gi + 1}</span>
+                        <span style={{
+                          flex: 1, minWidth: 0, fontSize: 10.5,
+                          color: c.ok ? '#C8D0DC' : '#F08A8A',
+                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        }}>
+                          {c.passthrough
+                            ? (lang === 'en' ? 'Cable passthrough' : '线材直通')
+                            : `${c.baseAmp || '?'} / ${c.baseCab || '?'}`}
+                        </span>
+                        <span style={{
+                          flexShrink: 0, fontSize: 9.5, fontWeight: 700,
+                          color: c.ok ? '#6FBF95' : '#F05050',
+                          fontFamily: '"Barlow-Regular_2",sans-serif',
+                        }}>{c.ok ? (lang === 'en' ? 'OK' : '合格') : (lang === 'en' ? 'BLOCKED' : '不可传')}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{
+                    marginTop: 8, padding: '7px 9px', borderRadius: 8,
+                    background: 'rgba(240,80,80,0.10)', border: '1px solid rgba(240,80,80,0.38)',
+                    fontSize: 10.5, lineHeight: 1.55, color: '#F0A0A0',
+                    fontFamily: '"Barlow-Regular_2",sans-serif',
+                  }}>
+                    {lang === 'en'
+                      ? 'Overwrites all 16 hardware channels (1a–4d) with local slots 1–16. This cannot be undone.'
+                      : '将用我的音色库 1–16 覆盖硬件 1a–4d 全部 16 档，覆盖后无法撤销。'}
+                  </div>
+                </>
               ) : (
                 <>
                   {/* ══ 本组型号一览：4 格必须同箱头同箱体 ══ */}
@@ -669,7 +784,8 @@ export default function LocalBankPage({ visible, onClose, getCurrentTone, onAppl
                     border: `1px solid ${upCheck.ok ? LINE : 'rgba(240,80,80,0.55)'}`,
                   }}>
                     {upCheck.rows.map((r, i) => {
-                      const bad = !r.filled || !r.ampOk || !r.cabOk;
+                      /* ★ 2026-11-16：整组是线材直通时，"没有型号"是正常的，不算错 */
+                      const bad = !r.filled || (!upCheck.passthrough && (!r.ampOk || !r.cabOk));
                       return (
                         <div key={r.slot} style={{
                           display: 'flex', alignItems: 'center', gap: 7, padding: '6px 9px',
@@ -694,7 +810,9 @@ export default function LocalBankPage({ visible, onClose, getCurrentTone, onAppl
                             fontFamily: '"Barlow-Regular_2",sans-serif',
                           }}>
                             {r.filled
-                              ? `${r.ampLabel || '?'} / ${r.cabLabel || '?'}`
+                              ? (upCheck.passthrough
+                                ? (lang === 'en' ? 'DIRECT' : '线材直通')
+                                : `${r.ampLabel || '?'} / ${r.cabLabel || '?'}`)
                               : (lang === 'en' ? 'empty slot' : '空槽')}
                           </span>
                         </div>
@@ -711,17 +829,21 @@ export default function LocalBankPage({ visible, onClose, getCurrentTone, onAppl
                     color: upCheck.ok ? '#7FD3A8' : '#F08A8A',
                   }}>
                     {upCheck.ok
-                      ? (lang === 'en'
-                        ? 'Same amp + same cabinet. Parameters may differ — that is what the 4 slots are for.'
-                        : '型号一致，可以整组上传。GAIN / EQ / 效果器参数可以不同，只有型号不能换。')
+                      ? (upCheck.passthrough
+                        ? (lang === 'en'
+                          ? 'Cable passthrough group (no amp / cab) — safe to upload as a group.'
+                          : '线材直通组：箱头与箱体都旁路，可以整组上传。')
+                        : (lang === 'en'
+                          ? 'Same amp + same cabinet. Parameters may differ — that is what the 4 slots are for.'
+                          : '型号一致，可以整组上传。GAIN / EQ / 效果器参数可以不同，只有型号不能换。'))
                       : upReason}
                   </div>
 
-                  {/* ══ 选目标组（只有整组，A 组锁定）══ */}
+                  {/* ══ 选目标组（整组；★ 2026-11-16 起四组都可覆盖）══ */}
                   <div style={{ marginTop: 10, fontSize: 11, lineHeight: 1.6, color: '#8A93A3' }}>
                     {lang === 'en' ? 'Overwrite which group?' : '整组上传到哪一组？（会覆盖该组 4 格）'}
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginTop: 8 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, marginTop: 8 }}>
                     {UPLOAD_GROUPS.map((g) => {
                       const first = g * 4 + 1;
                       const sel = upDst === first;
@@ -739,7 +861,7 @@ export default function LocalBankPage({ visible, onClose, getCurrentTone, onAppl
                           fontFamily: '"Barlow-Regular_2",sans-serif',
                         }}>
                           <span style={{ fontSize: 14, fontWeight: 800 }}>{`${g + 1}`}</span>
-                          <span style={{ fontSize: 10, opacity: 0.75 }}>{`${hwLabel(first)}–${hwLabel(first + 3)}`}</span>
+                          <span style={{ fontSize: 9.5, opacity: 0.75 }}>{`${hwLabel(first)}–${hwLabel(first + 3)}`}</span>
                         </button>
                       );
                     })}
@@ -751,8 +873,8 @@ export default function LocalBankPage({ visible, onClose, getCurrentTone, onAppl
                     fontFamily: '"Barlow-Regular_2",sans-serif',
                   }}>
                     {lang === 'en'
-                      ? 'Group upload only — A group (1–4) is the straight-through reference and cannot be overwritten.'
-                      : '只支持整组上传；A 组（1–4）是直通基准，不可覆盖。'}
+                      ? 'Group upload only. All four groups can be overwritten — group 1 is the cable passthrough set.'
+                      : '只支持整组上传；四组都可覆盖（第 1 组就是线材直通四档）。'}
                   </div>
                 </>
               )}
@@ -768,25 +890,28 @@ export default function LocalBankPage({ visible, onClose, getCurrentTone, onAppl
                   fontSize: 12, fontWeight: 800, fontFamily: '"Barlow-Regular_2",sans-serif',
                 }}>{lang === 'en' ? 'CANCEL' : '取消'}</button>
               <button
-                disabled={dlg === 'upload' && (!upDst || !upCheck.ok)}
+                disabled={(dlg === 'upload' && (!upDst || !upCheck.ok)) || (dlg === 'uploadAll' && !allOk)}
                 onClick={() => {
                   if (dlg === 'save') { doSave(); return; }
+                  if (dlg === 'uploadAll') { doUploadAll(); return; }
                   doUpload();
                 }}
                 style={{
                   flex: 1.4, height: 40, borderRadius: 9,
-                  cursor: dlg === 'upload' && (!upDst || !upCheck.ok) ? 'default' : 'pointer',
-                  opacity: dlg === 'upload' && (!upDst || !upCheck.ok) ? 0.42 : 1,
-                  background: dlg === 'upload' ? 'rgba(240,111,33,0.18)' : 'rgba(240,180,41,0.18)',
-                  border: `1px solid ${dlg === 'upload' ? APPLIED : GOLD}`,
-                  color: dlg === 'upload' ? APPLIED : GOLD,
+                  cursor: (dlg === 'upload' && (!upDst || !upCheck.ok)) || (dlg === 'uploadAll' && !allOk) ? 'default' : 'pointer',
+                  opacity: (dlg === 'upload' && (!upDst || !upCheck.ok)) || (dlg === 'uploadAll' && !allOk) ? 0.42 : 1,
+                  background: dlg === 'save' ? 'rgba(240,180,41,0.18)' : 'rgba(240,111,33,0.18)',
+                  border: `1px solid ${dlg === 'save' ? GOLD : APPLIED}`,
+                  color: dlg === 'save' ? GOLD : APPLIED,
                   fontSize: 12, fontWeight: 800, fontFamily: '"Barlow-Regular_2",sans-serif',
                 }}>
                 {dlg === 'save'
                   ? (lang === 'en' ? 'SAVE' : '保存')
-                  : (upDst
-                    ? (lang === 'en' ? `UPLOAD TO GROUP ${(upDst - 5) / 4 + 2}` : `上传到 ${(upDst - 5) / 4 + 2} 组`)
-                    : (lang === 'en' ? 'UPLOAD' : '上传'))}
+                  : dlg === 'uploadAll'
+                    ? (lang === 'en' ? 'OVERWRITE ALL 16' : '覆盖全部 16 档')
+                    : (upDst
+                      ? (lang === 'en' ? `UPLOAD TO GROUP ${(upDst - 1) / 4 + 1}` : `上传到 ${(upDst - 1) / 4 + 1} 组`)
+                      : (lang === 'en' ? 'UPLOAD' : '上传'))}
               </button>
             </div>
           </div>

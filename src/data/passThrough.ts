@@ -47,6 +47,7 @@ export interface BypassSpec {
 export const MODULE_BYPASS: Record<string, BypassSpec> = {
   'noise-gate': { addr: 0, on: 0, off: 1, footswitch: true },
   compressor: { addr: 7, on: 0, off: 1, footswitch: true },
+  overdrive: { addr: 42, on: 0, off: 1, footswitch: true },
   'amp-head': { addr: 57, on: 0, off: 1, footswitch: false },
   cabinet: { addr: 107, on: 0, off: 1, footswitch: false },
   chorus: { addr: 215, on: 0, off: 1, footswitch: true },
@@ -62,7 +63,7 @@ export const MODULE_BYPASS_ADDR: Record<string, number> = Object.fromEntries(
   Object.entries(MODULE_BYPASS).map(([k, v]) => [k, v.addr]),
 );
 
-/** 带踩钉的模块（7 个）—— 箱头与箱体不在其中 */
+/** 带踩钉的模块 —— 箱头与箱体不在其中 */
 export const FOOTSWITCH_MODULES = Object.entries(MODULE_BYPASS)
   .filter(([, v]) => v.footswitch).map(([k]) => k);
 

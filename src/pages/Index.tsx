@@ -37,10 +37,12 @@ import { LOCAL_BANK_ZH, LOCAL_BANK_EN } from '../config/bankLabels';
 /* ★ 2026-11-03（方案 A）：上传表合成 + 回读比对 */
 import { buildUploadTable, diffTable, describeDiff, comparableAddrs, pgaValueForUpload, isToneTableAddr, type RegDiff } from '../services/toneUpload';
 import { AMP_MODELS } from '../data/_def';
+import { TONE25_HEADS } from '../data/_def/tone25';
 import { resolveModelKey, hasKeyRegistry } from '../data/modelKey';
 import { PASSTHROUGH_MODULES, MODULE_PARAM_RANGES, getModuleOffRegs, REVERB_ON_DEFAULTS, isWritableAddr, FORBIDDEN_REGS, stripForbidden, INTERNAL_BYPASS_ADDRS, INTERNAL_BYPASS_BY_MODULE, orderBypassSplit, bypassDelayMs, REG_WRITE_MS, EB_WRITE_MS, switchPlan, switchDiffs, BYPASS_ADDRS, resetSwitchShadow } from '../data/passThrough';
 import CommunityPanel from '../components/community/CommunityPanel';
-import LoginForm from '../components/community/LoginForm';
+/* ★ 2026-11-16：顶栏账号入口与社区锁屏共用同一个登录页（LoginScreen） */
+import { LoginScreen } from '../components/community/Gates';
 import { resetSignInFlag } from '../services/toneCommunity';
 /* ★ 2026-10-26：社区 → 本地库必须过同一套净化（白名单 + 禁写位 + 值域） */
 import { sanitizeRegisters } from '../services/presetSanitize';
@@ -49,7 +51,7 @@ import { renameUser, validateName, NAME_MAX } from '../services/authLogin';
 import type { Account } from '../services/account';
 import type { LocalPreset } from '../services/localPresets';
 import DebugPanel from '../ui2/DebugPanelV2';
-import HomePanel from '../ui2/HomePanel';
+import TonePage from '../ui3/tone/TonePage';
 import CenterHint from '../ui2/CenterHint';
 import type { HintPayload, HintKind } from '../ui2/CenterHint';
 import ConnectionFlash from '../ui2/ConnectionFlash';
@@ -139,11 +141,8 @@ const TOUR_STEP_DEFS: Array<{
     en: { title: LOCAL_BANK_EN, body: 'Save the current tone as a new slot, or overwrite an existing one. Each slot can be loaded back, exported to a file, or deleted. Stored on this phone only.' },
     zh: { title: LOCAL_BANK_ZH, body: '把当前音色存为新档位，或覆盖已有档位。每档可加载、导出成文件、删除。只存在本机，不上传硬件。' },
   },
-  {
-    target: 'btn-tour', placement: 'bottom',
-    en: { title: 'Replay This Tutorial', body: 'Tap the ? icon next to Bluetooth at any time to replay this tour. Language can be switched on the first page or by holding the BFX1 logo.' },
-    zh: { title: '随时重看教程', body: '蓝牙图标旁的「?」按钮随时可以重看本教程。语言可在第一页切换，或长按左上角 BFX1 标志切换。' },
-  },
+  /* ★ 2026-11-16：工程模式图标已隐藏，这一版教程不再有「? 按钮」那一步
+     （保留注释以免后来的人再去锚 btn-tour）。 */
   {
     target: 'btn-tone', placement: 'top',
     en: { title: 'TONE Key & Colour', body: 'Tap a module panel\'s blank area to randomise its colour. Double-tap TONE to reset all colours; hold TONE for 0.6s to lock them. All colours are saved automatically.' },
@@ -558,7 +557,7 @@ function PresetsPanel({ visible, onClose, presetRev, connectedDeviceId, register
        · 线材四档（1a–1d）合唱 LEVEL 3 → 20、去掉 260
        · 激励器 PGA 纳入频道表（固件侧每档自带 pga，与本表 boost 同源）
        → 16 格全部重播一次。 */
-    const PRESET_SEED_CONTENT_VER = 'c6';
+    const PRESET_SEED_CONTENT_VER = 'c12';
     /* ★★ v3.81（P2-17②）：必须 `visible` 才播种。
        旧实现 effect 挂在 `[visible]` 上但没判 visible —— 组件首帧（visible=false）就执行：
        最多 16 次 localStorage 写 + 弹一条「已恢复出厂预设」，用户从未打开预设库也会跑。
@@ -868,6 +867,16 @@ function fxDiffInGroup(slot: number, getRegs: (s: number) => Record<number, numb
   return diff;
 }
 
+/* ★ 2026-11-16：网页预览（iPhone/iPad Safari、桌面浏览器）没有 Web Bluetooth，
+   不能再用「未连设备」的锁屏把整个界面挡死，否则没法检查 iOS/iPad 的画面兼容。
+   原生 App（Android/iOS Capacitor）行为不变。 */
+const IS_WEB_PREVIEW = (() => {
+  try {
+    const cap = (window as any).Capacitor;
+    return !cap?.isNativePlatform?.();
+  } catch { return false; }
+})();
+
 export default function Index() {
   const { t, lang, setLang } = useI18n();
   /* ★★ v3.77（P2）：预设库寄存器保存版本号 —— 见 PresetsPanel 里 presetRev 的说明。
@@ -903,6 +912,10 @@ export default function Index() {
     loadState('moduleEnabled', Object.fromEntries(MODULES.map((m) => [m.id, true])))
   );
   const [btConnected, setBtConnected] = useState(false);
+  /* ★ 2026-11-16：网页预览（iPhone/iPad Safari）没有 BLE，但顶栏账号、本地库、
+     预设库、社区这些入口的"必须先连设备"守卫会把整页点死，看不到也测不了 UI。
+     这里只在网页预览时把守卫放开（原生 App 仍然严格要求先连设备）。 */
+  const uiConnected = btConnected || IS_WEB_PREVIEW;
   const [connectedDeviceId, setConnectedDeviceId] = useState<string | null>(null);
   /* ══════════════════════════════════════════════════════════════════
    * ★★ v3.58（2026-10-24 用户拍板 K3）：切换 / 写入期间的【操作锁 + loading 遮罩】
@@ -1350,17 +1363,20 @@ export default function Index() {
       if (localSlotRef.current && localSlotRef.current >= 1 && localSlotRef.current <= 16) {
         const gFrom = Math.floor((localSlotRef.current - 1) / 4);
         const gTo = item.slot ? Math.floor((item.slot - 1) / 4) : gFrom;
-        /* 只做「离开 1 组」：1 组（线材直通）→ 2/4 组，必须先把限幅打开。
-         * 反向不写 —— 本地库 1–4 格是 Twin 音箱音色，不是线材，
-         * 写 253=1 会把限幅关掉；「进 1 组」由固件自己处理。 */
-        if (gFrom === 0 && gTo !== 0) fxPre.unshift({ regAddr: 253, value: 0 });
+        /* ★★★ 2026-11-16（用户拍板）：253 与组号绑定 —— **1 组=1，其余组=0**。
+           旧版只写「离开 1 组」（1→2/3/4 写 0），进 1 组靠固件；用户实测本地库
+           进 1 组时限幅状态不对，现在**跨组双向都写**：进 1 组写 1，离开写 0。
+           组内切换不动（两边同值）。 */
+        if (gFrom !== gTo) fxPre.unshift({ regAddr: 253, value: gTo === 0 ? 1 : 0 });
       }
 
       for (const fx of PRE_BYPASS_FX) {
         if (!frames.some((f) => fx.params.includes(f.regAddr))) continue;
-        /* 目标开关值：存档里有就用存档值；老音色没记这一位 → 按 modules 推。
-           两者都没有 → 目标未知，不碰开关（否则 pre 关掉后没人再打开）。 */
-        const tv = srcRegs[fx.sw] ?? (mods?.[fx.name] === undefined ? undefined : (mods[fx.name] ? 0 : 1));
+        /* 目标开关值以 modules 为权威；老音色没有 modules 时才看寄存器。
+           反过来会把「模块关闭、存档里残留 221=0」的旧音色误开。 */
+        const tv = mods?.[fx.name] !== undefined
+          ? (mods[fx.name] ? 0 : 1)
+          : srcRegs[fx.sw];
         if (tv === undefined) continue;
         fxPre.push({ regAddr: fx.sw, value: 1 });
         frames = frames.filter((f) => f.regAddr !== fx.sw);
@@ -2104,6 +2120,10 @@ export default function Index() {
       markChannelDirty(slot);
       return FAIL;
     }
+    /* ★★★ 2026-11-16（用户拍板）：253（限幅旁路）与组号绑定 —— **1 组=1，其余组=0**。
+       它不在固件 117 条表里（EB 上传带不上），所以表写完后补一帧 EA 到 live DSP，
+       保证「上传完听到的」与目标组的限幅状态一致。 */
+    await bleManager.writeRegister(253, slot <= 4 ? 1 : 0, 0xEA).catch(() => {});
     /* ★ 2026-11-03：频道表变了 ⇒ App 手里"硬件当前值"的镜像不再可信
      *   （DSP 还没重下发，但目标数据已经变了）。清掉镜像并让下一次切档走全量，
      *   否则"值相同就跳过"会把 215 这类开关位漏发（D4 出厂就是合唱开）。 */
@@ -2184,14 +2204,82 @@ export default function Index() {
   /* ★★★ 2026-11-03（用户拍板）：**只允许整组上传**。
    *
    *   为什么砍掉单频道上传：固件切档时若同组内箱头/箱体型号不同，会重建整个
-   *   箱头模型 + 35 段箱体（9 个旁路位 × 500ms 窗口），组内快切直接失效。
+   *   箱头模型 + 箱体 PEQ（9 个旁路位 × 500ms 窗口），组内快切直接失效。
    *   单格写入必然制造"组内混杂"，所以从根上只留整组。
    *
-   *   三道硬闸（任一不满足，一帧都不发）：
+   *   闸门（任一不满足，一帧都不发）：
    *     ① 4 格都有音色（空槽不再"跳过"—— 跳过会让目标格保留旧型号）
-   *     ② 4 格都有箱头/箱体型号
+   *     ② 4 格都有箱头/箱体型号 —— **或**整组 4 格都是线材直通（两者都旁路）
    *     ③ 4 格型号一致（参数可以不同）
-   *   `_mode` 仅为兼容旧调用点保留，实际一律按整组执行。 */
+   *   `_mode` 仅为兼容旧调用点保留，实际一律按整组执行。
+   *   ★ 2026-11-16：目标不再排除 A 组（1–4），且新增「四组上传」一次覆盖 1a–4d。 */
+  /** 把本地库某一组（4 格）写进硬件某组 —— 只搬运数据，不弹提示、不管 busy 遮罩 */
+  const writeLocalGroupToHardware = useCallback(async (
+    srcStart: number,
+    dstStart: number,
+  ): Promise<{
+    ok: boolean; done: number; failSlot: number;
+    issues: Array<{ slot: number; readFailed: boolean; diff: RegDiff[] }>;
+  }> => {
+    const issues: Array<{ slot: number; readFailed: boolean; diff: RegDiff[] }> = [];
+    let done = 0;
+    for (let k = 0; k < 4; k++) {
+      const src = srcStart + k;
+      const dst = dstStart + k;
+      const item = getBankSlot(src);
+      if (!item?.data) return { ok: false, done, failSlot: dst, issues };
+      const res = await syncChannelToHardware(
+        dst,
+        withSwitchPlan(item.data.registers ?? {}, item.data.modules as Record<string, boolean> | undefined),
+        /* ★ 激励器：该格存档里的 boost 归一值（0~1）→ 硬件的 0…10 档 */
+        (item.data.knobValues as Record<string, Record<string, number>> | undefined)?.['boost']?.['BOOST'],
+        /* 整组上传标记（仅失败时设备红闪用；成功已不闪灯） */
+        true,
+        /* ★★★ 2026-11-03：模块开关 —— 决定 PGA 口径（boost 关 → 0 dB）与 253。 */
+        item.data.modules as Record<string, boolean> | undefined,
+        /* ★ 2026-11-04：只有整组第 1 格做全表回读校验 */
+        k === 0,
+      );
+      if (!res.ok) return { ok: false, done, failSlot: dst, issues };
+      if (res.readFailed || res.diff.length) {
+        issues.push({ slot: dst, readFailed: res.readFailed, diff: res.diff });
+      }
+      done++;
+    }
+    return { ok: true, done, failSlot: 0, issues };
+  }, [syncChannelToHardware]);
+
+  /**
+   * 硬件某组 4 格全部写成功后的收尾：模板 + 名字同步到预设库、记已上传指纹、清脏标记。
+   * ★ 2026-11-05（用户拍板「上传名字必须跟着我的音色库走」）：必须等硬件 4 格全部成功
+   *   才同步 —— 蓝牙失败时两边都不动，避免「App 显示新音色、硬件还是旧声音」。
+   */
+  const commitLocalGroupToPresets = useCallback((srcStart: number, dstStart: number) => {
+    for (let k = 0; k < 4; k++) {
+      const item = getBankSlot(srcStart + k);
+      if (!item?.data) continue;
+      const dst = dstStart + k;
+      savePresetLocal({
+        ...item.data,
+        slot: dst,
+        name: item.name,
+        nameEn: item.nameEn,
+        savedAt: Date.now(),
+      });
+      /* ★★ v3.62：这是预设库模板**唯一的常规修改入口** → 记一笔，随后的版本播种会跳过它 */
+      markPresetUserSlot(dst);
+      /* ★ 2026-11-03：4 格各自记一份「已上传指纹」 */
+      markBankSlotUploaded(item.slot, withSwitchPlan(
+        item.data.registers ?? {},
+        item.data.modules as Record<string, boolean> | undefined,
+      ));
+      /* ★★ v3.62：上传成功 = 硬件频道表已更新 → 清掉「未同步」标记 */
+      markChannelClean(dst);
+    }
+    /* ★★ v3.77（P2）：寄存器已改 → 让「切换延迟角标」重算，并让预设库名字立即刷新 */
+    setPresetRev((v) => v + 1);
+  }, []);
+
   const handleUploadLocalToPreset = useCallback(async (
     slot: number, _mode: 'one' | 'group' = 'group', dst?: number,
   ): Promise<boolean> => {
@@ -2199,11 +2287,10 @@ export default function Index() {
     if (!item?.data) return false;
     if (isBusy()) return false;
 
-    const target = (dst && dst >= 5 && dst <= 16) ? dst : (slot >= 5 ? slot : 0);
-    if (!target) {
-      notifyErr('A 组（1–4）是直通基准，不能覆盖；请选择 B / C / D 的目标组', { duration: 3200 });
-      return false;
-    }
+    /* ★ 2026-11-16（用户拍板「放开第 1 组的上传限制」）：
+       目标频道不再排除 A 组（1–4）—— 第 1 组本身就是线材直通四档，
+       它就是要覆盖硬件 1a–1d。 */
+    const target = (dst && dst >= 1 && dst <= 16) ? dst : slot;
     const srcStart = Math.floor((slot - 1) / 4) * 4 + 1;
     const dstStart = Math.floor((target - 1) / 4) * 4 + 1;
 
@@ -2214,95 +2301,100 @@ export default function Index() {
       return false;
     }
 
-    const ops = [0, 1, 2, 3].map((k) => ({
-      src: srcStart + k,
-      dst: dstStart + k,
-      item: srcItems[k]!,
-    }));
-
-    /* ① 逐格 EB 写硬件（★ 2026-11-05：模板与名字挪到"硬件全部写成功"之后再同步，
-       见下方 endBusy() 后的说明） */
     if (!bleManager.connected) {
       notifyInfo(t('toast.connectBtFirst'), { duration: 3000 });
       return false;
     }
-    const gName = `组 ${(dstStart - 5) / 4 + 2}`;   /* 目标组号 2/3/4 */
+    const gName = `组 ${(dstStart - 1) / 4 + 1}`;   /* 目标组号 1/2/3/4 */
     beginBusy(
       t('switch.loading') || '写入中…',
-      `${gName} 整组上传 · ${ops.length} 格`,
+      `${gName} 整组上传 · 4 格`,
     );
-    let done = 0;
-    const issues: Array<{ slot: number; readFailed: boolean; diff: RegDiff[] }> = [];
-    for (const o of ops) {
-      const res = await syncChannelToHardware(
-        o.dst,
-        withSwitchPlan(o.item!.data.registers ?? {}, o.item!.data.modules as Record<string, boolean> | undefined),
-        /* ★ 激励器：该格存档里的 boost 归一值（0~1）→ 硬件的 0…10 档 */
-        (o.item!.data.knobValues as Record<string, Record<string, number>> | undefined)?.['boost']?.['BOOST'],
-        /* 整组上传标记（仅失败时设备红闪用；成功已不闪灯） */
-        true,
-        /* ★★★ 2026-11-03：模块开关 —— 决定 PGA 口径（boost 关 → 0 dB）与 253。
-         *   这一条以前上传路径根本拿不到，是两边口径不一致的根源。 */
-        o.item!.data.modules as Record<string, boolean> | undefined,
-        /* ★ 2026-11-04：只有整组第 1 格做全表回读校验 */
-        ops.indexOf(o) === 0,
-      );
-      if (!res.ok) {
-        endBusy();
-        /* ★ 2026-11-03：只有**真的没发出去**（GATT 写失败/断线）才走到这里。
-           回执丢失不再判失败 —— 那是设备灯负责表达的事。 */
-        notifyErr(`${hwSlotName(o.dst)} 蓝牙写入中断，请重试`, { duration: 3200 });
-        return false;
-      }
-      if (res.readFailed || res.diff.length) {
-        issues.push({ slot: o.dst, readFailed: res.readFailed, diff: res.diff });
-      }
-      done++;
-    }
+    const r = await writeLocalGroupToHardware(srcStart, dstStart);
     endBusy();
-    /* ★ 2026-11-05（用户拍板「上传名字必须跟着我的音色库走」）：
-       硬件 4 格**全部写成功**后，才把模板 + 名字同步到预设库对应目标槽。
-       旧实现先写本地模板再写硬件 —— 蓝牙失败时预设库已经改名/改参数、设备却没变，
-       出现「App 显示新音色、硬件还是旧声音」的不一致；上传失败就该两边都不动。 */
-    for (const o of ops) {
-      savePresetLocal({
-        ...o.item!.data,
-        slot: o.dst,
-        name: o.item!.name,
-        nameEn: o.item!.nameEn,
-        savedAt: Date.now(),
-      });
-      /* ★★ v3.62：这是预设库模板**唯一的常规修改入口** → 记一笔，随后的版本播种会跳过它 */
-      markPresetUserSlot(o.dst);
+    if (!r.ok) {
+      /* ★ 2026-11-03：只有**真的没发出去**（GATT 写失败/断线）才走到这里。
+         回执丢失不再判失败 —— 那是设备灯负责表达的事。 */
+      notifyErr(`${hwSlotName(r.failSlot)} 蓝牙写入中断，请重试`, { duration: 3200 });
+      return false;
     }
-    /* ★★ v3.77（P2）：寄存器已改 → 让「切换延迟角标」重算，并让预设库名字立即刷新 */
-    setPresetRev((v) => v + 1);
-    /* ★ 2026-11-03：整组上传 → 4 格各自记一份「已上传指纹」，
-       旧实现只标了传入的那一格，其余 3 格会一直显示"未同步"黄点。 */
-    for (const o of ops) {
-      const regs = withSwitchPlan(o.item!.data.registers ?? {}, o.item!.data.modules as Record<string, boolean> | undefined);
-      markBankSlotUploaded(o.src, regs);
-    }
-    /* ★★ v3.62：上传成功 = 硬件频道表已更新 = 预设库模板与硬件一致 → 清掉「未同步」标记。
-       （v3.59 之前只有标脏没有清脏，上传完黄点会一直留着） */
-    for (const o of ops) markChannelClean(o.dst);
-    /* ★ v3.85：这是用户「底部提示一闪而过」的实际来源 —— 整组同步完成后 2.2s 太短，
-       而且紧接着的切台动作还会再覆盖一次。给到 3.6s 并保持单一位置。 */
-    if (issues.length) {
-      /* 校验没通过：不再只报"已上传"，直接把明细弹出来（用户要求） */
-      const total = issues.reduce((n, x) => n + x.diff.length, 0);
-      setVerifyIssues(issues);
+    commitLocalGroupToPresets(srcStart, dstStart);
+    /* ★ v3.85：这是用户「底部提示一闪而过」的实际来源 —— 给到 3.6s 并保持单一位置。 */
+    if (r.issues.length) {
+      const total = r.issues.reduce((n, x) => n + x.diff.length, 0);
+      setVerifyIssues(r.issues);
       notifyErr(
-        issues.some((x) => x.readFailed)
+        r.issues.some((x) => x.readFailed)
           ? `${gName} 已写入，但设备回读无应答，无法校验`
           : `${gName} 有 ${total} 条参数与 App 不一致（已自动重发 2 轮）`,
         { duration: 4200 },
       );
     } else {
-      notifyOk(`${gName} 已上传 ${done} 格 · 已校验`, { duration: 3600 });
+      notifyOk(`${gName} 已上传 ${r.done} 格 · 已校验`, { duration: 3600 });
     }
     return true;
-  }, [syncChannelToHardware, t]);
+  }, [commitLocalGroupToPresets, t, writeLocalGroupToHardware]);
+
+  /**
+   * ★★★ 2026-11-16（用户要求）：**四组上传** —— 一键把本地库 16 格整表覆盖硬件 1a–4d。
+   *   · 四组先全部过闸门（任一不合格一帧都不发）；
+   *   · 逐组写：每组第 1 格做全表回读校验，其余 3 格跳过（省往返）；
+   *   · 每写完一组立刻同步预设库模板 / 名字 / 指纹，中途断线也不会留下
+   *     「App 已改名、硬件没变」的半成品。
+   */
+  const handleUploadAllLocalGroups = useCallback(async (): Promise<boolean> => {
+    if (isBusy()) return false;
+    for (let g = 0; g < 4; g++) {
+      const first = g * 4 + 1;
+      const items = [0, 1, 2, 3].map((k) => getBankSlot(first + k));
+      const guard = checkGroupModels(items, first);
+      if (!guard.ok) {
+        notifyErr(`第 ${g + 1} 组：${groupCheckReason(guard, false)}`, { duration: 4400 });
+        return false;
+      }
+    }
+    if (!bleManager.connected) {
+      notifyInfo(t('toast.connectBtFirst'), { duration: 3000 });
+      return false;
+    }
+    beginBusy(
+      t('switch.loading') || '写入中…',
+      '四组上传 · 共 16 格（1a–4d）',
+    );
+    let done = 0;
+    const issues: Array<{ slot: number; readFailed: boolean; diff: RegDiff[] }> = [];
+    for (let g = 0; g < 4; g++) {
+      const first = g * 4 + 1;
+      const r = await writeLocalGroupToHardware(first, first);
+      done += r.done;
+      issues.push(...r.issues);
+      if (!r.ok) {
+        endBusy();
+        /* 已写完的组照常落模板；从失败那一格起保持原样（脏标记由 syncChannelToHardware 记） */
+        for (let gg = 0; gg < g; gg++) commitLocalGroupToPresets(gg * 4 + 1, gg * 4 + 1);
+        notifyErr(
+          `${hwSlotName(r.failSlot)} 蓝牙写入中断（已完成 ${done}/16 格），请重试`,
+          { duration: 4000 },
+        );
+        return false;
+      }
+      commitLocalGroupToPresets(first, first);
+    }
+    endBusy();
+    if (issues.length) {
+      const total = issues.reduce((n, x) => n + x.diff.length, 0);
+      setVerifyIssues(issues);
+      notifyErr(
+        issues.some((x) => x.readFailed)
+          ? '四组已写入，但设备回读无应答，无法校验'
+          : `四组已写入，有 ${total} 条参数与 App 不一致（已自动重发 2 轮）`,
+        { duration: 4600 },
+      );
+    } else {
+      notifyOk(`四组已上传 ${done} 格 · 已校验`, { duration: 4000 });
+    }
+    return true;
+  }, [commitLocalGroupToPresets, t, writeLocalGroupToHardware]);
 
   /**
    * ★ v6.2 连接后完整恢复 UI 到硬件当前频道的音色（本地镜像 → UI，不写硬件）：
@@ -2383,10 +2475,16 @@ export default function Index() {
         不再向硬件发任何字节（详见下方 queryChannel 分支注释）。 */
   const activeSlotRef = useRef(activeSlot);
   activeSlotRef.current = activeSlot;
+  /* ★ 2026-11-16：自动重连链令牌 —— 同一时刻只允许一条链在跑。
+     多个断线事件（系统 GATT 回调 + 探测判死 + 用户重连）以前会各自起一条链，
+     并发 connect 在 Android 上直接 133 / 超时，用户看到的就是「断联后卡住」。 */
+  const reconnectTokenRef = useRef(0);
   const restoreUiRef = useRef(restoreUiFromSlot);
   restoreUiRef.current = restoreUiFromSlot;
   // 蓝牙连接: 仅建立连接 + 同步频道与 UI, 不写任何寄存器
   const handleBleConnect = (id: string | null) => {
+    /* 任何一次成功连接（手动 / 自动）都作废在跑的旧重连链 */
+    reconnectTokenRef.current++;
     setConnectedDeviceId(id);
     setBtConnected(id !== null);
     /* ★★ v3.70：连接状态一变，本地库的「当前格」与手拧漂移记录全部作废；
@@ -2519,25 +2617,31 @@ export default function Index() {
           改用 `bleManager.manualDiscCount` 计数比对（disconnect() 每次都自增，
           含「本来就没连」的早退分支）。 */
     const timers: number[] = [];
-    const retry = (deviceId: string, attempt: number, discMark: number) => {
-      /* ★ 2026-11-04：硬件关机→再开机通常 8–15s；原来的 3 次（≈8.4s）经常刚好错过。
-         扩到 5 次（1.2/2.4/4.8/9.6/19.2s ≈ 37s），覆盖完整开机窗口。 */
-      if (attempt >= 5) return;
+    const retry = (deviceId: string, attempt: number, discMark: number, token: number) => {
+      /* ★ 2026-11-04：硬件关机→再开机通常 8–15s。
+         ★ 2026-11-16：改成 8 次、上限 5s（1.2/1.9/3.0/4.8/5/5/5/5 ≈ 32s）——
+           旧的 1.2/2.4/4.8/9.6/19.2 总窗口虽长，但硬件 10s 回来时经常正好卡在
+           19.2s 那一档里等，用户体感就是「开好机了 App 还不连」。 */
+      if (attempt >= 8) return;
+      if (token !== reconnectTokenRef.current) return;
+      const delay = Math.min(5000, Math.round(1200 * Math.pow(1.6, attempt)));
       timers.push(window.setTimeout(async () => {
+        if (token !== reconnectTokenRef.current) return;      // 已被更新的链 / 成功连接取代
         if (bleManager.connected) return;                    // 已经自己恢复了 / 用户手动连上了
         if (bleManager.manualDiscCount !== discMark) return;  // 用户已明确要求断开
         const ok = await bleManager.connect(deviceId).catch(() => false);
         if (ok) {
           /* 连上的瞬间用户才点的断开 → 立刻回滚，别让重连赢了这场竞速 */
           if (bleManager.manualDiscCount !== discMark) { void bleManager.disconnect(); return; }
+          reconnectTokenRef.current++;   // 成功 → 终止本链
           handleBleConnect(deviceId);
           /* ★★ v3.69（用户报障）：自动重连成功**不弹底部提示** —— 后台自愈属于静默行为，
              画面已经由 ConnectionFlash 表达「已连接」，再弹一条只是噪音。
              （真正需要用户知道的「已断开」仍走下面的 notifyErr。） */
         } else {
-          retry(deviceId, attempt + 1, discMark);
+          retry(deviceId, attempt + 1, discMark, token);
         }
-      }, 1200 * Math.pow(2, attempt)));
+      }, delay));
     };
     bleManager.setOnDisconnectHandler((deviceId: string) => {
       /* ★ v3.59：断线必须注销频道推送监听，否则回调会打到已断开/已卸载的界面 */
@@ -2546,7 +2650,8 @@ export default function Index() {
       setBtConnected(false);
       setConnFlash(null);
       notifyErr(t('toast.btDisconnected'), { duration: 3200 });
-      retry(deviceId, 0, bleManager.manualDiscCount);
+      const token = ++reconnectTokenRef.current;   // 新链生效，旧链自动作废
+      retry(deviceId, 0, bleManager.manualDiscCount, token);
     });
     return () => {
       for (const id of timers) window.clearTimeout(id);
@@ -2610,8 +2715,18 @@ export default function Index() {
     if (connectedDeviceId) {
       bleManager.writeRegister(261, regVal, 0xea, false).catch(() => {});
     }
-    handleKnobDisplay(norm === 0 ? 'OUT VOL  -∞ dB' : `OUT VOL  ${regVal - 50} dB`);
-  }, [connectedDeviceId]);
+    /* 总音量 0 = 关闭：与噪声门/激励同一逻辑，0 档同时落输出静音、指示灯熄灭。 */
+    const shouldMute = norm <= 0.001;
+    if (shouldMute !== muted) {
+      setMuted(shouldMute);
+      const muteReg = shouldMute ? 1 : 0;
+      registerStore.set(260, muteReg);
+      regCacheRef.current[260] = muteReg;
+      if (connectedDeviceId) bleManager.writeRegister(260, muteReg, 0xea, false).catch(() => {});
+      addDebugLog(260, muteReg);
+      setDebugRegTick(t => t + 1);
+    }
+  }, [addDebugLog, connectedDeviceId, muted]);
 
   const toggleInputMute = useCallback(() => {
     const next = !inputMute;
@@ -2652,6 +2767,8 @@ export default function Index() {
   const debugAmpLimit = useMemo(() => {
     const raw = subModelNames['amp-head'];
     if (!raw) return 40;
+    const n25 = TONE25_HEADS.find((x) => x.key === raw || x.code === raw || x.display === raw);
+    if (n25) return n25.gainLimit;
     const k = resolveModelKey('amp-head', raw);
     const m = AMP_MODELS.find((x) => x.key === k) ?? AMP_MODELS.find((x) => x.name === raw);
     return m?.limit ?? 40;
@@ -2725,7 +2842,7 @@ export default function Index() {
           // flex 行: BFX1 — 频谱(居中于 BFX1 与胶囊之间) — GUITAR/BASS胶囊 — 语言
           // 两侧弹性空档吸收语言切换宽度变化 → 切换零位移
           display: 'flex', alignItems: 'center',
-          padding: '0 12px', flexShrink: 0,
+          padding: '0 4px 0 12px', flexShrink: 0,
         }}>
           {/* B&F Logo
               ★ 2026-10-17（用户要求）：中英文切换改为【长按 LOGO】；单击只播放点击动画。
@@ -2767,7 +2884,6 @@ export default function Index() {
               h.timer = setTimeout(() => {
                 h.fired = true;
                 h.timer = null;
-                try { navigator.vibrate?.(22); } catch { /* ignore */ }
                 setDebugMode((d) => !d);
               }, 900);
             }}
@@ -2834,42 +2950,20 @@ export default function Index() {
           {/* ★★ v3.68（2026-10-24 用户要求）：顶栏「使用教程 ?」改为**高级工程模式**入口
               （原「调试模式」更名）。教程入口保留在 我的账号 → 使用教程 / 说明书，不再占顶栏。
               未连接蓝牙时置灰 —— 工程模式里的读/写/曲线全部依赖硬件，未连接进去只会是空面板。 */}
-          <button
-            type="button"
-            data-tour="btn-tour"
-            onClick={() => { if (!btConnected) return; setDebugMode((v) => !v); }}
-            disabled={!btConnected}
-            title={lang === 'zh' ? '高级工程模式' : 'Advanced engineering'}
-            aria-label={lang === 'zh' ? '高级工程模式' : 'Advanced engineering'}
-            style={{
-              width: 44, height: 44, padding: 0, border: 'none', background: 'transparent',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: btConnected ? 'pointer' : 'default', flexShrink: 0,
-              opacity: btConnected ? 1 : 0.32,
-              pointerEvents: btConnected ? 'auto' : 'none',
-              WebkitTapHighlightColor: 'transparent',
-            }}
-          >
-            <span style={{
-              position: 'relative',
-              width: 34, height: 34, borderRadius: 12,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: debugMode ? 'rgba(240,111,33,0.14)' : '#2c2f36',
-              border: `1px solid ${debugMode ? 'rgba(240,111,33,0.55)' : '#454b55'}`,
-              transition: 'all 0.15s ease',
-            }}>
+          {/* ★ 2026-11-16（用户要求）：**隐藏工程模式图标** —— 顶栏不再有虫子按钮。
+              工程模式仍可用「长按左上角 BFX1 LOGO 0.9 秒」进入（内部/售后用）。 */}
+          {false && (
+            <button
+              type="button"
+              data-tour="btn-tour"
+              onClick={() => { if (!btConnected) return; setDebugMode((v) => !v); }}
+              disabled={!btConnected}
+              title={lang === 'zh' ? '高级工程模式' : 'Advanced engineering'}
+              aria-label={lang === 'zh' ? '高级工程模式' : 'Advanced engineering'}
+            >
               <BugIcon size={16} color={debugMode ? '#F06F21' : '#c2c9d6'} />
-              {!tourSeen && (
-                <span style={{
-                  position: 'absolute', top: -2, right: -2,
-                  width: 7, height: 7, borderRadius: '50%',
-                  background: '#F06F21',
-                  boxShadow: '0 0 6px rgba(240,111,33,0.9)',
-                  border: '1.5px solid #2c2f36',
-                }} />
-              )}
-            </span>
-          </button>
+            </button>
+          )}
 
           <button
             type="button"
@@ -2907,14 +3001,14 @@ export default function Index() {
             data-tour="btn-account"
             /* ★ 2026-10-26：去掉 disabled —— disabled 的 button 不派发 click，
                未连接时点下去零反馈（用户判定"App 卡了"）。改为守卫 + 提示气泡。 */
-            onClick={(e) => { if (!btConnected) { showConnectHint(e); return; } setActivePanel(p => p === 'user' ? null : 'user'); }}
+            onClick={(e) => { if (!uiConnected) { showConnectHint(e); return; } setActivePanel(p => p === 'user' ? null : 'user'); }}
             title={accountName ? accountName : (lang === 'zh' ? '我的账号' : 'My account')}
             aria-label={lang === 'zh' ? '我的账号' : 'My account'}
             style={{
               width: 44, height: 44, padding: 0, border: 'none', background: 'transparent',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: btConnected ? 'pointer' : 'not-allowed', flexShrink: 0, marginLeft: 2,
-              opacity: btConnected ? 1 : 0.35,
+              cursor: uiConnected ? 'pointer' : 'not-allowed', flexShrink: 0, marginLeft: 2,
+              opacity: uiConnected ? 1 : 0.35,
               WebkitTapHighlightColor: 'transparent',
             }}
           >
@@ -2976,9 +3070,9 @@ export default function Index() {
               导致「弹窗点不开」「参数没生效」。旧 UI 仍按 8 页横向滚动渲染。 */}
           {/* ★★ v3.77：旧 PedalPanel / 模块标签页分支已整段删除，只剩新 UI（ui2 TonePage） */}
           {(
-            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', opacity: btConnected ? 1 : 0.4, transition: 'opacity 0.2s' }}>
-              {!btConnected && <div onClick={(e) => showConnectHint(e)} style={{ position: 'absolute', inset: 0, zIndex: 3, cursor: 'pointer' }} />}
-              <HomePanel
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', opacity: uiConnected ? 1 : 0.4, transition: 'opacity 0.2s' }}>
+              {!uiConnected && <div onClick={(e) => showConnectHint(e)} style={{ position: 'absolute', inset: 0, zIndex: 3, cursor: 'pointer' }} />}
+              <TonePage
                 onParam={async (reg, value, modId, keepBusy) => {
                   /* ★ 2026-10-16：未连接蓝牙一律不写（禁止离线使用，防误操作） */
                   if (!guardConnected()) return false;
@@ -3032,12 +3126,9 @@ export default function Index() {
                   setDebugRegTick(t => t + 1);
                   return !!ok;
                 }}
-                extSync={extSync}
                 sync={channelSync}
                 /* ★ 2026-10-17：断线保存 / 重连后把当前参数写回硬件 */
                 btConnected={btConnected}
-                /* ★ v8：新 UI 的箱头型号变化要回传，否则 defaults 构建器拿不到当前型号 */
-                onAmpModel={(i) => setAmpIdxV8(i)}
                 /* ★★ v3.70（用户报障「本地库存的新文件，切换会中断」）：
                    首页换箱头 / 箱体 / 过载后把真实型号回传给 Index。
                    不回传的后果：Index 的 subModelNames 停在旧值 → 保存出来的音色与当前型号
@@ -3194,13 +3285,13 @@ export default function Index() {
           <StudioPanel visible={activePanel === 'studio'} onlyTab={studioOnly ?? undefined} onClose={() => { setStudioOnly(null); setActivePanel(null); }} />
           {/* ★ 2026-10-16（用户要求）：开机即进蓝牙连接框 —— 未连接时强制显示且不可关闭 */}
           <BluetoothPanel
-            visible={activePanel === 'bluetooth' || !btConnected}
+            visible={activePanel === 'bluetooth' || (!btConnected && !IS_WEB_PREVIEW)}
             onClose={() => { pendingCommunityConnectRef.current = false; setActivePanel(null); }}
             connectedDeviceId={connectedDeviceId}
             onConnect={handleBleConnect}
             onConnecting={handleBleConnecting}
             onConnectFail={handleBleConnectFail}
-            locked={!btConnected}
+            locked={!btConnected && !IS_WEB_PREVIEW}
           />
           <PresetsPanel visible={activePanel === 'presets'} onClose={() => setActivePanel(null)} presetRev={presetRev} connectedDeviceId={connectedDeviceId} registerStore={registerStore} bleManager={bleManager} buildFrame={buildFrame} moduleEnabled={moduleEnabled} subModelNames={subModelNames} playMode={playMode} setPlayMode={setPlayMode} setModuleEnabled={setModuleEnabled} setSubModelNames={setSubModelNames} setLoadedKnobValues={setLoadedKnobValues} getBoostKnob={() => userKnobValuesRef.current['boost']?.['BOOST']} onRestoreBoostKnob={(v) => { if (!userKnobValuesRef.current['boost']) userKnobValuesRef.current['boost'] = {}; userKnobValuesRef.current['boost']['BOOST'] = v; }} ampIdxV8={ampIdxV8} setAmpIdxV8={setAmpIdxV8} inputVol={inputVol} outputVol={outputVol} inputMute={inputMute} outputMute={outputMute} setInputVol={setInputVol} setOutputVol={setOutputVol} setInputMute={setInputMute} setOutputMute={setOutputMute} setCleanResetTick={setCleanResetTick} activeSlot={activeSlot} setActiveSlot={setActiveSlot} regCacheRef={regCacheRef} bumpDebugRegTick={() => setDebugRegTick(t => t + 1)} onSyncChannel={pushChannelSync} onOpenMetronome={() => { setStudioOnly('metro'); setActivePanel('studio'); }} onOpenTuner={() => { setStudioOnly('tuner'); setActivePanel('studio'); }} />
           {/* User profile panel (new) */}
@@ -3239,6 +3330,8 @@ export default function Index() {
                 getCurrentTone={buildUploadPayload}
                 onApply={applyLoadedTone}
                 onUploadToPreset={handleUploadLocalToPreset}
+                /* ★ 2026-11-16：四组上传 —— 一次覆盖硬件 1a–4d 全部 16 档 */
+                onUploadAllGroups={handleUploadAllLocalGroups}
               />
             </div>
           )}
@@ -3411,22 +3504,22 @@ export default function Index() {
                 return;
               }
               r.last = now;
-              if (!btConnected) return;
+              if (!uiConnected) return;
               setActivePanel(null);
             }}
-            style={{ ...tabBtnStyle(activePanel === null && btConnected), opacity: btConnected ? 1 : 0.35, cursor: 'pointer' }}>
-            <SlidersHorizontalIcon size={21} color={btConnected && activePanel === null ? '#F06F21' : 'rgba(154,160,166,0.75)'} />
-            <span style={tabLabelStyle(activePanel === null && btConnected)}>{lang === 'zh' ? '音色' : 'TONE'}</span>
+            style={{ ...tabBtnStyle(activePanel === null && uiConnected), opacity: uiConnected ? 1 : 0.35, cursor: 'pointer' }}>
+            <SlidersHorizontalIcon size={21} color={uiConnected && activePanel === null ? '#F06F21' : 'rgba(154,160,166,0.75)'} />
+            <span style={tabLabelStyle(activePanel === null && uiConnected)}>{lang === 'zh' ? '音色' : 'TONE'}</span>
           </button>
           {/* 2. LOCAL — 本地库（最多 20 个 · 只存本地 · 与硬件完全隔离） */}
           {/* ★ 2026-10-26：底栏三个硬件键取消 `disabled`。
               disabled 的 button 根本不派发 click —— 里面那些 `showConnectHint(e)`
               全是死代码，未连接时点下去只有 0.35 透明度的"死键"，没有任何解释。 */}
           <button data-tour="btn-favorites" className="bfx-tap"
-            onClick={(e) => { if (!btConnected) { showConnectHint(e); return; } setActivePanel(p => p === 'library' ? null : 'library'); }}
-            style={{ ...tabBtnStyle(activePanel === 'library' && btConnected), opacity: btConnected ? 1 : 0.35, cursor: btConnected ? 'pointer' : 'not-allowed' }}>
-            <LayoutGridIcon size={21} color={btConnected && activePanel === 'library' ? '#F06F21' : 'rgba(154,160,166,0.75)'} />
-            <span style={tabLabelStyle(activePanel === 'library' && btConnected)}>{lang === 'zh' ? LOCAL_BANK_ZH : LOCAL_BANK_EN}</span>
+            onClick={(e) => { if (!uiConnected) { showConnectHint(e); return; } setActivePanel(p => p === 'library' ? null : 'library'); }}
+            style={{ ...tabBtnStyle(activePanel === 'library' && uiConnected), opacity: uiConnected ? 1 : 0.35, cursor: uiConnected ? 'pointer' : 'not-allowed' }}>
+            <LayoutGridIcon size={21} color={uiConnected && activePanel === 'library' ? '#F06F21' : 'rgba(154,160,166,0.75)'} />
+            <span style={tabLabelStyle(activePanel === 'library' && uiConnected)}>{lang === 'zh' ? LOCAL_BANK_ZH : LOCAL_BANK_EN}</span>
             {/* ★ WO-17：已加载本地预设时在 tab 上显示状态点（不用外部提示） */}
             {bankApplied && (
               <span style={{
@@ -3440,12 +3533,12 @@ export default function Index() {
             data-tour="btn-presets"
             className="bfx-tap"
             onClick={(e) => {
-              if (!btConnected) { showConnectHint(e); return; }
+              if (!uiConnected) { showConnectHint(e); return; }
               setActivePanel(p => p === 'presets' ? null : 'presets');
             }}
-            style={{ ...tabBtnStyle(activePanel === 'presets' && btConnected), opacity: btConnected ? 1 : 0.35, cursor: btConnected ? 'pointer' : 'not-allowed' }}>
-            <HardDriveIcon size={21} color={btConnected ? (activePanel === 'presets' ? '#F06F21' : 'rgba(154,160,166,0.75)') : 'rgba(154,160,166,0.45)'} />
-            <span style={tabLabelStyle(activePanel === 'presets', btConnected)}>{lang === 'zh' ? '预设库' : 'PRESETS'}</span>
+            style={{ ...tabBtnStyle(activePanel === 'presets' && uiConnected), opacity: uiConnected ? 1 : 0.35, cursor: uiConnected ? 'pointer' : 'not-allowed' }}>
+            <HardDriveIcon size={21} color={uiConnected ? (activePanel === 'presets' ? '#F06F21' : 'rgba(154,160,166,0.75)') : 'rgba(154,160,166,0.45)'} />
+            <span style={tabLabelStyle(activePanel === 'presets', uiConnected)}>{lang === 'zh' ? '预设库' : 'PRESETS'}</span>
             {/* ★ 2026-10-19（用户要求）：取消未连接时在右下角菜单显示「需连接 / NO BT」文字，
                 置灰 + 点击弹连接提示已足够表达状态，多一行小字反而拥挤。 */}
           </button>
@@ -3454,12 +3547,12 @@ export default function Index() {
             data-tour="btn-community"
             className="bfx-tap"
             onClick={(e) => {
-              if (!btConnected) { showConnectHint(e); return; }
+              if (!uiConnected) { showConnectHint(e); return; }
               setActivePanel(p => p === 'community' ? null : 'community');
             }}
-            style={{ ...tabBtnStyle(activePanel === 'community' && btConnected), opacity: btConnected ? 1 : 0.35, cursor: btConnected ? 'pointer' : 'not-allowed' }}>
-            <GlobeIcon size={21} color={btConnected ? (activePanel === 'community' ? '#F06F21' : 'rgba(154,160,166,0.75)') : 'rgba(154,160,166,0.45)'} />
-            <span style={tabLabelStyle(activePanel === 'community', btConnected)}>{lang === 'zh' ? '社区' : 'SOCIAL'}</span>
+            style={{ ...tabBtnStyle(activePanel === 'community' && uiConnected), opacity: uiConnected ? 1 : 0.35, cursor: uiConnected ? 'pointer' : 'not-allowed' }}>
+            <GlobeIcon size={21} color={uiConnected ? (activePanel === 'community' ? '#F06F21' : 'rgba(154,160,166,0.75)') : 'rgba(154,160,166,0.45)'} />
+            <span style={tabLabelStyle(activePanel === 'community', uiConnected)}>{lang === 'zh' ? '社区' : 'SOCIAL'}</span>
           </button>
         </div>
       </div>
@@ -3475,6 +3568,8 @@ export default function Index() {
         onApplyModule={handleDebugApplyModule}
         regTick={debugRegTick}
         ampLimit={debugAmpLimit}
+        ampKey={subModelNames['amp-head']}
+        cabKey={subModelNames['cabinet']}
       />
     )}
 
@@ -3665,22 +3760,24 @@ function UserPanel({ visible, onClose, onOpenManualFullScreen, onOpenTutorial, o
     display: 'flex', alignItems: 'center', gap: 9, padding: '0 14px', width: '100%', textAlign: 'left',
   };
 
+  /* ★ 2026-11-16：未登录时不再用「面板内嵌表单」，直接复用社区那一套整屏登录页，
+     保证两处入口观感、键盘行为、报错文案完全一致。 */
+  if (!acc) {
+    return (
+      <LoginScreen
+        title={t('panel.userProfile')}
+        onSuccess={(a) => { setAcc(a); onAccountChange?.(); notifyOk(t('user.loginOk', { name: a.name })); }}
+        onClose={onClose}
+      />
+    );
+  }
+
   return (
     <div style={{ position: 'absolute', inset: 0, background: '#31343b', zIndex: 51, display: 'flex', flexDirection: 'column', animation: 'panelFade 0.18s ease-out' }}>
       <PanelHeader title={t('panel.userProfile')} accent="#F06F21" onClose={onClose} />
 
-      {!acc ? (
-        /* ── 未登录 = 登录表单（一步，不再跳第二个页面） ── */
-        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 18px 24px' }} className="no-scrollbar">
-          <LoginForm
-            variant="page"
-            onSuccess={(a) => { setAcc(a); onAccountChange?.(); notifyOk(t('user.loginOk', { name: a.name })); }}
-            onCancel={onClose}
-          />
-        </div>
-      ) : (
-        /* ── 已登录 = 账号资料（无头像） ── */
-        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 16px 24px' }} className="no-scrollbar">
+      {/* ── 已登录 = 账号资料（无头像） ── */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px 16px 24px' }} className="no-scrollbar">
           <div style={card}>
             <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.15em', color: '#7C8494', fontFamily: '"Barlow-Regular_2",sans-serif', marginBottom: 10 }}>
               {t('user.myAccount')}
@@ -3759,8 +3856,7 @@ function UserPanel({ visible, onClose, onOpenManualFullScreen, onOpenTutorial, o
           <div style={{ marginTop: 16, fontSize: 11, color: '#5C636E', fontFamily: '"Barlow-Regular_2",sans-serif', lineHeight: 1.8, textAlign: 'center' }}>
             {t('user.nameSyncHint')}
           </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 }

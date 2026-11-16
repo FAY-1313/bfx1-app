@@ -249,12 +249,14 @@ class BLEManager {
   private _mtuKnown = false;
   /** 连续写失败计数; 成功即清零, 达 WRITE_FAIL_DISCONNECT_THRESHOLD 才判掉线。 */
   private _consecutiveWriteFailures: number = 0;
+  /** 会话级重置 */
+  private _resetWriteChain(): void {
+    this._writeLock = Promise.resolve();
+    this._lastWriteEndAt = 0;
+    this._consecutiveWriteFailures = 0;
+  }
 
-  /**
-   * 取得一个写时隙: 排队等到轮次 + 距上次写结束 ≥ gap。
-   * @returns release() —— 写完(无论成败)必须调用, 用于记录结束时间并放行下一个。
-   * @remarks 若上一次写因故永不 release, 后续写将全部排队等待 —— 故调用方必须 try/finally。
-   */
+  /** 写时隙：排队 + 最小间隔（见 _acquireWriteSlot） */
   private async _acquireWriteSlot(command: number): Promise<() => void> {
     const gap = command === CMD_SAVE ? EB_WRITE_GAP_MS : MIN_WRITE_GAP_MS;
     let release!: () => void;
@@ -423,7 +425,10 @@ class BLEManager {
             : msg);
         }
       }
-      await BleClient.requestLEScan({ allowDuplicates: true }, (result) => {
+      /* ★ 2026-11-16：stopLEScan 之后立刻 requestLEScan 在部分 Android 机型上会
+         返回 "Scan already started" / "busy" —— 隔 260ms 重试一次即可，
+         否则面板会停在"搜索中"却永远收不到设备（用户以为连不上）。 */
+      const onResult = (result: any) => {
         const dev = result.device;
         onDeviceFound({
           deviceId: dev.deviceId,
@@ -435,7 +440,15 @@ class BLEManager {
              ★ 统一小写：iOS 回传的是大写 UUID，比较时会漏判。 */
           uuids: (dev.uuids ?? []).map((u) => u.toLowerCase()),
         });
-      });
+      };
+      try {
+        await BleClient.requestLEScan({ allowDuplicates: true }, onResult);
+      } catch (e) {
+        console.warn('[BLE] requestLEScan failed, retry once:', e);
+        await new Promise((r) => setTimeout(r, 260));
+        await BleClient.stopLEScan().catch(() => {});
+        await BleClient.requestLEScan({ allowDuplicates: true }, onResult);
+      }
     }
   }
 
@@ -463,6 +476,10 @@ class BLEManager {
     /* ★ 新连接 → MTU 需要重新协商读取（插件 connect 内部会 requestMtu(512)） */
     this._mtu = 23;
     this._mtuKnown = false;
+    /* ★ 2026-11-16：上一会话残留的写队列 / 未完成的整表回读一律作废，
+       否则重连后的第一帧要排在挂住的旧 Promise 后面（= 连上却像卡死）。 */
+    this._resetWriteChain();
+    this._finishRead();
     try {
       if (this._useWebBluetooth) {
         const device = await navigator.bluetooth.requestDevice({
@@ -492,6 +509,12 @@ class BLEManager {
           if (id === this._connectedDeviceId) {
             this._connectedDeviceId = null;
             this._connectedDeviceName = "";
+            /* ★ 2026-11-16：掉线时立刻收尾「正在做的事」——
+               挂住的写队列 / 未完成的整表回读 / 等 E9 回执的 waiter
+               以前会各自死等到 3s 超时；重连后第一批帧就排在这些死等后面。 */
+            this._resetWriteChain();
+            this._finishRead();
+            this._commitWaiters.clear();
             /* ★ 2026-10-20（C3）：断线 = 硬件开关状态未知 → 清空影子表，
                重连后第一次 applySwitchState 必定全量写 9 条，不会再留错位。 */
             resetSwitchShadow();
@@ -514,13 +537,20 @@ class BLEManager {
          * 另外开机 8s 内还有个天然空窗：bt_comm 注释记载 BT_STATUS_INIT_OK ~3.5s、
          * **host 栈 ~8.7s 才完全就绪**，这期间 connect 可能成功但服务发现失败。
          * 梯度退避正好跨过这段。 */
+        /* ★ 2026-11-16：自动重连链里不经过 startScan，插件可能还没 initialize
+           （首次连接后 App 被系统回收、或用户从后台回来）—— 这里补一次，幂等。
+           失败不阻塞：真正的权限问题会在 connect 时给出明确错误。 */
+        try { await BleClient.initialize(); } catch { /* 已初始化 / 无权限：继续交给 connect */ }
+        /* ★ 2026-11-16：5s → 4s。设备在广播时 connect 通常 1–2s 内完成；
+           4s 还没成基本就是失败，早一点进下一次重试，用户少等一半。 */
+        const CONN_TIMEOUT_MS = 4000;
         const CONN_BACKOFF_MS = [350, 800];
         let lastErr: unknown = null;
         for (let attempt = 0; attempt <= CONN_BACKOFF_MS.length; attempt++) {
           try {
             await BleClient.connect(deviceId, this._disconnectCallback, {
-              /* 显式 5s 超时（插件默认 10s）：失败要尽快进下一次重试 */
-              timeout: 5000,
+              /* 显式 4s 超时（插件默认 10s）：失败要尽快进下一次重试 */
+              timeout: CONN_TIMEOUT_MS,
             });
             lastErr = null;
             break;
@@ -534,8 +564,10 @@ class BLEManager {
             if (Capacitor.getPlatform() === 'ios' && /not found|not discovered|unknown device/i.test(emsg)) {
               await this.rescanForDevice(deviceId);
             }
-            /* 清理残留：不 catch 会让原始错误被覆盖 */
-            await BleClient.disconnect(deviceId).catch(() => {});
+            /* 清理残留：不 catch 会让原始错误被覆盖。
+               ★ 2026-11-16：加 900ms 硬上限 —— Android 上 disconnect 一个半死句柄
+               本身可能挂住，以前会把整条重试链拖成十几秒。 */
+            await withTimeout(BleClient.disconnect(deviceId), 900, 'conn cleanup').catch(() => {});
             if (attempt < CONN_BACKOFF_MS.length) {
               await new Promise((r) => setTimeout(r, CONN_BACKOFF_MS[attempt]));
             }
@@ -550,9 +582,19 @@ class BLEManager {
         await this.ensureIOSReady(deviceId);
         this._connectedDeviceId = deviceId;
         this._connectedDeviceName = deviceName || deviceId;
+        /* ★★★ 2026-11-16（用户报障「断联后特别容易卡住」的根因之一）：
+         *   通知订阅（CCCD）原来**只在蓝牙面板的手动连接路径**里做一次。
+         *   断线自动重连走的是 Index 的 connect() → 不订阅 ⇒ 之后的
+         *     · EE 频道推送收不到（踩钉换档不同步）
+         *     · 整表回读（EC 帧）收不到 → 每次上传校验死等 3s
+         *     · E9 提交回执收不到
+         *   用户看到的就是「连上了，但切档/上传像卡住」。
+         *   现在把订阅并入 connect()：任何连接路径（手动 / 自动 / 补连）都自带。
+         */
+        await this._subscribeNotifications();
       }
       // ★ 2026-10-07: 新连接 = 干净状态, 复位写节奏闸门
-      this._consecutiveWriteFailures = 0;
+      this._resetWriteChain();
       this._lastWriteEndAt = 0;
       /* ★ 2026-10-20（C3）：新连接 = 硬件开关状态未知 → 清影子，保证首次对齐为全量写 */
       resetSwitchShadow();
@@ -618,6 +660,9 @@ class BLEManager {
        已经是 null → 旧实现直接 return，谁也不知道用户要求过断开 → 退避到点后照样
        把设备连回来（用户看到「断了又自己连上」）。 */
     this._manualDiscCount++;
+    /* ★ 2026-11-16：主动断开也要清队列 / 收尾回读 —— 否则挂住的写会把下次连接拖死 */
+    this._resetWriteChain();
+    this._finishRead();
     if (this._demoMode) {
       this._connectedDeviceId = null;
       this._connectedDeviceName = '';
@@ -658,17 +703,24 @@ class BLEManager {
       if (!alive) await this.hardResetLink(id);
       return alive;
     }
-    try {
-      const { BleClient } = await importBlePlugin();
-      await Promise.race([
-        BleClient.read(id, BLE_SERVICE, BLE_READ_CHAR),
-        new Promise((_, rej) => setTimeout(() => rej(new Error('probe timeout')), timeoutMs)),
-      ]);
-      return true;
-    } catch {
-      await this.hardResetLink(id);
-      return false;
+    /* ★ 2026-11-16（用户报障「连接不稳定时特别容易卡住」）：
+       一次读超时**不代表链路死了** —— 上传/切换时 GATT 正忙，读探测经常撞上拥塞。
+       旧实现一次失败就 hardResetLink → 把健康链路拆掉 → 触发重连 → 用户看到"卡住/重启"。
+       现在必须**连续两次**（间隔 220ms）都读不到才判死。 */
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const { BleClient } = await importBlePlugin();
+        await Promise.race([
+          BleClient.read(id, BLE_SERVICE, BLE_READ_CHAR),
+          new Promise((_, rej) => setTimeout(() => rej(new Error('probe timeout')), timeoutMs)),
+        ]);
+        return true;
+      } catch {
+        if (attempt === 0) await new Promise((r) => setTimeout(r, 220));
+      }
     }
+    await this.hardResetLink(id);
+    return false;
   }
 
   /**
@@ -689,9 +741,13 @@ class BLEManager {
   /** 死链清理：断开 Android 侧 GATT 残留、清内部状态，并通知上层（触发自动重连） */
   private async hardResetLink(id: string): Promise<void> {
     this._disconnecting = true;
+    /* ★ 2026-11-16：死链 → 队列 / 回读 / 提交等待全部作废，重连后从干净状态开始 */
+    this._resetWriteChain();
+    this._finishRead();
+    this._commitWaiters.clear();
     try {
       const { BleClient } = await importBlePlugin();
-      await BleClient?.disconnect(id).catch(() => {});
+      if (BleClient) await withTimeout(BleClient.disconnect(id), 900, 'reset link').catch(() => {});
     } catch { /* ignore */ }
     this._connectedDeviceId = null;
     this._connectedDeviceName = "";
@@ -1054,15 +1110,41 @@ class BLEManager {
     this._onNotify = onData;
     if (this._demoMode) return;
     if (!this._connectedDeviceId) return;
-    if (!this._useWebBluetooth) {
+    await this._subscribeNotifications();
+  }
+
+  /**
+   * ★ 2026-11-16：真正下发 CCCD 订阅（幂等，失败不抛）。
+   *   connect() 与 startNotifications() 共用；重连后必须重新订阅，
+   *   否则整表回读 / 频道推送 / 提交回执全部收不到（表现为"连上但卡住"）。
+   */
+  private async _subscribeNotifications(): Promise<void> {
+    if (this._demoMode || !this._connectedDeviceId) return;
+    if (this._useWebBluetooth) return;   // WebBLE 在 connect 时已 startNotifications
+    try {
+      const { BleClient, dataViewToNumbers } = await importBlePlugin();
+      if (!BleClient) return;
+      await withTimeout(
+        BleClient.startNotifications(
+          this._connectedDeviceId, BLE_SERVICE, BLE_READ_CHAR,
+          (value: DataView) => this._dispatchNotify(dataViewToNumbers(value)),
+        ),
+        1500, 'subscribe notify',
+      );
+    } catch (e) {
+      /* 服务发现还没完全就绪时会抛 "Characteristic not found" —— 隔 180ms 再试一次 */
       try {
         const { BleClient, dataViewToNumbers } = await importBlePlugin();
-        await BleClient?.startNotifications(
-          this._connectedDeviceId, BLE_SERVICE, BLE_READ_CHAR,
-          (value) => this._dispatchNotify(dataViewToNumbers(value))
+        await new Promise((r) => setTimeout(r, 180));
+        await withTimeout(
+          BleClient?.startNotifications(
+            this._connectedDeviceId, BLE_SERVICE, BLE_READ_CHAR,
+            (value: DataView) => this._dispatchNotify(dataViewToNumbers(value)),
+          ),
+          1500, 'subscribe notify retry',
         );
-      } catch (e) {
-        console.error("BLE startNotifications failed:", e);
+      } catch (e2) {
+        console.warn('[BLE] startNotifications failed:', e, e2);
       }
     }
   }

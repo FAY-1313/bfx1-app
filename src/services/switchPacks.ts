@@ -12,13 +12,11 @@
  *     必须双向都没有问题。」
  *
  * ── 设计要点 ──────────────────────────────────────────────────────────────
- * 1. ★★★ **每格 3 条出边 —— 这是 2026-10-22（v3.52）就定死、v3.71 再次确认的规则**：
- *      ① 组内前一格  ② 组内后一格（组首↔组尾也算相邻）
- *      ③ **下一组的第 1 格**（A→B1 / B→C1 / C→D1 / D→A1）—— 换组入口，**必须亮起可切**
- *    所以 16 格 × 3 = 48 条边。
- *    ⛔ v3.72 曾把 ③ 删掉（误读「同组四频道循环」= 不许跨组），用户当场纠正：
- *       「下一组的B1要是亮起可以切换的啊。这个已经是一致定好的规则了。」
- *    **「同组四频道循环」说的是组内 4 格互相循环，不是取消 B1 这条换组边。**
+ * 1. ★★★ **每格预存到其余 15 格 —— 2026-11-16 起本地库任意格可互切**：
+ *      本地库 `LocalBankPage` 的 `reachable = s !== cur`，四组 × 四格都可直接点。
+ *      所以 16 格 × 15 = 240 条边，任意换组方向都能命中预存包。
+ *      ⛔ 不要再缩回「组内相邻 + 下一组第 1 格」的 3 条边：上一组第 1 格、
+ *      跨两组/三组都会被漏掉，退回实时 diff。
  * 2. **双向天然正确**。A3→A4 与 A4→A3 是两条独立边，各自按同一套规则算帧、
  *    各自算 mute —— 没有任何「从 A 推 B」的反向假设。
  * 3. **跨组 = 全量包，组内 = 差异包**。跨组差异 73–97 条（≈ 全量），
@@ -31,14 +29,14 @@
  * 5. **完整 registers 必须保留**。导出三种格式、上传硬件、社区发布全都需要完整表，
  *    切换包只是附加的加速层，绝不替代存档本体。
  * 6. 缓存签名 = `slot:savedAt:条数`。任一格被保存 / 清空 / 导入 → 签名变化 →
- *    下次 `getPack()` 自动整批重建（48 条边，毫秒级），不需要调用方手动通知。
+ *    下次 `getPack()` 自动整批重建（240 条边，毫秒级），不需要调用方手动通知。
  * 7. ★★ v3.74 **写入顺序按目标值分段**（`orderBypassSplit`）：
  *      目标 = 1（进旁路）→ 最前面；数据 → 中间；目标 = 0（出旁路）→ 最后。
  *    用户原话：「A4 和 A2 写回 A1 时，需要 BYPASS 先在前面，否则有噪音。」
  *    （A1 是全旁路格，旧规则把 57=1 排到最后 → 改箱头参数时箱头还开着。）
- * 8. ★★ v3.74 **只有延迟做三段式预加载**，合唱不再预加载（用户拍板）。
- *    延迟的 pre 改成**无条件**（只要本包写 222/223 就先 221=1），
- *    不再依赖「起始格延迟开着」这个会漏判的条件。
+ * 8. ★★ 2026-11-16 **合唱 / 延迟 / 混响都做三段式预加载**：
+ *      只要本包要写该效果的参数，就先发 bypass=1，写参数，再按目标值恢复 bypass。
+ *      合唱 215 / 216–220，延迟 221 / 222–223，混响 224 / 225–229。
  *
  * ── 与「实时 diff」的关系 ────────────────────────────────────────────────
  * 切换时的顺序是：`getPack(当前格 → 目标格)` 命中就直接发；未命中（社区试听、
@@ -48,6 +46,7 @@
 import type { BankItem, LocalPreset } from './localPresets';
 import { loadBankSlots } from './localPresets';
 import { normalizeSubModels } from '../data/subModelNames';
+import { baseKeyOf } from '../data/peqVariants';
 import {
   FORBIDDEN_REGS, isWritableAddr, orderBypassSplit, switchPlan, BYPASS_ADDRS,
 } from '../data/passThrough';
@@ -195,8 +194,10 @@ export function muteFor(a: ToneShape, b: ToneShape): boolean {
   const sa = normalizeSubModels(a.subModels as Record<string, string> | undefined) ?? {};
   const sb = normalizeSubModels(b.subModels as Record<string, string> | undefined) ?? {};
 
-  const ampA = sa['amp-head'] ?? '';
-  const ampB = sb['amp-head'] ?? '';
+  /* ★ 2026-11-16：`-1` 变体（PRE EQ 改动）仍属同一台箱头 —— 按原型号比较，
+     否则两个 -1 互切会被当成"换箱头"，每次都静音 + 全量重建，快切彻底失效。 */
+  const ampA = baseKeyOf(sa['amp-head'] ?? '');
+  const ampB = baseKeyOf(sb['amp-head'] ?? '');
   if (ampA && ampB) {
     if (ampA !== ampB) return true;
   } else if (segChanged(a.registers, b.registers, AMP_SEG, AMP_SEG_SKIP)) {
@@ -215,19 +216,17 @@ export function muteFor(a: ToneShape, b: ToneShape): boolean {
 }
 
 /**
- * ★★★ 3 条出边（与 `LocalBankPage.pickSlot` 的可达规则完全一致，v3.52 定死）
- *   组内前一格 · 组内后一格 · **下一组的第 1 格**（换组入口，B1 必须亮起可切）
- *   2026-10-24 用户再次强调：「下一组的B1要是亮起可以切换的啊。」
+ * ★★★ 2026-11-16：本地库 16 格是草稿箱，`LocalBankPage` 的 `reachable = s !== cur`
+ *   允许四组任意格互切（不再只限组内相邻 / 下一组第 1 格）。
+ *   因此为每一格预存到其余 15 格的包，共 240 条；任意换组方向都能命中
+ *   `getPack()`，不会退回实时 diff，也不会漏掉合唱/延迟/混响的预旁路。
+ *
+ *   ⛔ 不要再改回 3 条出边：上一组第 1 格、跨两组/三组都会被漏掉。
  */
 function outEdges(slot: number): number[] {
-  const g = groupOf(slot);
-  const i = (slot - 1) % 4;
-  const prev = g * 4 + ((i + 3) % 4) + 1;
-  const next = g * 4 + ((i + 1) % 4) + 1;
-  const nextGroup = ((g + 1) % 4) * 4 + 1;
-  const set = new Set([prev, next, nextGroup]);
-  set.delete(slot);
-  return [...set];
+  const out: number[] = [];
+  for (let s = 1; s <= 16; s++) if (s !== slot) out.push(s);
+  return out;
 }
 
 function buildPack(from: number, fromData: LocalPreset, to: number, toData: LocalPreset): SwitchPack {
@@ -288,11 +287,9 @@ function buildPack(from: number, fromData: LocalPreset, to: number, toData: Loca
   {
     const gFrom = groupOf(from);
     const gTo = groupOf(to);
-    /* 只做「离开 1 组」这一个方向（用户原话：1 组切到 4 组或 2 组时要先写）。
-     * 反向（进入 1 组写 253=1）在 APP 侧**故意不做**：
-     *   本地库的 1–4 格是 Twin 音箱音色、不是线材直通，写 1 会把限幅关掉；
-     *   真正的「进 1 组 = 线材直通」由固件在处理预设库切档时自己写。 */
-    if (gFrom === 0 && gTo !== 0) pre.push([253, 0]);
+    /* ★ 2026-11-16（用户拍板）：**双向都写** —— 1 组=1，其余组=0。
+       旧版只做「离开 1 组」，进 1 组靠固件，实测本地库进 1 组时限幅状态不对。 */
+    if (gFrom !== gTo) pre.push([253, gTo === 0 ? 1 : 0]);
   }
   for (const fx of PRE_BYPASS_FX) {
     const set = new Set(frames.map(([a]) => a));
@@ -398,13 +395,11 @@ export function rebuildPacks(): number {
  *     必须双向都没有问题。」
  *
  * ── 设计要点 ──────────────────────────────────────────────────────────────
- * 1. ★★★ **每格 3 条出边 —— 这是 2026-10-22（v3.52）就定死、v3.71 再次确认的规则**：
- *      ① 组内前一格  ② 组内后一格（组首↔组尾也算相邻）
- *      ③ **下一组的第 1 格**（A→B1 / B→C1 / C→D1 / D→A1）—— 换组入口，**必须亮起可切**
- *    所以 16 格 × 3 = 48 条边。
- *    ⛔ v3.72 曾把 ③ 删掉（误读「同组四频道循环」= 不许跨组），用户当场纠正：
- *       「下一组的B1要是亮起可以切换的啊。这个已经是一致定好的规则了。」
- *    **「同组四频道循环」说的是组内 4 格互相循环，不是取消 B1 这条换组边。**
+ * 1. ★★★ **每格预存到其余 15 格 —— 2026-11-16 起本地库任意格可互切**：
+ *      本地库 `LocalBankPage` 的 `reachable = s !== cur`，四组 × 四格都可直接点。
+ *      所以 16 格 × 15 = 240 条边，任意换组方向都能命中预存包。
+ *      ⛔ 不要再缩回「组内相邻 + 下一组第 1 格」的 3 条边：上一组第 1 格、
+ *      跨两组/三组都会被漏掉，退回实时 diff。
  * 2. **双向天然正确**。A3→A4 与 A4→A3 是两条独立边，各自按同一套规则算帧、
  *    各自算 mute —— 没有任何「从 A 推 B」的反向假设。
  * 3. **跨组 = 全量包，组内 = 差异包**。跨组差异 73–97 条（≈ 全量），
@@ -417,14 +412,14 @@ export function rebuildPacks(): number {
  * 5. **完整 registers 必须保留**。导出三种格式、上传硬件、社区发布全都需要完整表，
  *    切换包只是附加的加速层，绝不替代存档本体。
  * 6. 缓存签名 = `slot:savedAt:条数`。任一格被保存 / 清空 / 导入 → 签名变化 →
- *    下次 `getPack()` 自动整批重建（48 条边，毫秒级），不需要调用方手动通知。
+ *    下次 `getPack()` 自动整批重建（240 条边，毫秒级），不需要调用方手动通知。
  * 7. ★★ v3.74 **写入顺序按目标值分段**（`orderBypassSplit`）：
  *      目标 = 1（进旁路）→ 最前面；数据 → 中间；目标 = 0（出旁路）→ 最后。
  *    用户原话：「A4 和 A2 写回 A1 时，需要 BYPASS 先在前面，否则有噪音。」
  *    （A1 是全旁路格，旧规则把 57=1 排到最后 → 改箱头参数时箱头还开着。）
- * 8. ★★ v3.74 **只有延迟做三段式预加载**，合唱不再预加载（用户拍板）。
- *    延迟的 pre 改成**无条件**（只要本包写 222/223 就先 221=1），
- *    不再依赖「起始格延迟开着」这个会漏判的条件。
+ * 8. ★★ 2026-11-16 **合唱 / 延迟 / 混响都做三段式预加载**：
+ *      只要本包要写该效果的参数，就先发 bypass=1，写参数，再按目标值恢复 bypass。
+ *      合唱 215 / 216–220，延迟 221 / 222–223，混响 224 / 225–229。
  *
  * ── 与「实时 diff」的关系 ────────────────────────────────────────────────
  * 切换时的顺序是：`getPack(当前格 → 目标格)` 命中就直接发；未命中（社区试听、

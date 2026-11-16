@@ -31,6 +31,9 @@ import { PEQ_FREQ_TABLE, parsePEQData, buildPEQData } from './peqCodec';
 import { COMP_MODELS, OD_MODELS, CHORUS_PRESETS, DELAY_PRESETS, REVERB_PRESETS } from './_def';
 import { PASSTHROUGH_MODULES, MODULE_PARAM_RANGES, getModuleOffRegs, applyWhitelistPolicy, A1_BYPASS_ALL, ALWAYS_ON_REGS } from './passThrough';
 import { CAB_SETS } from './_def/cabinetDef';
+import { TONE25_CABS, TONE25_HEADS } from './_def/tone25';
+import { PRESETS25, type Preset25Spec } from './_def/presets25';
+import { buildLocalBank2026Seeds } from './localBank2026';
 import { CABINET_PEQ } from '../data/cabinetPeqData';
 /* ★★★ 2026-10-31（用户拍板·第二次修正）：预设库 16 格 = **固件出厂 16 档**，
  *   寄存器与模块开关逐条取自 data/firmwareBank.ts（= 固件 tone_channels_v1.c）。
@@ -629,6 +632,9 @@ export function makeBypassPreset(first: LocalPreset | undefined): LocalPreset {
 function buildFwPreset(ch: FwChannel, slot: number, skeleton?: LocalPreset): LocalPreset {
   const registers: Record<number, number> = { ...ch.registers };
   applyWhitelistPolicy(registers);
+  /* ★ 2026-11-16：253（限幅旁路）不在白名单里，会被上面的策略删掉 ——
+     A 组必须写 1、其余组写 0，所以这里按固件表把 253 补回来。 */
+  if (ch.registers[253] !== undefined) registers[253] = ch.registers[253];
   if (skeleton) {
     /* 2a–4d：沿用骨架的 subModels / knobValues（界面显示型号与旋钮位置），
        但 modules 与 registers 一律用固件值 —— 声音以固件为准。 */
@@ -655,6 +661,64 @@ function buildFwPreset(ch: FwChannel, slot: number, skeleton?: LocalPreset): Loc
   };
 }
 
+/**
+ * 25+25 过渡预设：直接使用新数据层的 baseRegs，不经过旧 ampHeadDef / CAB_SETS。
+ *
+ * 只有 amp / cab 两个模块开启；空间类全旁路，避免旧预设的 FX 参数残留。
+ * 用户提供新预设文件后，替换 `presets25.ts` 即可，不改本构建函数。
+ */
+function buildPreset25(spec: Preset25Spec): LocalPreset {
+  const amp = TONE25_HEADS.find((h) => h.key === spec.ampKey) ?? TONE25_HEADS[0];
+  const cab = TONE25_CABS.find((c) => c.key === spec.cabKey) ?? TONE25_CABS[0];
+  const cabRegs: Record<number, number> = { 107: 0, 254: 47, 255: 1, 256: 150, 257: 40, 258: 12, 259: 0 };
+  for (let i = 0; i < Math.min(35, cab.bands.length); i++) cabRegs[108 + i] = cab.bands[i];
+  const registers: Record<number, number> = {
+    0: 1, 7: 1, 42: 1, 215: 1, 221: 1, 224: 1,
+    ...amp.baseRegs,
+    ...cabRegs,
+    /* ★ 2026-11-16：253 与组号绑定 —— 2a–4d 属于第 2/3/4 组，必须写 0
+       （A 组 1a–1d 才写 1，见 firmwareBank 的 A 组补丁）。 */
+    253: 0,
+  };
+  /* ★ 2026-11-16：25+25 骨架补上箱头总音量与激励器。
+     reg239 = 500 + dB×10；boost 走 PGA（无寄存器），由 modules.boost 门控。 */
+  if (spec.masterDb !== undefined) {
+    registers[239] = Math.max(100, Math.min(500, Math.round(500 + spec.masterDb * 10)));
+  }
+  const boostNorm = spec.boost !== undefined && Number.isFinite(spec.boost)
+    ? Math.max(0, Math.min(1, spec.boost))
+    : undefined;
+  return {
+    slot: spec.slot,
+    name: spec.name,
+    nameEn: spec.name,
+    playMode: spec.mode,
+    modules: {
+      'noise-gate': false,
+      boost: boostNorm !== undefined && boostNorm > 0,
+      compressor: false,
+      overdrive: false,
+      'amp-head': true,
+      cabinet: true,
+      chorus: false,
+      delay: false,
+      reverb: false,
+    },
+    subModels: {
+      'amp-head': amp.key,
+      cabinet: cab.key,
+      compressor: '',
+      overdrive: '',
+      chorus: '',
+      delay: '',
+      reverb: '',
+    },
+    knobValues: boostNorm !== undefined ? { boost: { BOOST: boostNorm } } : {},
+    registers,
+    savedAt: Date.UTC(2026, 10, 15),
+  };
+}
+
 export function buildBuiltinPresets(): LocalPreset[] {
   /* ★★★ 2026-10-31（用户拍板·第二次调整）：**2a–4d 重新由箱头定义实时生成**。
    *
@@ -666,9 +730,9 @@ export function buildBuiltinPresets(): LocalPreset[] {
    *     2a–4d = buildTone(V10_TONES) 实时生成 → 自动带上新箱头 + 音量规则。
    *   固件频道表由这次导出的结果重新生成（_verify/gen_channels_from_bank.py），
    *   所以「App 预设库」与「固件 16 档」仍然逐条同源。 */
-  const tones = V10_TONES.filter((t) => t.name !== '爵士暖声');
   const cable = FW_BANK.slice(0, 4).map((ch, i) => buildFwPreset(ch, i + 1));
-  const base = tones.map((t, i) => buildTone(t, i + 5));                /* 2a–4d */
+  /* ★ 2026-11-15：2a–4d 改为 25+25 新数据层的过渡预设，不再走旧 V10_TONES。 */
+  const base = PRESETS25.map(buildPreset25);                            /* 2a–4d */
   const list = [...cable, ...base];
   /* ★★ 2026-10-17（用户要求 · 循环压测）：
      16 个预设的寄存器图全部替换为同一张「全寄存器扫描图」，
@@ -1212,11 +1276,9 @@ export const LOCAL_BANK_TONES: ToneDef[] = [
 ];
 
 export function buildLocalBankSeeds(): LocalPreset[] {
-  /* ★★★ 2026-10-31（用户拍板·第二次修正）：**本地库 = 独立的 16 个音色**，
-   *   一律按 LOCAL_BANK_TONES 自己的定义生成，与固件频道表（线材/AC15/IIC+/SVT）
-   *   完全不重复。⛔ 不要再在这里覆盖成线材 —— 两边是两套东西。 */
-  /* ★ 2026-11-04：音量规则统一为「净增益封顶 19 dB」（见 buildTone ⑥）。 */
-  return LOCAL_BANK_TONES.map((t, i) => buildTone(t, 100 + i));
+  /* 2026-11-16：我的音色库改为四组新音色，直接使用最新 25+25、OD10 与 FX
+     参数；B/C 参考型号不再进入本地库。 */
+  return buildLocalBank2026Seeds();
 }
 
 /**
@@ -1261,7 +1323,7 @@ export function restoreLocalBankTwinSlotsOnce(): number {
  *   v16: 「16 条 = 预设库顺序」首次广播
  *   v17: v3 箱头表重做 + 15 条新命名音色（A2/B3/C4/D1 旧命名全部作废）
  */
-const LOCAL_SEED_KEY = 'bfx_localBankSeeds_v30';
+const LOCAL_SEED_KEY = 'bfx_localBankSeeds_v31';
 
 /* ★★★ 2026-11-04 升到 v29：**全新音量规范 + 全英文命名** ——
    所有预设按 CLEAN/DRIVE/RHYTHM/LEAD 的 VOL/239 目标重算，6505 组箱体改 JCM800 1960。 */
@@ -1294,7 +1356,58 @@ const LOCAL_SEED_KEY = 'bfx_localBankSeeds_v30';
  *   · 之后不再重复播种，用户自己的增删改不会被覆盖。
  *   返回写入条数（已播种过则返回 0）。
  */
+/** ★ 2026-11-16：本地库「工厂 16 格」内容版本。
+ *  与 LOCAL_SEED_KEY 分开：不改「播过就永不重播」的规则，也不整体清库；
+ *  只把仍叫出厂名字的格子刷新为新参数（音量 239 + 激励器 PGA）。
+ *  用户改过名 / 另存的音色不动。 */
+const LOCAL_SEED_CONTENT_KEY = 'bfx_localBank2026_content';
+const LOCAL_SEED_CONTENT_VER = '2026-11-16-plexi-drive2';
+/* ★ 2026-11-16（用户拍板）：四组重构 —— 1 组线材直通、2 组 US CLEAN、
+   3 组马歇尔 PLEXI、4 组贝斯（后两档带 ≤5 dB 过载）。
+   下表同时保留**上一版**的出厂名（CRUNCH/SOLO/FINGER…），
+   这样老用户库里那些仍是出厂名的格子也会被换成新内容；改过名的格子不动。 */
+const LOCAL_FACTORY_NAMES = new Set([
+  /* 新版 */
+  'DIRECT', 'DI-PASSIVE', 'CABLE-20FT', 'CABLE-10FT-SILVER',
+  'US CLEAN', 'US CHORUS', 'US RHYTHM', 'US LEAD',
+  'PLEXI CLEAN', 'PLEXI CHORUS', 'PLEXI RHYTHM', 'PLEXI LEAD',
+  'CHIME CLEAN', 'CHIME CHORUS', 'CHIME RHYTHM', 'CHIME LEAD',
+  'BASS CLEAN', 'BASS ROUND', 'BASS BRIGHT', 'BASS DEEP', 'BASS DRIVE',
+  /* 旧版（仅用于识别"这格还是出厂音色"，会被刷新掉） */
+  'US CRUNCH', 'US SOLO', 'US DRIVE',
+  'PLEXI CRUNCH',
+  'TIGHT CLEAN', 'TIGHT CRUNCH', 'TIGHT RHYTHM', 'TIGHT LEAD',
+  'CHIME CRUNCH', 'CHIME SOLO',
+  'BASS FINGER', 'BASS PICK',
+]);
+
+function refreshLocalBank2026FactoryTones(): number {
+  try {
+    if (localStorage.getItem(LOCAL_BANK_CLEARED_KEY) === '1') return 0;
+    if (localStorage.getItem(LOCAL_SEED_CONTENT_KEY) === LOCAL_SEED_CONTENT_VER) return 0;
+  } catch { /* 隐私模式：仍然尝试 */ }
+  let n = 0;
+  try {
+    const seeds = buildLocalBank2026Seeds();
+    const slots = loadBankSlots();
+    for (const seed of seeds) {
+      const cur = slots.find((x) => x.slot === seed.slot);
+      /* 只刷新「仍存在且仍是出厂名」的格子：空槽不复活（遵守 v3.76 的删除语义），
+         用户改名或另存的自定义音色也不动。 */
+      if (!cur || !cur.data || !LOCAL_FACTORY_NAMES.has(cur.name)) continue;
+      if (saveBankSlot(seed.slot, seed.name, seed)) n++;
+    }
+  } catch { /* 任何异常都不阻塞本地库打开 */ }
+  try { localStorage.setItem(LOCAL_SEED_CONTENT_KEY, LOCAL_SEED_CONTENT_VER); } catch { /* ignore */ }
+  return n;
+}
+
 export function seedLocalBankOnce(): number {
+  let seeded = false;
+  try {
+    seeded = localStorage.getItem(LOCAL_SEED_KEY) === '1';
+  } catch { /* ignore */ }
+  if (seeded) return refreshLocalBank2026FactoryTones();
   try {
     /* ★★★ v3.76（D1）：**只要播过就永不重播** —— 与「库里有没有数据」彻底解耦。
      *
@@ -1307,11 +1420,13 @@ export function seedLocalBankOnce(): number {
      *   ① 播过（seedKey === '1'）      → 不再播；
      *   ② 用户主动清空过（clearedKey） → 不再播（覆盖「种子标记恰好丢失」的边缘情况）。
      * 两者都只影响**播种**，不影响用户自己的保存 / 导入。 */
-    if (localStorage.getItem(LOCAL_SEED_KEY) === '1') return 0;
     if (localStorage.getItem(LOCAL_BANK_CLEARED_KEY) === '1') return 0;
   } catch { /* ignore */ }
   const seeds = buildLocalBankSeeds().map(p => ({ name: p.name, data: p }));
   const n = replaceLocalBankForSeeds(seeds);
-  try { localStorage.setItem(LOCAL_SEED_KEY, '1'); } catch { /* ignore */ }
+  try {
+    localStorage.setItem(LOCAL_SEED_KEY, '1');
+    localStorage.setItem(LOCAL_SEED_CONTENT_KEY, LOCAL_SEED_CONTENT_VER);
+  } catch { /* ignore */ }
   return n;
 }

@@ -16,6 +16,7 @@
  */
 
 import { normalizeSubModels } from '../data/subModelNames';
+import { baseKeyOf } from '../data/peqVariants';
 import type { BankItem } from './localPresets';
 
 export interface GroupModelRow {
@@ -29,6 +30,8 @@ export interface GroupModelRow {
   cabLabel: string;
   /** 该格有音色 */
   filled: boolean;
+  /** 该格是「线材直通」：箱头旁路（没有箱头型号）。箱体可以仍按固件开着（1b–1d 就是） */
+  passthroughSlot: boolean;
   /** 箱头一致（含"自身型号缺失" → false） */
   ampOk: boolean;
   cabOk: boolean;
@@ -37,6 +40,8 @@ export interface GroupModelRow {
 export interface GroupModelCheck {
   /** 三条规则全部满足才为 true */
   ok: boolean;
+  /** 本组是线材直通组（4 格都旁路箱头+箱体）→ 不要求型号一致 */
+  passthrough: boolean;
   /** 本组第 1 格（1/5/9/13） */
   first: number;
   rows: GroupModelRow[];
@@ -58,7 +63,9 @@ export function modelKeyOf(item?: BankItem | null): { amp: string; cab: string }
     (item?.data?.subModels ?? undefined) as Record<string, string> | undefined,
   ) ?? {};
   return {
-    amp: String(sm['amp-head'] ?? '').trim(),
+    /* ★ 2026-11-16：`-1` 变体按**原型号**比较 —— 同组 4 格各用不同的 -1
+       只是 PRE EQ 不同，箱头/箱体型号仍是同一台，可以整组上传。 */
+    amp: baseKeyOf(String(sm['amp-head'] ?? '').trim()),
     cab: String(sm['cabinet'] ?? '').trim(),
   };
 }
@@ -84,6 +91,7 @@ export function checkGroupModels(
     const filled = !!item?.data;
     const { amp, cab } = filled ? modelKeyOf(item) : { amp: '', cab: '' };
     const raw = (item?.data?.subModels ?? {}) as Record<string, string>;
+    const mods = (item?.data?.modules ?? {}) as Record<string, boolean>;
     rows.push({
       slot,
       name: item?.name ?? '',
@@ -92,6 +100,10 @@ export function checkGroupModels(
       ampLabel: filled ? String(raw['amp-head'] ?? amp ?? '') : '',
       cabLabel: filled ? String(raw['cabinet'] ?? cab ?? '') : '',
       filled,
+      /* ★ 2026-11-16：线材直通档 = **箱头旁路**（没有箱头型号）。
+         注意固件 1b–1d 的 cabinet 是 true（线材档也带着箱体 PEQ 曲线），
+         所以判据只能用 amp-head，不能要求 cabinet 也关。 */
+      passthroughSlot: filled && mods['amp-head'] === false,
       ampOk: false,      // 下面按基准重算
       cabOk: false,
     });
@@ -114,13 +126,17 @@ export function checkGroupModels(
     }
   }
 
-  const ok = empty.length === 0
-    && missing.length === 0
-    && ampBad.length === 0
-    && cabBad.length === 0
-    && rows.length === 4;
+  /* ★ 2026-11-16（用户拍板「放开第 1 组的上传限制」）：
+     整组 4 格都是线材直通（箱头旁路、无箱头型号）→ 型号闸门整体放行。
+     直通组不会有"重建箱头"的问题，因为它根本不进箱头模型。 */
+  const passthrough = rows.length === 4 && empty.length === 0
+    && rows.every((r) => r.passthroughSlot);
 
-  return { ok, first: firstSlot, rows, empty, missing, ampBad, cabBad, baseAmp, baseCab };
+  const ok = rows.length === 4
+    && empty.length === 0
+    && (passthrough || (missing.length === 0 && ampBad.length === 0 && cabBad.length === 0));
+
+  return { ok, passthrough, first: firstSlot, rows, empty, missing, ampBad, cabBad, baseAmp, baseCab };
 }
 
 /** 把不合格的原因拼成一句给用户看的话（中/英） */

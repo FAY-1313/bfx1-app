@@ -14,11 +14,22 @@
  */
 import { toKeySubModels, type ModelRef } from '../data/modelKey';
 import { customOdModels, customAmpModels } from '../ui2/customModules';
+import { variantRefs } from './peqVariants';
 
-/** 自定义模块也参与反查（影子注册） */
+/** 自定义模块 / PRE EQ 变体（-1）也参与反查（影子注册） */
 function customRefs(moduleId: string): ModelRef[] | undefined {
-  if (moduleId === 'overdrive') return customOdModels().map((m) => ({ key: m.id, name: m.name }));
-  if (moduleId === 'amp-head') return customAmpModels().map((m) => ({ key: m.id, name: m.name }));
+  if (moduleId === 'overdrive') {
+    return [
+      ...customOdModels().map((m) => ({ key: m.key, name: m.name })),
+      ...variantRefs('od'),
+    ];
+  }
+  if (moduleId === 'amp-head') {
+    return [
+      ...customAmpModels().map((m) => ({ key: m.key, name: m.name })),
+      ...variantRefs('amp'),
+    ];
+  }
   return undefined;
 }
 

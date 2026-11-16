@@ -1,0 +1,17 @@
+{
+  "name": "BFX1 Studio",
+  "short_name": "BFX1",
+  "description": "BFX1-AI 智能吉他效果器 · 音色工作站",
+  "lang": "zh-CN",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1a1b1f",
+  "theme_color": "#1a1b1f",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "maskable" }
+  ]
+}

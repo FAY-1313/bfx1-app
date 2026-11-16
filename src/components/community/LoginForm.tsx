@@ -1,20 +1,20 @@
 /**
- * 一步登录表单（v3.67 · 2026-10-24 用户拍板「1 改为一步」）
+ * 登录 / 注册表单 · 用户名 + 密码（★ 2026-11-16 用户拍板）
  *
  * 一个组件两处复用：
- *   · `variant='card'` —— 社区锁屏里那张卡（门在社区内部，登录完立刻能看内容）
+ *   · `variant='card'` —— 社区锁屏里那张卡
  *   · `variant='page'` —— 顶栏账号入口打开的整页
- * 共用同一份流程（services/authLogin），避免两处样式再分叉 —— v3.65 就是分叉成
- * 「锁屏是新设计 / 表单是旧样式」，用户点了「手机号登录」看到的是老页面。
  *
- * 设计口径：单品牌橙 #F06F21，主按钮 46 高，输入框 44 高且左对齐（不再 width:75% + 居中），
- * 协议行常驻底部（合规），说明书 / 教程这类无关入口不放在登录页里。
+ * 为什么改成用户名+密码：短信验证码通道不可用；用户名+密码是 CloudBase 原生账号，
+ * 登录后 uid 跨设备稳定，社区音色 / 关注 / 收藏都走云端。
  */
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { C } from './parts';
-import { sendSmsCode } from '../../services/smsCode';
-import type { SmsVerificationInfo } from '../../services/smsCode';
-import { loginWithPhone } from '../../services/authLogin';
+import {
+  loginWithUsername, registerWithUsername, isUsernameTaken,
+  validateUsername, PASSWORD_MIN, NAME_MIN, NAME_MAX,
+} from '../../services/userAuth';
+import { probeCommunity } from '../../services/userAuth';
 import type { Account } from '../../services/account';
 
 export default function LoginForm({
@@ -27,56 +27,70 @@ export default function LoginForm({
   subtitle?: string;
 }) {
   const zh = lang !== 'en';
-  const [phone, setPhone] = useState('');
-  const [code, setCode] = useState('');
-  const [countdown, setCountdown] = useState(0);
-  const [sending, setSending] = useState(false);
+  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [password2, setPassword2] = useState('');
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState('');
-  const infoRef = useRef<SmsVerificationInfo | null>(null);
+  const [probe, setProbe] = useState('');
 
-  useEffect(() => {
-    if (countdown <= 0) return;
-    const timer = setInterval(() => setCountdown((c) => (c > 0 ? c - 1 : 0)), 1000);
-    return () => clearInterval(timer);
-  }, [countdown]);
+  const clean = username.trim();
+  const canSubmit = clean.length >= NAME_MIN && password.length >= PASSWORD_MIN && !loading;
 
-  const clean = phone.replace(/\D/g, '');
-  const canSend = /^1[3-9]\d{9}$/.test(clean) && !sending && countdown <= 0;
-  const canSubmit = /^1[3-9]\d{9}$/.test(clean) && /^\d{6}$/.test(code) && !loading;
+  const errText = (code?: string, detail?: string) => {
+    const map: Record<string, string> = {
+      user_not_found: zh ? '用户名不存在，先去注册' : 'User not found — register first',
+      wrong_password: zh ? '密码不正确' : 'Wrong password',
+      user_exists: zh ? '这个用户名已被占用' : 'Username already taken',
+      password_short: zh ? `密码至少 ${PASSWORD_MIN} 位` : `Password must be at least ${PASSWORD_MIN} characters`,
+      name_invalid: zh ? `用户名 ${NAME_MIN}–${NAME_MAX} 字，只能用中英文/数字/下划线` : 'Invalid username',
+      session: zh ? '无法建立云端会话，请检查网络后重试' : 'Cannot start cloud session',
+      network: zh ? '网络不可用，请检查连接' : 'Network unavailable',
+      /* ★ 2026-11-16：云开发侧的具体原因（以前一律显示「操作失败」） */
+      provider: zh ? '云开发未开启「用户名密码登录」，请先在控制台开启' : 'Username/password login is not enabled in CloudBase',
+      unsupported_signup: zh ? '当前云环境不支持纯用户名自助注册，请联系管理员开通账号' : 'Self sign-up is not supported in this environment',
+      blocked: zh ? '账号已被限制或审核中' : 'Account blocked or under review',
+      server: zh ? '云端服务异常，请稍后重试' : 'Cloud service error, try later',
+      custom_login: zh ? '账号已创建，但云端「自定义登录」未配置好，请联系管理员' : 'Custom login is not configured',
+      fn_unavailable: zh ? '注册服务未部署（云函数 bfxAuth 不可用）' : 'Auth service unavailable',
+    };
+    const msg = map[code || 'unknown'] || (zh ? '操作失败' : 'Failed');
+    return detail ? `${msg}（${detail}）` : msg;
+  };
 
-  const doSend = async () => {
-    if (!/^1[3-9]\d{9}$/.test(clean)) { setErr(zh ? '手机号格式不对，检查一下' : 'Invalid phone number'); return; }
-    if (sending || countdown > 0) return;
-    setSending(true); setErr('');
-    const res = await sendSmsCode(clean);
-    setSending(false);
-    if (res.success && res.verificationInfo) {
-      infoRef.current = res.verificationInfo;
-      setCountdown(60);
-    } else {
-      setErr(zh ? '验证码没发出去，稍后再试' : 'Failed to send code');
+  const submit = async () => {
+    if (!canSubmit) return;
+    const v = validateUsername(clean);
+    if (!v.ok) { setErr(errText('name_invalid')); return; }
+    if (mode === 'register' && password !== password2) {
+      setErr(zh ? '两次输入的密码不一致' : 'Passwords do not match');
+      return;
+    }
+    setLoading(true); setErr('');
+    const res = mode === 'login'
+      ? await loginWithUsername(v.name, password)
+      : await registerWithUsername(v.name, password);
+    setLoading(false);
+    if (res.ok && res.account) { onSuccess(res.account); return; }
+    setErr(errText(res.error, res.detail));
+  };
+
+  const toggleMode = async () => {
+    const next = mode === 'login' ? 'register' : 'login';
+    setMode(next); setErr(''); setPassword2('');
+    if (next === 'register' && clean.length >= NAME_MIN) {
+      const taken = await isUsernameTaken(clean);
+      if (taken) setErr(errText('user_exists'));
     }
   };
 
-  const doSubmit = async () => {
-    if (!/^1[3-9]\d{9}$/.test(clean)) { setErr(zh ? '手机号格式不对，检查一下' : 'Invalid phone number'); return; }
-    if (!/^\d{6}$/.test(code)) { setErr(zh ? '请输入 6 位验证码' : 'Enter the 6-digit code'); return; }
-    if (!infoRef.current) { setErr(zh ? '请先获取验证码' : 'Request a code first'); return; }
-    setLoading(true); setErr('');
-    const res = await loginWithPhone(clean, code, infoRef.current);
-    setLoading(false);
-    if (res.ok && res.account) { onSuccess(res.account); return; }
-    if (res.error === 'expired') {
-      // 验证码过期 / 已消费：一次性凭证作废，必须重新获取，不能只改提示
-      infoRef.current = null; setCountdown(0); setCode('');
-      setErr(zh ? '验证码已过期，请重新获取' : 'Code expired, request a new one');
-      return;
-    }
-    if (res.error === 'wrong') { setErr(zh ? '验证码不对，再确认一次' : 'Wrong code'); return; }
-    /* 会话没建立起来：验证码已被消费，只能重发 —— 顺带把倒计时清零让按钮可点 */
-    infoRef.current = null; setCountdown(0); setCode('');
-    setErr(zh ? '登录会话建立失败，请重新获取验证码' : 'Session failed, request a new code');
+  const doProbe = async () => {
+    setProbe(zh ? '检测中…' : 'Checking…');
+    const r = await probeCommunity();
+    setProbe(r.ok
+      ? (zh ? '云端社区连接正常' : 'Cloud community OK')
+      : (zh ? `云端社区不可用（${r.error || 'unknown'}）` : `Backend unavailable (${r.error || 'unknown'})`));
   };
 
   const inputBase: React.CSSProperties = {
@@ -85,46 +99,61 @@ export default function LoginForm({
     color: C.text, fontSize: 14, outline: 'none', fontFamily: C.font,
   };
 
+  /* ★ 2026-11-16：键盘弹出后等布局稳定，再把当前输入框滚到可视区中间，
+     避免"输入框上浮被遮挡"（WebView 自动滚动经常被 flex 布局抵消）。 */
+  const focusIntoView = (e: React.FocusEvent<HTMLInputElement>) => {
+    const el = e.currentTarget;
+    window.setTimeout(() => {
+      try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch { el.scrollIntoView(); }
+    }, 280);
+  };
+
   const body = (
     <>
       <div style={{ fontSize: 11, fontWeight: 800, color: C.brand, fontFamily: C.font, letterSpacing: '0.16em', marginBottom: 8 }}>
         BFX1 · ACCOUNT
       </div>
       <div style={{ fontSize: 18, fontWeight: 800, color: C.text, fontFamily: C.font, lineHeight: 1.35, marginBottom: 7 }}>
-        {zh ? '手机号登录' : 'Sign in with phone'}
+        {mode === 'login'
+          ? (zh ? '用户名登录' : 'Sign in')
+          : (zh ? '注册新账号' : 'Create account')}
       </div>
       <div style={{ fontSize: 11.5, color: C.text3, fontFamily: C.font, lineHeight: 1.75, marginBottom: 16 }}>
-        {subtitle || (zh ? '首次登录自动创建账号，没有密码要记。' : 'First sign-in creates your account automatically.')}
+        {subtitle || (zh
+          ? (mode === 'login'
+            ? '用用户名 + 密码登录；登录后社区音色、关注、收藏都存在云端。'
+            : `设置一个用户名（${NAME_MIN}–${NAME_MAX} 字）与密码（至少 ${PASSWORD_MIN} 位），登录后作品存云端。`)
+          : 'Username + password. Your community tones and favourites are stored in the cloud.')}
       </div>
 
       <input
-        value={phone}
-        onChange={(e) => { setPhone(e.target.value.replace(/\D/g, '').slice(0, 11)); setErr(''); }}
-        placeholder={zh ? '请输入手机号' : 'Phone number'}
-        inputMode="numeric" maxLength={11} autoComplete="tel"
+        value={username}
+        onChange={(e) => { setUsername(e.target.value.slice(0, NAME_MAX)); setErr(''); }}
+        onFocus={focusIntoView}
+        placeholder={zh ? '用户名' : 'Username'}
+        autoComplete="username"
         style={{ ...inputBase, marginBottom: 10 }}
       />
-
-      <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+      <input
+        value={password}
+        onChange={(e) => { setPassword(e.target.value.slice(0, 32)); setErr(''); }}
+        onFocus={focusIntoView}
+        placeholder={zh ? `密码（至少 ${PASSWORD_MIN} 位）` : `Password (min ${PASSWORD_MIN})`}
+        type="password"
+        autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+        style={{ ...inputBase, marginBottom: 10 }}
+      />
+      {mode === 'register' && (
         <input
-          value={code}
-          onChange={(e) => { setCode(e.target.value.replace(/\D/g, '').slice(0, 6)); setErr(''); }}
-          placeholder={zh ? '6 位验证码' : '6-digit code'}
-          inputMode="numeric" maxLength={6} autoComplete="one-time-code"
-          style={{ ...inputBase, flex: 1, minWidth: 0, letterSpacing: '0.16em' }}
+          value={password2}
+          onChange={(e) => { setPassword2(e.target.value.slice(0, 32)); setErr(''); }}
+          onFocus={focusIntoView}
+          placeholder={zh ? '再输一次密码' : 'Confirm password'}
+          type="password"
+          autoComplete="new-password"
+          style={{ ...inputBase, marginBottom: 10 }}
         />
-        <button
-          onClick={doSend}
-          disabled={!canSend}
-          style={{
-            height: 44, padding: '0 12px', borderRadius: 12, flexShrink: 0, cursor: canSend ? 'pointer' : 'default',
-            background: canSend ? C.brandSoft : 'rgba(255,255,255,0.035)',
-            border: `1px solid ${canSend ? C.brandLine : C.line}`,
-            color: canSend ? C.brand : C.text3,
-            fontSize: 11, fontWeight: 750, fontFamily: C.font, whiteSpace: 'nowrap',
-          }}
-        >{sending ? (zh ? '发送中…' : 'Sending') : countdown > 0 ? `${countdown}s` : (zh ? '获取验证码' : 'Get code')}</button>
-      </div>
+      )}
 
       {!!err && (
         <div style={{ fontSize: 11, color: 'rgba(242,120,105,0.95)', fontFamily: C.font, lineHeight: 1.6, marginBottom: 10 }}>
@@ -133,20 +162,40 @@ export default function LoginForm({
       )}
 
       <button
-        onClick={doSubmit}
-        disabled={loading}
+        onClick={() => { void submit(); }}
+        disabled={!canSubmit}
         style={{
           width: '100%', height: 46, borderRadius: 13,
-          cursor: loading ? 'default' : 'pointer',
-          /* ★ 2026-11-11：禁用态原来是「深橙底 + 半透明橙字」，在深空灰底上糊成一团、
-             看不出按钮不可点 —— 改成中性灰底 + 明确灰字 */
+          cursor: canSubmit ? 'pointer' : 'default',
           background: canSubmit ? C.brand : 'rgba(255,255,255,0.06)',
           color: canSubmit ? '#2a1b0c' : '#9aa3b2',
           border: canSubmit ? 'none' : '1px solid rgba(255,255,255,0.10)',
           fontSize: 13, fontWeight: 800, fontFamily: C.font, letterSpacing: '0.05em',
           transition: 'background .15s',
         }}
-      >{loading ? (zh ? '登录中…' : 'Signing in…') : (zh ? '登录 / 自动注册' : 'SIGN IN / SIGN UP')}</button>
+      >{loading
+        ? (zh ? '处理中…' : 'Working…')
+        : mode === 'login'
+          ? (zh ? '登录' : 'SIGN IN')
+          : (zh ? '注册并登录' : 'CREATE & SIGN IN')}</button>
+
+      <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14 }}>
+        <button onClick={() => { void toggleMode(); }} style={{
+          border: 'none', background: 'transparent', color: C.brand, cursor: 'pointer',
+          fontSize: 11.5, fontWeight: 700, fontFamily: C.font, padding: '6px 2px',
+        }}>{mode === 'login'
+          ? (zh ? '没有账号？注册' : 'No account? Register')
+          : (zh ? '已有账号？登录' : 'Have an account? Sign in')}</button>
+        <button onClick={() => { void doProbe(); }} style={{
+          border: 'none', background: 'transparent', color: C.text3, cursor: 'pointer',
+          fontSize: 11, fontFamily: C.font, padding: '6px 2px',
+        }}>{zh ? '检测云端社区' : 'Check cloud'}</button>
+      </div>
+      {!!probe && (
+        <div style={{ marginTop: 2, fontSize: 10.5, color: C.text3, fontFamily: C.font, textAlign: 'center' }}>
+          {probe}
+        </div>
+      )}
 
       <div style={{ marginTop: 13, fontSize: 11, color: C.text3, fontFamily: C.font, lineHeight: 1.7, textAlign: 'center' }}>
         {zh ? '继续即表示同意' : 'By continuing you agree to '}

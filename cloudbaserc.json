@@ -1,4 +1,17 @@
 {
   "envId": "bfx1-v1-fay-d6g6w79ss8e4d9bf5",
-  "region": "ap-shanghai"
+  "region": "ap-shanghai",
+  "functionRoot": "./cloudfunctions",
+  "functions": [
+    {
+      "name": "bfxAuth",
+      "description": "BFX1 用户名密码注册/登录（自建账号 + 自定义登录 ticket）",
+      "runtime": "Nodejs20.19",
+      "handler": "index.main",
+      "timeout": 20,
+      "memorySize": 256,
+      "installDependency": true,
+      "ignore": ["node_modules", "node_modules/**/*"]
+    }
+  ]
 }

@@ -178,7 +178,7 @@ export const SERIES_REGISTRY: SeriesFamily[] = [
     ],
   },
   { id: "dg-dist", moduleId: "dist", mode: "bass", uiName: "贝斯 DG", uiNameEn: "DG Series", group: "贝斯失真",
-    models: [{ label: 'B7K Ultra', key: 'B&F NAM Darkglass B7K Ultra/Darkglass B7K Ultra' }, { label: 'Ultra V Bass', key: 'B&F NAM Darkglass Ultra V Bass/Darkglass Ultra V Bass' }],
+    models: [{ label: 'Ultra V Bass', key: 'B&F NAM Darkglass Ultra V Bass/Darkglass Ultra V Bass' }],
   },
 ];
 

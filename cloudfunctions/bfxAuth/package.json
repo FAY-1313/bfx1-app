@@ -1,0 +1,9 @@
+{
+  "name": "bfxAuth",
+  "version": "1.0.0",
+  "description": "BFX1 用户名密码注册/登录（自建账号 + 自定义登录 ticket）",
+  "main": "index.js",
+  "dependencies": {
+    "@cloudbase/node-sdk": "^3.4.0"
+  }
+}

@@ -26,6 +26,8 @@ import { VOL_MIN_REG, VOL_MAX_REG } from '../data/ampKnobResolve';
    四段音色旋钮的归一位置与 dB 读数走 Knob.peqGainDb（与首页同一换算）。 */
 import KnobRing from './KnobRing';
 import { peqGainDb } from './Knob';
+import { exportParams } from './paramExport';
+import { TONE25_CABS, TONE25_HEADS } from '../data/_def/tone25';
 
 /**
  * 自定义模块卡片上的旋钮「只读视图」：寄存器原值 → { 归一位置, 读数 }。
@@ -67,6 +69,23 @@ const N4_META: Record<number, { name: string; hz: number }> = {
 };
 const AMP_N5 = [74, 75, 76, 77];
 const AMP_N8 = [83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98];
+/* 新 25 箱体：108–142 共 35 段，工程模式按 8 段一行排成 5 行 */
+const CAB_BANDS = Array.from({ length: 35 }, (_, i) => 108 + i);
+const CAB_ENGINE = [253, 254, 255, 256, 257, 258, 259];
+
+const ENG_SNAP_KEY = 'bfx1.tone.snap.v2';
+interface EngSnap { regs: Record<number, number>; at: number }
+type EngSnapStore = Record<string, EngSnap>;
+function readEngSnaps(): EngSnapStore {
+  try {
+    const raw = localStorage.getItem(ENG_SNAP_KEY);
+    const obj = raw ? JSON.parse(raw) : null;
+    return obj && typeof obj === 'object' ? obj : {};
+  } catch { return {}; }
+}
+function writeEngSnaps(store: EngSnapStore): void {
+  try { localStorage.setItem(ENG_SNAP_KEY, JSON.stringify(store)); } catch { /* ignore */ }
+}
 
 const GAIN_STEPS = 180;          // 0…180，每步 0.2 dB
 const GAIN_ZERO = 120;           // = 0 dB
@@ -449,12 +468,16 @@ export interface DebugPanelV2Props {
    *   可以被推到设计上限的 2 倍，和首页同一参数读数直接打架。
    */
   ampLimit?: number;
+  /** 首页当前 25 型号 key（参数导出用） */
+  ampKey?: string;
+  cabKey?: string;
 }
 
-type Tab = 'od' | 'amp' | 'custom';
+type Tab = 'od' | 'amp' | 'cab' | 'custom';
 
 export default function DebugPanelV2({
   visible, onClose, onWrite, regCacheRef, regTick, onApplyModule, ampLimit = 40,
+  ampKey, cabKey,
 }: DebugPanelV2Props) {
   const [tab, setTab] = useState<Tab>('od');
   const [sel, setSel] = useState<number | null>(null);
@@ -462,8 +485,13 @@ export default function DebugPanelV2({
   const [customKind, setCustomKind] = useState<'od' | 'amp'>('od');
   const [custom, setCustom] = useState<CustomModule[]>(() => loadCustomModules());
   const [exporting, setExporting] = useState(false);
+  const [paramScope, setParamScope] = useState<'current' | 'all' | null>(null);
+  const [paramBusy, setParamBusy] = useState(false);
   const [name, setName] = useState('');
   const [msg, setMsg] = useState('');
+  const [engSnaps, setEngSnaps] = useState<EngSnapStore>(readEngSnaps);
+  const snapHoldRef = useRef<number | null>(null);
+  const snapHeldRef = useRef(false);
 
   const reg = useCallback((a: number) => regCacheRef.current[a] ?? 0, [regCacheRef]);
 
@@ -484,7 +512,70 @@ export default function DebugPanelV2({
   /* regTick 变化 → 强制重渲染（读取 regCacheRef 的新值） */
   void regTick;
 
-  const tabAccent = tab === 'amp' ? '#E8B860' : tab === 'custom' ? '#C0A8FF' : '#F06F21';
+  const tabAccent = tab === 'amp' ? '#E8B860'
+    : tab === 'cab' ? '#57E3D5'
+      : tab === 'custom' ? '#C0A8FF' : '#F06F21';
+
+  const ampSpec = TONE25_HEADS.find((h) => h.key === ampKey || h.code === ampKey || h.display === ampKey)
+    ?? TONE25_HEADS[0];
+  const cabSpec = TONE25_CABS.find((c) => c.key === cabKey || c.code === cabKey)
+    ?? TONE25_CABS[0];
+  const cabBaseRegs = (): Record<number, number> => {
+    const out: Record<number, number> = { 107: 0, 253: 0 };
+    for (let i = 0; i < Math.min(35, cabSpec.bands.length); i++) out[108 + i] = cabSpec.bands[i];
+    out[254] = 47; out[255] = 1; out[256] = 150; out[257] = 40; out[258] = 12; out[259] = 0;
+    return out;
+  };
+  const ampEditAddrs = [57, ...AMP_N1, 64, 65, 66, ...AMP_N4, 72, ...AMP_N5, 79, 80, 81, ...AMP_N8, 239];
+  const cabEditAddrs = [107, ...CAB_BANDS, ...CAB_ENGINE];
+  const engSnapKey = (kind: 'amp' | 'cab') => `eng:${kind}:${kind === 'amp' ? ampSpec.key : cabSpec.key}`;
+  const currentEngRegs = (kind: 'amp' | 'cab'): Record<number, number> => {
+    const out: Record<number, number> = {};
+    for (const a of kind === 'amp' ? ampEditAddrs : cabEditAddrs) {
+      const v = regCacheRef.current[a];
+      if (typeof v === 'number' && Number.isFinite(v)) out[a] = v;
+    }
+    return out;
+  };
+  const saveEngSnapshot = (kind: 'amp' | 'cab') => {
+    const key = engSnapKey(kind);
+    const regs = currentEngRegs(kind);
+    const at = Date.now();
+    setEngSnaps((prev) => {
+      const next = { ...prev, [key]: { regs, at } };
+      writeEngSnaps(next);
+      return next;
+    });
+    setMsg(`已保存当前${kind === 'amp' ? '箱头' : '箱体'}参数`);
+  };
+  const loadEngSnapshot = (kind: 'amp' | 'cab') => {
+    const snap = engSnaps[engSnapKey(kind)];
+    if (!snap) return false;
+    onApplyModule(kind === 'amp' ? 'amp-head' : 'cabinet', snap.regs);
+    setMsg(`已载入当前${kind === 'amp' ? '箱头' : '箱体'}参数`);
+    return true;
+  };
+  const resetEngModel = (kind: 'amp' | 'cab') => {
+    const regs = kind === 'amp' ? ampSpec.baseRegs : cabBaseRegs();
+    onApplyModule(kind === 'amp' ? 'amp-head' : 'cabinet', regs);
+    setMsg(`已恢复${kind === 'amp' ? '箱头' : '箱体'}基础参数`);
+  };
+  const engSnapDown = (kind: 'amp' | 'cab') => {
+    snapHeldRef.current = false;
+    if (snapHoldRef.current !== null) window.clearTimeout(snapHoldRef.current);
+    snapHoldRef.current = window.setTimeout(() => {
+      snapHeldRef.current = true;
+      saveEngSnapshot(kind);
+    }, 650);
+  };
+  const engSnapUp = (kind: 'amp' | 'cab') => {
+    if (snapHoldRef.current !== null) {
+      window.clearTimeout(snapHoldRef.current);
+      snapHoldRef.current = null;
+    }
+    if (snapHeldRef.current) return;
+    if (!loadEngSnapshot(kind)) saveEngSnapshot(kind);
+  };
 
   /* ── 推子组 ── */
   const bandGrid = (
@@ -543,6 +634,20 @@ export default function DebugPanelV2({
     setTab('custom');
     setCustomKind(kind === 'amp' ? 'amp' : 'od');
     setMsg('已生成到「自定义」组');
+  };
+
+  const doParamExport = async (scope: 'current' | 'all') => {
+    if (paramBusy) return;
+    setParamBusy(true);
+    try {
+      const r = await exportParams({
+        scope, ampKey, cabKey, regs: regCacheRef.current,
+      });
+      setParamScope(null);
+      setMsg(r.message || (r.ok ? '参数已导出' : '参数导出失败'));
+    } finally {
+      setParamBusy(false);
+    }
   };
 
   const applyCustom = (m: CustomModule) => {
@@ -637,27 +742,36 @@ export default function DebugPanelV2({
         </div>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
           <div
-            onPointerUp={() => { if (tab !== 'custom') { setExporting(true); setName(tab === 'amp' ? 'My Amp' : 'My Warm OD'); } }}
+            onPointerUp={() => setParamScope('current')}
+            role="button" aria-label="导出箱头箱体参数"
+            style={{
+              height: 30, padding: '0 10px', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 4,
+              fontSize: 11, fontWeight: 700, letterSpacing: .3, cursor: 'pointer',
+              background: 'rgba(87,227,213,.12)', border: '1px solid rgba(87,227,213,.45)',
+              color: '#8FF2E6',
+            }}>参数</div>
+          <div
+            onPointerUp={() => { if (tab !== 'custom' && tab !== 'cab') { setExporting(true); setName(tab === 'amp' ? 'My Amp' : 'My Warm OD'); } }}
             role="button" aria-label="导出为自定义模块"
             style={{
               height: 30, padding: '0 11px', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 4,
-              fontSize: 11, fontWeight: 700, letterSpacing: .3, cursor: tab === 'custom' ? 'default' : 'pointer',
-              background: tab === 'custom' ? 'rgba(255,255,255,.04)' : 'rgba(240,111,33,.16)',
-              border: `1px solid ${tab === 'custom' ? '#454b55' : 'rgba(240,111,33,.55)'}`,
-              color: tab === 'custom' ? '#8B93A2' : '#FFB981',
+              fontSize: 11, fontWeight: 700, letterSpacing: .3, cursor: (tab === 'custom' || tab === 'cab') ? 'default' : 'pointer',
+              background: (tab === 'custom' || tab === 'cab') ? 'rgba(255,255,255,.04)' : 'rgba(240,111,33,.16)',
+              border: `1px solid ${(tab === 'custom' || tab === 'cab') ? '#454b55' : 'rgba(240,111,33,.55)'}`,
+              color: (tab === 'custom' || tab === 'cab') ? '#8B93A2' : '#FFB981',
             }}>⤓ 导出</div>
         </div>
       </div>
 
       {/* 页签 */}
       <div style={{ flexShrink: 0, display: 'flex', height: 38, background: '#2a2f37', borderBottom: '1px solid #262C36' }}>
-        {([['od', '过载'], ['amp', '箱头'], ['custom', '自定义']] as const).map(([k, lb]) => (
+        {([['od', '过载'], ['amp', '箱头'], ['cab', '箱体'], ['custom', '自定义']] as const).map(([k, lb]) => (
           <div key={k} onPointerUp={() => setTab(k)} role="tab" aria-selected={tab === k}
             style={{
               flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
               fontSize: 11, fontWeight: tab === k ? 700 : 500, cursor: 'pointer',
               color: tab === k ? '#F2F4F8' : '#7B8494',
-              borderBottom: `2px solid ${tab === k ? (k === 'amp' ? '#E8B860' : k === 'custom' ? '#C0A8FF' : '#F06F21') : 'transparent'}`,
+              borderBottom: `2px solid ${tab === k ? (k === 'amp' ? '#E8B860' : k === 'cab' ? '#57E3D5' : k === 'custom' ? '#C0A8FF' : '#F06F21') : 'transparent'}`,
             }}>
             {lb}
             {k === 'custom' && custom.length > 0 && (
@@ -702,6 +816,26 @@ export default function DebugPanelV2({
 
         {tab === 'amp' && (
           <>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 6, padding: '1px 2px 3px',
+              fontSize: 10.5, color: '#9AA4B2',
+            }}>
+              <span style={{ overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                {ampSpec.code} · {ampSpec.display}
+              </span>
+              <span
+                onPointerUp={() => resetEngModel('amp')} role="button" aria-label="恢复当前箱头基础参数"
+                style={{ marginLeft: 'auto', padding: '4px 8px', borderRadius: 7, border: '1px solid rgba(232,184,96,.45)', background: 'rgba(232,184,96,.10)', color: '#F0CE8A', cursor: 'pointer' }}
+              >RESET</span>
+              <span
+                onPointerDown={() => engSnapDown('amp')} onPointerUp={() => engSnapUp('amp')}
+                onPointerCancel={() => { if (snapHoldRef.current !== null) window.clearTimeout(snapHoldRef.current); }}
+                role="button" aria-label="当前箱头参数：短按载入，长按保存"
+                style={{ position: 'relative', padding: '4px 8px', borderRadius: 7, border: '1px solid rgba(232,184,96,.35)', background: 'rgba(0,0,0,.20)', color: '#D8C49A', cursor: 'pointer' }}
+              >
+                CUR{engSnaps[engSnapKey('amp')] ? <i style={{ position: 'absolute', right: 2, top: 2, width: 4, height: 4, borderRadius: '50%', background: '#ffb347' }} /> : null}
+              </span>
+            </div>
             <Card title="INPUT EQ" sub="N1 · 4 BAND" accent={tabAccent}>
               {bandGrid(AMP_N1, 4, '#E8B860')}
             </Card>
@@ -752,6 +886,51 @@ export default function DebugPanelV2({
               {bandGrid(AMP_N8.slice(8), 8, '#E8B860', { compact: true })}
             </Card>
 
+          </>
+        )}
+
+        {tab === 'cab' && (
+          <>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 6, padding: '1px 2px 3px',
+              fontSize: 10.5, color: '#9AA4B2',
+            }}>
+              <span style={{ overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                {cabSpec.code} · {cabSpec.top} {cabSpec.sub}
+              </span>
+              <span
+                onPointerUp={() => resetEngModel('cab')} role="button" aria-label="恢复当前箱体基础参数"
+                style={{ marginLeft: 'auto', padding: '4px 8px', borderRadius: 7, border: '1px solid rgba(87,227,213,.45)', background: 'rgba(87,227,213,.10)', color: '#8FF2E6', cursor: 'pointer' }}
+              >RESET</span>
+              <span
+                onPointerDown={() => engSnapDown('cab')} onPointerUp={() => engSnapUp('cab')}
+                onPointerCancel={() => { if (snapHoldRef.current !== null) window.clearTimeout(snapHoldRef.current); }}
+                role="button" aria-label="当前箱体参数：短按载入，长按保存"
+                style={{ position: 'relative', padding: '4px 8px', borderRadius: 7, border: '1px solid rgba(87,227,213,.35)', background: 'rgba(0,0,0,.20)', color: '#A8D8D2', cursor: 'pointer' }}
+              >
+                CUR{engSnaps[engSnapKey('cab')] ? <i style={{ position: 'absolute', right: 2, top: 2, width: 4, height: 4, borderRadius: '50%', background: '#57E3D5' }} /> : null}
+              </span>
+            </div>
+
+            <Card title="CABINET EQ" sub="35 BAND · 8 × 5" accent={tabAccent}>
+              {[0, 8, 16, 24, 32].map((start) => (
+                <div key={start} style={{ marginBottom: start === 32 ? 0 : 6 }}>
+                  {bandGrid(CAB_BANDS.slice(start, start + 8), 8, '#57E3D5', { compact: true })}
+                </div>
+              ))}
+            </Card>
+
+            <Card title="LIMITER" sub="253–259 · RAW" accent={tabAccent}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '5px 2px' }}>
+                <MiniKnob value={reg(253)} min={0} max={1} step={1} size={38} accent="#57E3D5" label="BYP 253" fmt={(v) => String(Math.round(v))} onChange={(v) => onWrite(253, Math.round(v))} />
+                <MiniKnob value={reg(254)} min={0} max={200} step={1} size={38} accent="#57E3D5" label="THR 254" fmt={(v) => String(Math.round(v))} onChange={(v) => onWrite(254, Math.round(v))} />
+                <MiniKnob value={reg(255)} min={0} max={500} step={1} size={38} accent="#57E3D5" label="ATK 255" fmt={(v) => String(Math.round(v))} onChange={(v) => onWrite(255, Math.round(v))} />
+                <MiniKnob value={reg(256)} min={0} max={500} step={1} size={38} accent="#57E3D5" label="REL 256" fmt={(v) => String(Math.round(v))} onChange={(v) => onWrite(256, Math.round(v))} />
+                <MiniKnob value={reg(257)} min={0} max={100} step={1} size={38} accent="#57E3D5" label="RATIO 257" fmt={(v) => String(Math.round(v))} onChange={(v) => onWrite(257, Math.round(v))} />
+                <MiniKnob value={reg(258)} min={0} max={24} step={1} size={38} accent="#57E3D5" label="KNEE 258" fmt={(v) => String(Math.round(v))} onChange={(v) => onWrite(258, Math.round(v))} />
+                <MiniKnob value={reg(259)} min={0} max={100} step={1} size={38} accent="#57E3D5" label="GAIN 259" fmt={(v) => String(Math.round(v))} onChange={(v) => onWrite(259, Math.round(v))} />
+              </div>
+            </Card>
           </>
         )}
 
@@ -810,6 +989,55 @@ export default function DebugPanelV2({
           原来会被压成一条超出屏幕宽度的细条（用户反馈「文字超出外框」）。 */}
       {/* ★★ v3.90（用户 2026-10-27「EQ 图形显示框不好用」）：浮动均衡器曲线窗整块删除，
           连同频响计算、位置存档、避让测量一起移除 —— 工程模式不再有浮窗。 */}
+
+      {paramScope && (
+        <div onPointerUp={(e) => { if (e.target === e.currentTarget && !paramBusy) setParamScope(null); }}
+          style={{ position: 'absolute', inset: 0, zIndex: 22, background: 'rgba(4,5,7,.76)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <div style={{
+            width: '100%', borderRadius: 16, padding: '15px 15px 13px',
+            background: 'linear-gradient(180deg,#2a2e37,#2a2f37)', border: '1px solid #3E4653',
+            boxShadow: '0 30px 80px rgba(0,0,0,.7)',
+          }}>
+            <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 3 }}>导出箱头 / 箱体参数</div>
+            <div style={{ fontSize: 10.5, color: '#c2c9d6', marginBottom: 13, lineHeight: 1.5 }}>
+              JSON + CSV，包含 word、类型、频率、增益、Q/S；可直接用于预设制作。
+            </div>
+            <div onPointerUp={() => { if (!paramBusy) void doParamExport('current'); }} role="button"
+              style={{
+                minHeight: 48, borderRadius: 11, padding: '8px 12px', display: 'flex', alignItems: 'center',
+                justifyContent: 'space-between', gap: 8, cursor: paramBusy ? 'default' : 'pointer',
+                background: 'rgba(87,227,213,.12)', border: '1px solid rgba(87,227,213,.45)',
+                opacity: paramBusy ? .55 : 1,
+              }}>
+              <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <b style={{ fontSize: 12, color: '#C8FFF8' }}>当前箱头 + 当前箱体</b>
+                <em style={{ fontStyle: 'normal', fontSize: 10, color: '#7faaa5' }}>含设备回读寄存器</em>
+              </span>
+              <span style={{ fontSize: 16, color: '#57E3D5' }}>⤓</span>
+            </div>
+            <div onPointerUp={() => { if (!paramBusy) void doParamExport('all'); }} role="button"
+              style={{
+                minHeight: 48, borderRadius: 11, padding: '8px 12px', marginTop: 8, display: 'flex',
+                alignItems: 'center', justifyContent: 'space-between', gap: 8,
+                cursor: paramBusy ? 'default' : 'pointer',
+                background: 'rgba(232,184,96,.10)', border: '1px solid rgba(232,184,96,.38)',
+                opacity: paramBusy ? .55 : 1,
+              }}>
+              <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <b style={{ fontSize: 12, color: '#F0CE8A' }}>全部 25 箱头 + 25 箱体</b>
+                <em style={{ fontStyle: 'normal', fontSize: 10, color: '#9c8966' }}>完整基础参数表</em>
+              </span>
+              <span style={{ fontSize: 16, color: '#E8B860' }}>⤓</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: 12 }}>
+              <div onPointerUp={() => { if (!paramBusy) setParamScope(null); }} role="button"
+                style={{ height: 34, padding: '0 22px', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,.05)', border: '1px solid #454b55', fontSize: 11, color: '#9AA4B2', cursor: paramBusy ? 'default' : 'pointer' }}>
+                {paramBusy ? '正在导出…' : '取消'}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {msg && (
         <div style={{

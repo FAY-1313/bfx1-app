@@ -177,7 +177,7 @@ const dist: ModuleConfig = {
         { pos: "X7", label: "X7" }, { pos: "Bass Big Muff", label: "Bass Big Muff" }, { pos: "Mastotron", label: "Mastotron" },
       ] },
       { id: "v26-dist-dg-dist", group: "BASS DIST", name: "贝斯 DG", display: "DG Series", knobs: ["DISTORTION", "BASS", "TREBLE", "LEVEL"], color: "#40241a", accentColor: "#e87040", disabled: false, captures: [
-        { pos: "B7K Ultra", label: "B7K Ultra" }, { pos: "Ultra V Bass", label: "Ultra V Bass" },
+        { pos: "Ultra V Bass", label: "Ultra V Bass" },
       ] },
     ],
   },

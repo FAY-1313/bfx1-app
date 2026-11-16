@@ -18,6 +18,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { notifyErr, notifyInfo } from '../services/feedback';
 import { bleManager, BLEDevice, BLE_SERVICE } from '../services/bleService';
+import { isBusy } from '../services/switchBusy';
 import { wirelessMidi, isMidiDevice, MidiStatus } from '../services/wirelessMidi';
 import { App } from '@capacitor/app';
 import { useI18n } from '../i18n';
@@ -80,13 +81,17 @@ export default function BluetoothPanel({
    *   连接函数用 ref 转一手，避开 startScan 与 handleConnect 的 useCallback 循环依赖。
    */
   const autoConnRef = useRef(false);
-  const handleConnectRef = useRef<(id: string, name?: string) => void>(() => {});
+  /* ★ 2026-11-16（用户报障「有时连不上」）：自动连接以前每轮扫描只试一次，
+     失败就静静等 20 秒扫描超时，用户只能手动再点。现在失败后在同一轮里补试 2 次。 */
+  const autoRetryRef = useRef(0);
+  const handleConnectRef = useRef<(id: string, name?: string) => Promise<boolean> | void>(() => {});
   /* ★ 2026-10-17（用户要求）：设备图点击动画 —— 每次点按自增，用作 key 让动画重播 */
   const [imgPop, setImgPop] = useState(0);
 
   const startScan = useCallback(async (keepList = false) => {
     if (!btEnabledRef.current) return;
     autoConnRef.current = false;   // 新一轮扫描允许再自动连一次
+    autoRetryRef.current = 0;
     // 先停旧扫描再开始新扫描
     if (scanTimeoutRef.current) { clearTimeout(scanTimeoutRef.current); scanTimeoutRef.current = null; }
     await bleManager.stopScan().catch(() => {});
@@ -124,7 +129,21 @@ export default function BluetoothPanel({
           setScanning(false);
           scanningRef.current = false;
           if (scanTimeoutRef.current) { clearTimeout(scanTimeoutRef.current); scanTimeoutRef.current = null; }
-          handleConnectRef.current(device.deviceId, shownName);
+          /* ★ 2026-11-16：自动连接失败后在同一轮里补试 2 次（间隔 1.5s）。
+             设备刚上电时第一次 connect 常因"host 栈未就绪"失败，而旧实现要等
+             20 秒扫描超时、再由用户手动点 —— 这就是"有时连不上、要连两次"。 */
+          const attempt = async (): Promise<void> => {
+            if (bleManager.connected) return;
+            const r = handleConnectRef.current(device.deviceId, shownName) as unknown;
+            const ok = (r && typeof (r as Promise<boolean>).then === 'function')
+              ? await (r as Promise<boolean>).catch(() => false)
+              : true;
+            if (ok) return;
+            if (autoRetryRef.current >= 2) return;
+            autoRetryRef.current++;
+            window.setTimeout(() => { void attempt(); }, 1500);
+          };
+          void attempt();
         }
       });
 
@@ -204,7 +223,10 @@ export default function BluetoothPanel({
          以及每 5 秒做一次 GATT 存活探测；死链就清掉残留并自动重新扫描+连接。 */
       if (connectedDeviceId) {
         const now = Date.now();
-        if (forceRescan || now - lastAliveProbe > 5000) {
+        /* ★ 2026-11-16：探测从「每 5s」放宽到「每 12s」，且上传/切换进行中直接跳过 ——
+           GATT 读探测会与正在跑的 EB 帧抢链路，一次读超时就会把健康链路判死，
+           表现正是「连接不稳定时特别容易卡住 / 蓝牙自己重启」。 */
+        if ((forceRescan || now - lastAliveProbe > 12000) && !isBusy()) {
           lastAliveProbe = now;
           const linkOk = await bleManager.probeAlive();
           if (!alive) return;
@@ -298,14 +320,14 @@ export default function BluetoothPanel({
     }
   };
 
-  const handleConnect = async (deviceId: string, deviceName?: string, isMidi = false) => {
+  const handleConnect = async (deviceId: string, deviceName?: string, isMidi = false): Promise<boolean> => {
     /* ★ 2026-11-04：无线 MIDI 踏板走独立路径 —— 它是第二条 BLE 链路，
        不碰 connectedDeviceId（那是 BFX1 音箱的链路状态）。 */
     if (isMidi) {
-      if (midiBusy) return;
+      if (midiBusy) return false;
       if (midiId === deviceId) {
         await wirelessMidi.disconnect().catch(() => {});
-        return;
+        return true;
       }
       setMidiBusy(deviceId);
       await bleManager.stopScan().catch(() => {});
@@ -316,16 +338,16 @@ export default function BluetoothPanel({
       setMidiBusy(null);
       if (ok) notifyInfo(lang === 'zh' ? '无线踏板已接入，可踩钉切档' : 'Wireless pedal connected');
       else notifyErr(lang === 'zh' ? '踏板连接失败' : 'Pedal connect failed');
-      return;
+      return ok;
     }
     if (connectedDeviceId === deviceId) {
       await bleManager.disconnect();
       onConnect(null);
       /* ★ 2026-10-16（B1）：断开不再弹上方 toast —— 设备条目自动回到「连接」态，
          与"连接成功用图片亮起"同一套反馈语言。 */
-      return;
+      return true;
     }
-    if (connecting) return;
+    if (connecting) return false;
     setConnecting(deviceId);
     /* ★★ v3.68（F）：先出「正在连接」全屏 —— 首连要等 connectGatt → 服务发现 → MTU 协商，
        2–4 秒里旧实现只有按钮文字变化，用户体感就是「卡住了」。 */
@@ -341,16 +363,15 @@ export default function BluetoothPanel({
 
     if (ok) {
       /* ★★ v3.68（E）：**先通知上层（出「连接成功」画面），再订阅通知**。
-         旧顺序是 await startNotifications() → onConnect()，而订阅本身要写 CCCD
-         （一到两个 GATT 往返，100–300ms），等于把成功画面往后推。
-         订阅与画面无依赖 → 并行发起即可；channel 查询在 500ms 后才发，
-         startNotifications 通常在这之前就完成。 */
+         ★ 2026-11-16：订阅已并入 bleManager.connect()（自动重连也走那条路），
+           这里保留调用是为了让 _onNotify 挂上业务回调；重复订阅是幂等的。 */
       onConnect(deviceId);
       void bleManager.startNotifications(() => {}).catch(() => {});
     } else {
       onConnectFail?.();
       notifyErr(t('bt.connectFail'));
     }
+    return ok;
   };
 
   /* ★ 2026-10-17（用户要求「蓝牙图片和菜单的绿色调换为蓝色」）：
