@@ -238,6 +238,23 @@ class BLEManager {
   private _manualDiscCount: number = 0;
   get manualDiscCount(): number { return this._manualDiscCount; }
 
+  /**
+   * ★★ 2026-11-17（iOS TestFlight「无限重连、一直连不上」根治）：
+   * 同一时刻只允许一条 connect() 在原生层执行。
+   *
+   * 现场机制：App 有两条独立的重连驱动 —— Index 的断线重连环 与 蓝牙面板
+   * startScan 的自动连。两者会同时调 BleClient.connect(同一 deviceId)。插件内部
+   * 用队列串行化，且每个 connect 都会先 remove 旧的 disconnected 监听再注册新的；
+   * 更糟的是失败的那一方在 cleanup 里调 disconnect()，把另一方刚建立/正在建的
+   * 链路拆掉 —— 两边互相拆台，谁也连不上，各自再退避重试 → 无限重连。
+   *
+   * 这里把并发调用收敛成同一个 Promise：后来者直接复用在飞的这一次，不再发起
+   * 第二条原生 connect，也就不会互相 disconnect。
+   */
+  private _connectInFlight: Promise<boolean> | null = null;
+  /** 是否已有 connect() 在飞（面板/重连环据此避让，不再另起一条） */
+  get connecting(): boolean { return this._connectInFlight !== null; }
+
   // ─── 写节奏闸门状态 (2026-10-07) ───────────────────────────────────
   /** 上一次 BLE 写【结束】的时间戳(ms)。闸门据此补足最小间隔。 */
   private _lastWriteEndAt: number = 0;
@@ -462,6 +479,18 @@ class BLEManager {
   }
 
   async connect(deviceId: string, deviceName?: string): Promise<boolean> {
+    /* ★★ 2026-11-17：单飞守卫 —— 并发的第二次调用直接复用在飞的 Promise。
+       面板自动连 + Index 重连环同时到时，只有第一条真正打到原生层；
+       其余共享同一结果，杜绝「两条 connect 互相 disconnect」的死循环。 */
+    if (this._connectInFlight) return this._connectInFlight;
+    const p = this._connectInternal(deviceId, deviceName).finally(() => {
+      this._connectInFlight = null;
+    });
+    this._connectInFlight = p;
+    return p;
+  }
+
+  private async _connectInternal(deviceId: string, deviceName?: string): Promise<boolean> {
     if (this._demoMode) {
       /* 演示模式：直接建立虚拟连接，不做 GATT 发现/MTU 协商 */
       this._connectedDeviceId = deviceId || DEMO_DEVICE_ID;
@@ -601,6 +630,13 @@ class BLEManager {
       return true;
     } catch (e) {
       console.error("BLE connect failed:", e);
+      /* ★★ 2026-11-17：connect 失败（含 iOS 服务发现超时）时必须把可能残留的
+         半连接真正断开。否则原生层仍认为连着，下一次 connect 直接拿到这条
+         没发现服务的死链 → 再超时 → 再失败，表现为「一直连不上」。 */
+      try {
+        const { BleClient } = await importBlePlugin();
+        if (BleClient) await withTimeout(BleClient.disconnect(deviceId), 900, 'final cleanup').catch(() => {});
+      } catch { /* 清理失败不影响返回 */ }
       this._connectedDeviceId = null;
       this._connectedDeviceName = "";
       return false;
@@ -611,7 +647,7 @@ class BLEManager {
    * iOS：等 F1 / F2 特征值真正被发现完再返回。
    * 安卓的 connect 在服务发现完成后才 resolve，iOS 的插件不是 —— 必须自己等。
    */
-  private async ensureIOSReady(deviceId: string, timeoutMs = 3000): Promise<void> {
+  private async ensureIOSReady(deviceId: string, timeoutMs = 5000): Promise<void> {
     if (Capacitor.getPlatform() !== 'ios') return;
     const { BleClient } = await importBlePlugin();
     if (!BleClient) return;
@@ -629,7 +665,12 @@ class BLEManager {
       } catch { /* 服务尚未发现，继续轮询 */ }
       await new Promise((r) => setTimeout(r, 120));
     }
-    console.warn('[BLE] iOS 服务发现超时（3s），后续写入可能失败');
+    /* ★★ 2026-11-17：旧实现这里只 warn 然后继续 → connect 返回 true →
+       UI 显示「已连接」，但 F1/F2 根本没发现 → 首包写入失败 → confirmDeadLink
+       判死 → 断线重连环 → 再连再超时 —— 这是「无限重连」的一环。
+       改为抛错，让本次 connect 走失败分支（清理半连接 + 退避重试），不再谎报成功。
+       5s 上限给 iOS 冷启动服务发现更多余量（原来 3s 偏紧，容易误判）。 */
+    throw new Error('iOS service discovery timeout');
   }
 
   /**
@@ -703,6 +744,15 @@ class BLEManager {
       if (!alive) await this.hardResetLink(id);
       return alive;
     }
+    /* ★★ 2026-11-17（iOS TestFlight 无限重连根治 · 第二环）：
+       iOS 插件通过原生 didDisconnectPeripheral 事件可靠回调断线（connect 时注册的
+       onDisconnect 监听），**不依赖**主动读探测。这里对 F2 做裸 GATT read，在
+       iOS 上与 CCCD 通知 / 上传帧抢链路，一次读超时不代表掉线；旧实现「连续两次
+       读不到 → hardResetLink → onDisconnectHandler → 重连环」会在 iOS 上自激出
+       一条永不停止的重连链（面板每 12s 探一次，硬拆→重连→再探→再拆）。
+       iOS 直接信任原生断线回调：只要内部还记着连接就算活着，不再主动判死。
+       Android 保留原逻辑（其固件掉电常不发 GATT 断线事件）。 */
+    if (Capacitor.getPlatform() === 'ios') return true;
     /* ★ 2026-11-16（用户报障「连接不稳定时特别容易卡住」）：
        一次读超时**不代表链路死了** —— 上传/切换时 GATT 正忙，读探测经常撞上拥塞。
        旧实现一次失败就 hardResetLink → 把健康链路拆掉 → 触发重连 → 用户看到"卡住/重启"。

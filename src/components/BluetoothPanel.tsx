@@ -84,14 +84,32 @@ export default function BluetoothPanel({
   /* ★ 2026-11-16（用户报障「有时连不上」）：自动连接以前每轮扫描只试一次，
      失败就静静等 20 秒扫描超时，用户只能手动再点。现在失败后在同一轮里补试 2 次。 */
   const autoRetryRef = useRef(0);
+  /**
+   * ★★ 2026-11-17（iOS TestFlight 无限重连根治 · 第三环）：
+   *   自动连失败后的冷却时间戳。老逻辑每轮 startScan 都把 autoConnRef/autoRetryRef
+   *   清零，而下方 2.5s 的 probe() 在自动连把 scanningRef 置 false 后又会立刻
+   *   startScan(true) → 预算被重置 → 再自动连 → 再失败 …… 形成永不停止的循环，
+   *   用户看到的就是「无限重连、一直连不上」。这里给自动连加 15s 冷却：
+   *   一次设备自动连彻底失败后，15s 内任何扫描都不再自动连（列表照常显示，用户
+   *   仍可手动点连接），彻底掐断自激；15s 后才允许下一轮自动连。
+   */
+  const autoConnectBlockedUntilRef = useRef(0);
+  const AUTO_CONNECT_COOLDOWN_MS = 15000;
   const handleConnectRef = useRef<(id: string, name?: string) => Promise<boolean> | void>(() => {});
   /* ★ 2026-10-17（用户要求）：设备图点击动画 —— 每次点按自增，用作 key 让动画重播 */
   const [imgPop, setImgPop] = useState(0);
 
   const startScan = useCallback(async (keepList = false) => {
     if (!btEnabledRef.current) return;
-    autoConnRef.current = false;   // 新一轮扫描允许再自动连一次
-    autoRetryRef.current = 0;
+    /* ★ 2026-11-17：只有冷却结束才重置自动连预算。冷却期内自动连保持"已用掉"，
+       扫描照常进行、设备照常进列表，但不再自作主张发起 connect（可手动点）。 */
+    const blocked = Date.now() < autoConnectBlockedUntilRef.current;
+    if (!blocked) {
+      autoConnRef.current = false;   // 新一轮扫描允许再自动连一次
+      autoRetryRef.current = 0;
+    } else {
+      autoConnRef.current = true;    // 冷却期：本轮禁止自动连
+    }
     // 先停旧扫描再开始新扫描
     if (scanTimeoutRef.current) { clearTimeout(scanTimeoutRef.current); scanTimeoutRef.current = null; }
     await bleManager.stopScan().catch(() => {});
@@ -139,7 +157,12 @@ export default function BluetoothPanel({
               ? await (r as Promise<boolean>).catch(() => false)
               : true;
             if (ok) return;
-            if (autoRetryRef.current >= 2) return;
+            if (autoRetryRef.current >= 2) {
+              /* ★ 2026-11-17：自动连彻底失败 → 进入冷却，掐断「扫描→自动连→失败→
+                 probe 又扫描→预算重置→再自动连」的自激循环。冷却期内用户仍可手动连。 */
+              autoConnectBlockedUntilRef.current = Date.now() + AUTO_CONNECT_COOLDOWN_MS;
+              return;
+            }
             autoRetryRef.current++;
             window.setTimeout(() => { void attempt(); }, 1500);
           };
@@ -242,6 +265,10 @@ export default function BluetoothPanel({
       /* 回到前台 = 用户明确想继续找设备 → 解除「手动停止」 */
       if (forceRescan) autoPausedRef.current = false;
       if (autoPausedRef.current) return;
+      /* ★ 2026-11-17：connect 正在飞（面板自动连 / Index 重连环）时不要重启扫描。
+         旧逻辑在自动连把 scanningRef 置 false 后，2.5s 后又会 startScan，和正在
+         进行的 connect 抢射频、并重置自动连预算 → 无限重连。让位给在飞的 connect。 */
+      if (bleManager.connecting) return;
       /* 已开启但没在扫（超时停了 / 被系统挂断 / 刚从后台回来）→ 补一轮 */
       if (forceRescan || !scanningRef.current) void startScan(true);
     };
@@ -340,6 +367,8 @@ export default function BluetoothPanel({
       else notifyErr(lang === 'zh' ? '踏板连接失败' : 'Pedal connect failed');
       return ok;
     }
+    /* ★ 2026-11-17：用户手动点连接 = 明确意图，立即解除自动连冷却 */
+    autoConnectBlockedUntilRef.current = 0;
     if (connectedDeviceId === deviceId) {
       await bleManager.disconnect();
       onConnect(null);
