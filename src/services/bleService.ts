@@ -570,15 +570,34 @@ class BLEManager {
            （首次连接后 App 被系统回收、或用户从后台回来）—— 这里补一次，幂等。
            失败不阻塞：真正的权限问题会在 connect 时给出明确错误。 */
         try { await BleClient.initialize(); } catch { /* 已初始化 / 无权限：继续交给 connect */ }
-        /* ★ 2026-11-16：5s → 4s。设备在广播时 connect 通常 1–2s 内完成；
-           4s 还没成基本就是失败，早一点进下一次重试，用户少等一半。 */
-        const CONN_TIMEOUT_MS = 4000;
-        const CONN_BACKOFF_MS = [350, 800];
+        /* ★★★ 2026-11-17（官方文档要求 · iOS 自动重连关键）：
+           官方 README「getDevices」章节明确：iOS 上要用 deviceId 连接一个
+           「之前连过、但本次没有先扫描」的设备，必须先 getDevices()——
+           它底层走 retrievePeripherals，把已知 UUID 重新登记进插件的 deviceMap；
+           否则 connect 直接 reject "Device not found. Call 'requestDevice',
+           'requestLEScan' or 'getDevices' first."（见 Plugin.swift getDevice）。
+           自动重连环 / 冷启动后没有扫描，正是在这种状态 → 连接失败。
+           这里在 iOS 上幂等补一次登记，失败不阻塞（后面还有短扫描兜底）。 */
+        if (Capacitor.getPlatform() === 'ios') {
+          try { await BleClient.getDevices?.([deviceId]); } catch { /* 登记失败交给 connect / 重扫 */ }
+        }
+        /* ★★★ 2026-11-17（iOS TestFlight「卡住/连接失败/无响应」根因）：
+           官方 `@capacitor-community/bluetooth-le` connect() 默认超时 **10s**，
+           且 iOS 上 connect 分两段：didConnect 物理连上 → 再发现所有服务+特征，
+           全部完成才 resolve（见 Device.swift didDiscoverCharacteristicsFor →
+           resolve("connect")）。因此 connect 的真实耗时天然含服务发现。
+           旧代码把超时压到 4s —— iPhone 冷启动 / 服务发现常 >4s → 被判超时失败，
+           3 次重试叠加把连接拖到 13s+，超过 ConnectionFlash 的 12s UI 上限，
+           于是用户看到「正在连接卡住 → 未收到设备响应 → 连接失败」。
+           改为**遵循官方默认 10s**（Android 同样受益，其插件本就在发现完成后才 resolve），
+           一次 connect 就能走完两段，不再靠缩短超时+重试来赌。 */
+        const CONN_TIMEOUT_MS = 10000;
+        const CONN_BACKOFF_MS = [400, 900];
         let lastErr: unknown = null;
         for (let attempt = 0; attempt <= CONN_BACKOFF_MS.length; attempt++) {
           try {
             await BleClient.connect(deviceId, this._disconnectCallback, {
-              /* 显式 4s 超时（插件默认 10s）：失败要尽快进下一次重试 */
+              /* 官方默认 10s：iOS 需覆盖「物理连接 + 服务/特征发现」全过程 */
               timeout: CONN_TIMEOUT_MS,
             });
             lastErr = null;
@@ -665,12 +684,13 @@ class BLEManager {
       } catch { /* 服务尚未发现，继续轮询 */ }
       await new Promise((r) => setTimeout(r, 120));
     }
-    /* ★★ 2026-11-17：旧实现这里只 warn 然后继续 → connect 返回 true →
-       UI 显示「已连接」，但 F1/F2 根本没发现 → 首包写入失败 → confirmDeadLink
-       判死 → 断线重连环 → 再连再超时 —— 这是「无限重连」的一环。
-       改为抛错，让本次 connect 走失败分支（清理半连接 + 退避重试），不再谎报成功。
-       5s 上限给 iOS 冷启动服务发现更多余量（原来 3s 偏紧，容易误判）。 */
-    throw new Error('iOS service discovery timeout');
+    /* ★★ 2026-11-17（按官方文档修正）：插件 v8 的 connect() 已经在
+       didDiscoverServices + didDiscoverCharacteristicsFor 全部完成后才 resolve，
+       即 connect 返回成功时 F1/F2 **必然已发现**（见 Device.swift / setOnConnected）。
+       所以这里只是「二次确认」，超时不能当成连接失败 —— 上一版改成 throw 是错的：
+       一旦 getServices 回包形态与预期不一致（iOS 大小写/短 UUID 等），会把本来
+       健康的连接判死，触发「连接失败 + 重连」。降级为非致命告警，信任插件结果。 */
+    console.warn('[BLE] iOS 服务发现二次确认超时（不判失败，插件 connect 已完成发现）');
   }
 
   /**

@@ -23,8 +23,12 @@ const FLASH_MS = 620;
 const HOLD_MS = 2100;
 const OUT_MS = 320;
 /** ★ v3.80（P1-13）：connecting 态停留上限。超过则转「连接超时」并给出口，
- *  否则 GATT 卡死 / 设备关机时这个 fixed z9997 层会永久盖住整个 App。 */
-const DEFAULT_TIMEOUT_MS = 12000;
+ *  否则 GATT 卡死 / 设备关机时这个 fixed z9997 层会永久盖住整个 App。
+ *  ★★ 2026-11-17：12s → 25s。官方 BLE 插件 connect 默认超时就是 10s
+ *  （iOS 含服务+特征发现），一次 connect 可能就要 10s；旧上限比它还短，
+ *  导致设备还在正常连接中就被误报「未收到设备响应 / 连接失败」。
+ *  给到 25s（≈10s connect + 一次退避重试 + 余量），超时才真正代表异常。 */
+const DEFAULT_TIMEOUT_MS = 25000;
 
 const BT = '#5bc8f5';
 
