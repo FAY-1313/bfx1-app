@@ -99,13 +99,11 @@ export default function LoginForm({
     color: C.text, fontSize: 14, outline: 'none', fontFamily: C.font,
   };
 
-  /* ★ 2026-11-16：键盘弹出后等布局稳定，再把当前输入框滚到可视区中间，
-     避免"输入框上浮被遮挡"（WebView 自动滚动经常被 flex 布局抵消）。 */
-  const focusIntoView = (e: React.FocusEvent<HTMLInputElement>) => {
-    const el = e.currentTarget;
-    window.setTimeout(() => {
-      try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch { el.scrollIntoView(); }
-    }, 280);
+  /* ★ 2026-11-17（v4.22 · 恢复原有状态）：不再用 scrollIntoView(block:center) 强行把
+     输入框滚到屏幕中央 —— 键盘弹出时它会把整张表单推得上下跳动、非输入区被挤出视野。
+     登录页已改为稳定高度 + 内部滚动，Webview 的原生聚焦滚动足够把输入框带进可视区。 */
+  const focusIntoView = (_e: React.FocusEvent<HTMLInputElement>) => {
+    /* no-op：保留 onFocus 挂点，避免改动输入元素结构 */
   };
 
   const body = (

@@ -178,19 +178,19 @@ export function EmptyState({ title, hint, action, onAction, icon }: {
   title: string; hint?: string; action?: string; onAction?: () => void; icon?: React.ReactNode;
 }) {
   return (
-    <div style={{ padding: '44px 26px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+    <div style={{ padding: '48px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
       <div style={{
-        width: 54, height: 54, borderRadius: '50%', background: C.brandSoft,
+        width: 56, height: 56, borderRadius: '50%', background: C.brandSoft,
         border: `1px solid ${C.brandLine}`, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        marginBottom: 14, color: C.brand,
+        marginBottom: 16, color: C.brand,
       }}>{icon || <IconHeart size={22} />}</div>
-      <div style={{ fontSize: 12.5, fontWeight: 700, color: C.text, fontFamily: C.font, marginBottom: 6 }}>{title}</div>
-      {hint && <div style={{ fontSize: 11, color: C.text3, fontFamily: C.font, lineHeight: 1.7, maxWidth: 250 }}>{hint}</div>}
+      <div style={{ fontSize: 13, fontWeight: 700, color: C.text, fontFamily: C.font, marginBottom: 8 }}>{title}</div>
+      {hint && <div style={{ fontSize: 11, color: C.text3, fontFamily: C.font, lineHeight: 1.7, maxWidth: 256 }}>{hint}</div>}
       {action && (
         <button onClick={onAction} style={{
-          marginTop: 16, height: 38, padding: '0 20px', borderRadius: 10, cursor: 'pointer',
+          marginTop: 20, minHeight: 44, height: 44, padding: '0 24px', borderRadius: 12, cursor: 'pointer',
           background: C.brandSoft, border: `1px solid ${C.brandLine}`, color: C.brand,
-          fontSize: 11, fontWeight: 800, fontFamily: C.font, letterSpacing: '0.04em',
+          fontSize: 12, fontWeight: 700, fontFamily: C.font, letterSpacing: '0.04em',
         }}>{action}</button>
       )}
     </div>
@@ -254,5 +254,99 @@ export function Segmented({ items, active, onChange }: {
         );
       })}
     </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ★ v4.22（UI 升级 · 方案 C）：统一加载态组件
+   设计口径（ui-design-system）：
+     · 8pt 网格 / 克制的品牌橙脉冲（不用廉价灰闪）
+     · 骨架形状对齐真实内容，避免加载完成时的视觉跳变
+     · 尊重 prefers-reduced-motion（关闭动效）
+   ═══════════════════════════════════════════════════════════════════ */
+
+/** 单块脉冲骨架。w/h 用数字(px)或 CSS 值；radius 默认 8。 */
+export function Skel({ w = '100%', h = 12, radius = 8, style }: {
+  w?: number | string; h?: number | string; radius?: number; style?: React.CSSProperties;
+}) {
+  return (
+    <div className="bfx-skel" style={{
+      width: w, height: h, borderRadius: radius,
+      background: 'rgba(240,111,33,0.10)',
+      border: '1px solid rgba(240,111,33,0.06)',
+      ...style,
+    }} />
+  );
+}
+
+/** 社区音色列表项的骨架（对齐头像 44 + 标题/副标 + 标签） */
+export function SkeletonToneRow() {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 12, padding: '12px',
+      borderRadius: 13, background: C.surface, border: `1px solid ${C.line}`, marginBottom: 8,
+    }}>
+      <Skel w={44} h={44} radius={12} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <Skel w="56%" h={13} radius={6} />
+        <div style={{ height: 8 }} />
+        <Skel w="82%" h={10} radius={5} style={{ background: 'rgba(255,255,255,0.05)', border: 'none' }} />
+      </div>
+      <Skel w={36} h={20} radius={10} style={{ background: 'rgba(255,255,255,0.05)', border: 'none' }} />
+    </div>
+  );
+}
+
+/** 列表首屏加载：3 行骨架 + 轻量提示 */
+export function LoadingList({ label }: { label?: string }) {
+  return (
+    <div style={{ padding: '4px 14px' }} role="status" aria-live="polite">
+      <SkeletonStyle />
+      {[0, 1, 2].map((i) => <SkeletonToneRow key={i} />)}
+      {label && (
+        <div style={{ textAlign: 'center', padding: '8px 0 4px', fontSize: 11, color: C.text3, fontFamily: C.font, letterSpacing: '0.04em' }}>
+          {label}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** TA 主页加载：头像 + 三统计 + 关注键 + 音色列表骨架 */
+export function LoadingProfile() {
+  return (
+    <div style={{ padding: '14px' }} role="status" aria-live="polite">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 13, marginBottom: 14 }}>
+        <Skel w={64} h={64} radius={20} />
+        <div style={{ flex: 1 }}>
+          <Skel w="46%" h={15} radius={6} />
+          <div style={{ height: 8 }} />
+          <Skel w="74%" h={10} radius={5} style={{ background: 'rgba(255,255,255,0.05)', border: 'none' }} />
+        </div>
+      </div>
+      <div style={{ display: 'flex', borderRadius: 13, background: C.surface, border: `1px solid ${C.line}`, padding: '12px 0', marginBottom: 14 }}>
+        {[0, 1, 2].map((i) => (
+          <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7 }}>
+            <Skel w={30} h={15} radius={6} />
+            <Skel w={40} h={9} radius={4} style={{ background: 'rgba(255,255,255,0.05)', border: 'none' }} />
+          </div>
+        ))}
+      </div>
+      <Skel w="100%" h={44} radius={12} />
+      <div style={{ height: 20 }} />
+      <SkeletonToneRow />
+      <SkeletonToneRow />
+    </div>
+  );
+}
+
+/** 骨架脉冲动画样式：注入一次，全局生效。 */
+export function SkeletonStyle() {
+  return (
+    <style>{`
+      @keyframes bfxSkelPulse { 0%{opacity:.55} 50%{opacity:1} 100%{opacity:.55} }
+      .bfx-skel { animation: bfxSkelPulse 1.4s ease-in-out infinite; }
+      @media (prefers-reduced-motion: reduce) { .bfx-skel { animation: none; opacity:.75; } }
+    `}</style>
   );
 }

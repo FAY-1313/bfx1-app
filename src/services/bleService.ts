@@ -283,14 +283,34 @@ class BLEManager {
    * Android 保持 withResponse（其回调可靠）。noResponse 调用方显式要求时也走无响应。
    */
   private async writeOnGatt(dv: DataView, label: string): Promise<void> {
-    const id = this._connectedDeviceId!;
+    const id = this._connectedDeviceId;
+    if (!id) throw new Error('not connected');
     const { BleClient } = await importBlePlugin();
     if (!BleClient) throw new Error('BleClient not available');
-    const noRsp = Capacitor.getPlatform() === 'ios';
+    const isIOS = Capacitor.getPlatform() === 'ios';
+    /* ★★ v4.22（iOS 写入失败再修）：
+       iOS 上一律用 writeWithoutResponse —— 插件原生层在 CoreBluetooth 发出帧后
+       立即 resolve（不等 didWriteValueFor 回调），彻底绕开 #661/#809 那类
+       "写成功了但回调不来→超时误报失败"。它本身同步返回，**不套 withTimeout**
+       （外层 1.2s 超时在慢机上反而会误杀一次成功的发出）。
+       带一次重试：首次失败常是 GATT 忙（buffered），隔 60ms 重发即可。
+       Android 继续用 write（withResponse），其回调可靠。 */
+    if (isIOS) {
+      let lastErr: any = null;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          await BleClient.writeWithoutResponse(id, BLE_SERVICE, BLE_WRITE_CHAR, dv);
+          return;
+        } catch (e) {
+          lastErr = e;
+          if (attempt === 0) await new Promise((r) => setTimeout(r, 60));
+        }
+      }
+      console.error(`[BLE] ${label} iOS writeWithoutResponse 失败:`, lastErr);
+      throw lastErr;
+    }
     await withTimeout(
-      noRsp
-        ? BleClient.writeWithoutResponse(id, BLE_SERVICE, BLE_WRITE_CHAR, dv)
-        : BleClient.write(id, BLE_SERVICE, BLE_WRITE_CHAR, dv),
+      BleClient.write(id, BLE_SERVICE, BLE_WRITE_CHAR, dv),
       WRITE_CALL_TIMEOUT_MS, label);
   }
 

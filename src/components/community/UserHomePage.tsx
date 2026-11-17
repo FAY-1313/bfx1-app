@@ -5,7 +5,7 @@
  * 用户拍板 I：**私信不做，按键先隐藏** → 这里只留「关注 / 已关注」，不摆灰按钮占位。
  */
 import React from 'react';
-import { C, Avatar, Badge, IconBack } from './parts';
+import { C, Avatar, Badge, IconBack, LoadingList } from './parts';
 import ToneCard from './ToneCard';
 import type { CommunityTone } from '../../services/toneCommunity';
 
@@ -91,7 +91,7 @@ export default function UserHomePage({
           <span style={{ fontSize: 11, color: C.text3, fontFamily: C.font }}>{tones.length}{zh ? ' 个' : ''}</span>
         </div>
 
-        {loading && <div style={{ textAlign: 'center', padding: 26, color: C.text3, fontSize: 11, fontFamily: C.font }}>{zh ? '加载中…' : 'Loading…'}</div>}
+        {loading && <LoadingList label={zh ? '正在加载 TA 的音色…' : 'Loading tones…'} />}
         {/* ★ v3.80（P1-14）：失败态 —— 原来失败会被当成「TA 还没有发布音色」，用户以为对方空号 */}
         {!loading && error && (
           <div style={{ textAlign: 'center', padding: '26px 16px', borderRadius: 13, background: C.surface, border: `1px solid ${C.line}` }}>

@@ -16,7 +16,7 @@
  *   H 不审核｜I 私信不做（按键隐藏，不摆占位）｜J 要有 TA 的主页
  */
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { C, Avatar, Badge, EmptyState, UnderlineTabs, Segmented, StyleChip, TagChip, IconBack, IconPlus, IconSearch, IconUsers, IconHeart, IconPlay } from './parts';
+import { C, Avatar, Badge, EmptyState, UnderlineTabs, Segmented, StyleChip, TagChip, IconBack, IconPlus, IconSearch, IconUsers, IconHeart, IconPlay, LoadingList } from './parts';
 import ToneCard from './ToneCard';
 import ToneDetailPage from './ToneDetailPage';
 import UserHomePage from './UserHomePage';
@@ -534,7 +534,7 @@ export default function CommunityPanel({
             </div>
           </div>
 
-          {loading && <div style={{ textAlign: 'center', padding: 26, color: C.text3, fontSize: 11, fontFamily: C.font }}>{zh ? '加载中…' : 'Loading…'}</div>}
+          {loading && <LoadingList label={zh ? '正在加载音色…' : 'Loading tones…'} />}
           {/* ★★ v3.77（E4）：读取失败 ≠ 没有内容 —— 明确报错并给重试键 */}
           {!loading && tones.length === 0 && !!loadErr && (
             <EmptyState
@@ -542,7 +542,7 @@ export default function CommunityPanel({
               hint={loadErr}
               action={zh ? '重试' : 'Retry'}
               onAction={() => setTick((t) => t + 1)}
-              icon={<IconSearch size={22} color="#E05555" />}
+              icon={<IconSearch size={22} color={C.brand} />}
             />
           )}
           {!loading && filtered.length === 0 && !loadErr && (

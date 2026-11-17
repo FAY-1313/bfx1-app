@@ -6,50 +6,12 @@
  *   - 连上未登录：锁屏 —— 模糊的音色墙当背景，中间一张登录卡
  * 顺序不能反：先登录再要求连设备，会让「只想看看」的人白跑一次验证码。
  */
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { createPortal } from 'react-dom';
 import { C, IconBluetooth, IconBack } from './parts';
 import LoginForm from './LoginForm';
 import type { Account } from '../../services/account';
 
-/**
- * ★ 2026-11-16（第二次修键盘错位）：
- *   上一次只改 padding 不够 —— Capacitor WebView 在键盘弹出时**整个 WebView 会被
- *   resize**（adjustResize），`window.innerHeight` 一起变小，于是
- *   ① 贴底布局的表单被压到最小高度里、输入框被键盘盖住；
- *   ② 底部 tab 栏跟着布局一起上移，看起来"菜单弹到键盘上方"。
- *
- *   现在改成：登录锁屏 **portal 到 document.body + position:fixed**，
- *   并用 visualViewport 的 height/offsetTop 精确贴合**可视区**（不是布局视口），
- *   键盘弹出时它仍覆盖整屏（包括底部菜单），表单从顶部排 + 可滚动 + 聚焦自动滚动。
- */
-function useVisualViewport(): { height: number; top: number } {
-  const read = () => {
-    if (typeof window === 'undefined') return { height: 600, top: 0 };
-    const vv = window.visualViewport;
-    return {
-      height: Math.round(vv?.height ?? window.innerHeight),
-      top: Math.round(vv?.offsetTop ?? 0),
-    };
-  };
-  const [vp, setVp] = useState(read);
-  useEffect(() => {
-    const vv = typeof window !== 'undefined' ? window.visualViewport : null;
-    const update = () => setVp(read());
-    update();
-    window.addEventListener('resize', update);
-    window.addEventListener('orientationchange', update);
-    vv?.addEventListener('resize', update);
-    vv?.addEventListener('scroll', update);
-    return () => {
-      window.removeEventListener('resize', update);
-      window.removeEventListener('orientationchange', update);
-      vv?.removeEventListener('resize', update);
-      vv?.removeEventListener('scroll', update);
-    };
-  }, []);
-  return vp;
-}
 
 export function ConnectGate({ onConnect, connecting, onClose }: {
   onConnect: () => void;
@@ -129,19 +91,15 @@ export function LoginScreen({
   decor?: boolean;
 }) {
   const cells = Array.from({ length: 12 }, (_, i) => i);
-  const vp = useVisualViewport();
-  /* ★★ 2026-11-17（iOS TestFlight 返回键被状态栏盖住根治）：
-     本组件 portal 到 document.body，**绕过了 #root 的 padding**（安全区只加在 #root 上），
-     所以这里必须自己吃进 --sa-top/--sa-bottom。否则 iPhone 灵动岛(59px)/刘海(47px)/
-     TestFlight 顶部条会把 52px 的标题栏压住 → 左上角「返回」和标题点不到、重叠。
-     用 CSS var 读取 safeArea.ts 实测值，键盘弹出时仍以 visualViewport 为准。 */
+  /* ★★ 2026-11-17（v4.22 · 恢复原有状态）：不再用 visualViewport 动态贴合。
+     键盘弹出时 vp.height 骤减 → 整页高度收缩 → 装饰/标题被挤压变形（用户报「遮挡非输入区」）。
+     改回稳定的 fixed inset:0 覆盖（吃安全区），键盘弹出只让内部表单区可滚动，页面本身不收缩。 */
   const sTop = "var(--sa-top, 0px)";
   const sBottom = "var(--sa-bottom, 0px)";
   const overlay = (
     <div
       style={{
-        position: 'fixed', left: 0, right: 0, top: `calc(${vp.top}px + ${sTop})`,
-        height: `calc(${vp.height}px - ${sTop} - ${sBottom})`,
+        position: 'fixed', left: 0, right: 0, top: sTop, bottom: sBottom,
         background: C.bg, display: 'flex', flexDirection: 'column',
         overflow: 'hidden', zIndex: 4000,
       }}

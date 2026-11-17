@@ -23,29 +23,11 @@ public class MainActivity extends BridgeActivity {
         webView.getSettings().setMediaPlaybackRequiresUserGesture(false);
         webView.setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null);
 
-        // ★ 2026-11-17（v4.20+）：Android 15+/16（targetSdk 36）强制 edge-to-edge，
-        // WebView 画到状态栏/手势条下面，JS 侧 env(safe-area-inset-*) 常报 0，
-        // 用户/社区菜单返回键被状态栏盖住。注册同步接口让 JS 主动拉取真实 insets（dp）。
-        webView.addJavascriptInterface(new InsetsBridge(), "BFX1Insets");
-    }
-
-    /** 供 WebView JS 同步读取系统栏高度（单位 dp，与 CSS px 一致）。 */
-    public class InsetsBridge {
-        @android.webkit.JavascriptInterface
-        public float getTop() {
-            android.graphics.Rect r = new android.graphics.Rect();
-            getWindow().getDecorView().getWindowVisibleDisplayFrame(r);
-            // r.top = 状态栏高度（可见显示区相对屏幕顶），物理 px → dp
-            return Math.max(0, r.top / getResources().getDisplayMetrics().density);
-        }
-
-        @android.webkit.JavascriptInterface
-        public float getBottom() {
-            android.graphics.Rect r = new android.graphics.Rect();
-            getWindow().getDecorView().getWindowVisibleDisplayFrame(r);
-            float density = getResources().getDisplayMetrics().density;
-            int screenH = getResources().getDisplayMetrics().heightPixels;
-            return Math.max(0, (screenH - r.bottom) / density);
-        }
+        // ★ 2026-11-17（v4.22 · 恢复原有布局）：主动关闭 edge-to-edge。
+        // targetSdk 36（Android 15+/16）默认强制内容延伸到状态栏/手势条下方，导致
+        // ① 首页顶栏被 --sa-top 推下 24px、出现空白带（用户报「顶栏不对」）；
+        // ② 二级菜单返回键被状态栏盖住。让 DecorView 重新 fitsSystemWindows，
+        // WebView 回到状态栏下方 —— 顶栏/底栏都回到原生位置，无需 JS 侧安全区注入。
+        androidx.core.view.WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
     }
 }

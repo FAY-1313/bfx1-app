@@ -78,20 +78,10 @@ export function applySafeAreaInsets(): void {
     }
   }
 
-  /* ★★ 2026-11-17（v4.21 · 安卓返回键被状态栏盖住根治）：
-     Android 15+/16（本项目 targetSdk 36）强制 edge-to-edge，WebView 画到状态栏下方，
-     且 env(safe-area-inset-*) 常报 0。MainActivity 注册了 BFX1Insets 同步接口，
-     从这里拉取真实状态栏/导航条高度（dp=CSS px）。凡 env 已给值就以 env 为准，
-     只有 env=0 才用原生值兜底，避免双重留白。 */
-  if (Capacitor.getPlatform() === 'android') {
-    const bridge = (window as any).BFX1Insets;
-    if (bridge) {
-      try {
-        if (top === 0 && typeof bridge.getTop === 'function') top = Number(bridge.getTop()) || 0;
-        if (bottom === 0 && typeof bridge.getBottom === 'function') bottom = Number(bridge.getBottom()) || 0;
-      } catch { /* 接口异常：保持 env 值 */ }
-    }
-  }
+  /* ★★ 2026-11-17（v4.22 · 安卓恢复原有布局）：
+     Android 端由 MainActivity 主动关闭 edge-to-edge（WindowCompat.setDecorFitsSystemWindows=true），
+     WebView 回到状态栏/导航栏下方 —— 顶栏/底栏都回到原生位置，不需要 JS 侧安全区注入。
+     若这里再注入就会被推下、出现空白带（用户报「顶栏不对」）。故安卓 --sa-* 保持 0。 */
 
   const root = document.documentElement.style;
   root.setProperty('--sa-top', `${top}px`);
