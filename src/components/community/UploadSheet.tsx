@@ -136,7 +136,7 @@ export default function UploadSheet({
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '10px 12px', borderRadius: 10, boxSizing: 'border-box',
     background: 'rgba(255,255,255,0.045)', border: `1px solid ${C.line2}`,
-    color: C.text, fontSize: 12.5, outline: 'none', fontFamily: C.font,
+    color: C.text, fontSize: 16, outline: 'none', fontFamily: C.font,
   };
 
   return (

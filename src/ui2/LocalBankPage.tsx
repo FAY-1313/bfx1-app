@@ -401,15 +401,14 @@ export default function LocalBankPage({
           <span style={{ fontSize: 11, fontWeight: 800, color: GOLD, fontFamily: '"Barlow-Regular_2",sans-serif' }}>
             {slotLabel(renamingSlot)}
           </span>
-          <input
-            autoFocus value={renameText}
+          <input value={renameText}
             onChange={(e) => setRenameText(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') commitRename(); if (e.key === 'Escape') setRenamingSlot(null); }}
             maxLength={16}
             style={{
               flex: 1, height: 32, padding: '0 8px', borderRadius: 8,
               background: 'rgba(255,255,255,0.06)', border: `1px solid ${GOLD}`,
-              color: '#F2F4F8', fontSize: 13, outline: 'none', boxSizing: 'border-box',
+              color: '#F2F4F8', fontSize: 16, outline: 'none', boxSizing: 'border-box',
             }} />
           <button onClick={commitRename} style={{
             height: 32, padding: '0 12px', borderRadius: 8, border: 'none', cursor: 'pointer',
@@ -694,7 +693,6 @@ export default function LocalBankPage({
                     {lang === 'en' ? 'NAME' : '名称'}
                   </div>
                   <input
-                    autoFocus
                     value={saveName}
                     onChange={(e) => setSaveName(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') doSave(); if (e.key === 'Escape') setDlg(null); }}
@@ -702,7 +700,7 @@ export default function LocalBankPage({
                     style={{
                       marginTop: 5, width: '100%', height: 36, padding: '0 10px', borderRadius: 9,
                       background: 'rgba(255,255,255,0.06)', border: `1px solid ${GOLD}`,
-                      color: '#F2F4F8', fontSize: 13, outline: 'none', boxSizing: 'border-box',
+                      color: '#F2F4F8', fontSize: 16, outline: 'none', boxSizing: 'border-box',
                     }} />
                   {/* 重命名方式 */}
                   <div style={{

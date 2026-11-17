@@ -505,7 +505,7 @@ export default function CommunityPanel({
             <input
               value={search} onChange={(e) => setSearch(e.target.value)}
               placeholder={zh ? '搜音色名、标签或作者' : 'Search tones, tags, creators'}
-              style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: C.text, fontSize: 12, fontFamily: C.font }}
+              style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: C.text, fontSize: 16, fontFamily: C.font }}
             />
             {!!search && (
               <button onClick={() => setSearch('')} style={{ background: 'transparent', border: 'none', color: C.text3, fontSize: 14, cursor: 'pointer', padding: 0, lineHeight: 1 }}>×</button>
@@ -847,7 +847,7 @@ export default function CommunityPanel({
             <input value={storeName} onChange={(e) => setStoreName(e.target.value)} maxLength={24} placeholder={zh ? '音色名称' : 'Tone name'} style={{
               width: '100%', padding: '10px 12px', borderRadius: 10, boxSizing: 'border-box', marginTop: 8,
               background: 'rgba(255,255,255,0.045)', border: `1px solid ${C.line2}`, color: C.text,
-              fontSize: 12, outline: 'none', fontFamily: C.font,
+              fontSize: 16, outline: 'none', fontFamily: C.font,
             }} />
             <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
               <button onClick={() => setStorePick(null)} style={{ flex: 1, height: 40, borderRadius: 11, border: `1px solid ${C.line2}`, background: 'transparent', color: C.text2, fontSize: 11.5, fontWeight: 700, cursor: 'pointer', fontFamily: C.font }}>{zh ? '取消' : 'Cancel'}</button>

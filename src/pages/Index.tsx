@@ -3806,7 +3806,7 @@ function UserPanel({ visible, onClose, onOpenManualFullScreen, onOpenTutorial, o
                   style={{
                     width: '100%', height: 44, padding: '0 13px', boxSizing: 'border-box', borderRadius: 12,
                     background: 'rgba(255,255,255,0.05)', border: `1px solid ${nameErr ? 'rgba(242,120,105,0.7)' : 'rgba(240,111,33,0.5)'}`,
-                    color: '#F0F2F5', fontSize: 15, fontWeight: 700, outline: 'none',
+                    color: '#F0F2F5', fontSize: 16, fontWeight: 700, outline: 'none',
                     fontFamily: '"Barlow-Regular_2",sans-serif',
                   }}
                 />

@@ -584,7 +584,7 @@ export default function DrumPanel({ bpm, setBpm, visible, accentColor }: DrumPan
               style={{
                 width: '100%', height: 30, borderRadius: 6, padding: '0 10px', marginBottom: 8,
                 background: '#2c2f36', border: `1px solid ${accentColor}55`, color: '#fff',
-                fontSize: 11, fontFamily: '"Barlow-Regular_2",sans-serif', outline: 'none', boxSizing: 'border-box',
+                fontSize: 16, fontFamily: '"Barlow-Regular_2",sans-serif', outline: 'none', boxSizing: 'border-box',
               }} />
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               {slots.map((s, i) => {

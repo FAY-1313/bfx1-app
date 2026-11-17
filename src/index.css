@@ -330,6 +330,11 @@ html, body, #root {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
+  /* ★ v4.23（iOS 适配漂移根治）：关闭 iOS WebView 的文字自动放大。
+     iOS 在聚焦小字号输入框时会私自放大整页（配合 viewport 的 maximum-scale=1 一起用），
+     表现为「页面切换后 UI 比例变了、旋转屏幕才恢复」。 */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 /* ══════════ 全屏安全区（iOS 灵动岛/刘海 + Android edge-to-edge）══════════

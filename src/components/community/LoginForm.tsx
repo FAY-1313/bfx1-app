@@ -96,7 +96,7 @@ export default function LoginForm({
   const inputBase: React.CSSProperties = {
     width: '100%', height: 44, padding: '0 14px', borderRadius: 12, boxSizing: 'border-box',
     background: 'rgba(255,255,255,0.045)', border: `1px solid ${C.line2}`,
-    color: C.text, fontSize: 14, outline: 'none', fontFamily: C.font,
+    color: C.text, fontSize: 16, outline: 'none', fontFamily: C.font,
   };
 
   /* ★ 2026-11-17（v4.22 · 恢复原有状态）：不再用 scrollIntoView(block:center) 强行把

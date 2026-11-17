@@ -710,10 +710,10 @@ export default function RecorderPanel({ active, visible }: RecorderPanelProps) {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span style={{ width: 6, height: 6, borderRadius: '50%', background: contentLane ? REC_COLOR : 'rgba(255,255,255,0.25)', flexShrink: 0 }} />
                     {renaming?.kind === 'proj' && renaming.id === p.id ? (
-                      <input autoFocus value={renameVal} onChange={e => setRenameVal(e.target.value)}
+                      <input value={renameVal} onChange={e => setRenameVal(e.target.value)}
                         onKeyDown={e => { if (e.key === 'Enter') commitRename(); if (e.key === 'Escape') setRenaming(null); }}
                         onClick={e => e.stopPropagation()}
-                        style={{ flex: 1, minWidth: 0, height: 22, borderRadius: 4, border: '1px solid rgba(255,80,120,0.4)', background: '#252831', color: '#fff', fontSize: 11, padding: '0 6px', fontFamily: '"Barlow-Regular_2",sans-serif' }} />
+                        style={{ flex: 1, minWidth: 0, height: 22, borderRadius: 4, border: '1px solid rgba(255,80,120,0.4)', background: '#252831', color: '#fff', fontSize: 16, padding: '0 6px', fontFamily: '"Barlow-Regular_2",sans-serif' }} />
                     ) : (
                       <span onClick={e => e.stopPropagation()}
                         style={{ flex: 1, minWidth: 0, fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.85)', fontFamily: '"Barlow-Regular_2",sans-serif', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -752,9 +752,9 @@ export default function RecorderPanel({ active, visible }: RecorderPanelProps) {
             }}>◀</button>
             <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
               {renaming?.kind === 'proj' && renaming.id === cur.id ? (
-                <input autoFocus value={renameVal} onChange={e => setRenameVal(e.target.value)}
+                <input value={renameVal} onChange={e => setRenameVal(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter') commitRename(); if (e.key === 'Escape') setRenaming(null); }}
-                  style={{ flex: 1, minWidth: 0, height: 24, borderRadius: 4, border: '1px solid rgba(255,80,120,0.4)', background: '#252831', color: '#fff', fontSize: 11, padding: '0 6px', fontFamily: '"Barlow-Regular_2",sans-serif' }} />
+                  style={{ flex: 1, minWidth: 0, height: 24, borderRadius: 4, border: '1px solid rgba(255,80,120,0.4)', background: '#252831', color: '#fff', fontSize: 16, padding: '0 6px', fontFamily: '"Barlow-Regular_2",sans-serif' }} />
               ) : (
                 <span onClick={() => { setRenaming({ kind: 'proj', id: cur.id }); setRenameVal(cur.name); }}
                   style={{ fontSize: 11, fontWeight: 800, color: 'rgba(255,255,255,0.9)', fontFamily: '"Barlow-Regular_2",sans-serif', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', cursor: 'pointer' }}>
@@ -802,9 +802,9 @@ export default function RecorderPanel({ active, visible }: RecorderPanelProps) {
                     </button>
                     <span style={{ width: 8, height: 8, borderRadius: '50%', background: lane.color, flexShrink: 0, boxShadow: `0 0 6px ${lane.color}55` }} />
                     {renaming?.kind === 'lane' && renaming.id === lane.id ? (
-                      <input autoFocus value={renameVal} onChange={e => setRenameVal(e.target.value)}
+                      <input value={renameVal} onChange={e => setRenameVal(e.target.value)}
                         onKeyDown={e => { if (e.key === 'Enter') commitRename(); if (e.key === 'Escape') setRenaming(null); }}
-                        style={{ flex: 1, minWidth: 0, height: 24, borderRadius: 4, border: '1px solid rgba(255,80,120,0.4)', background: '#252831', color: '#fff', fontSize: 11, padding: '0 6px', fontFamily: '"Barlow-Regular_2",sans-serif' }} />
+                        style={{ flex: 1, minWidth: 0, height: 24, borderRadius: 4, border: '1px solid rgba(255,80,120,0.4)', background: '#252831', color: '#fff', fontSize: 16, padding: '0 6px', fontFamily: '"Barlow-Regular_2",sans-serif' }} />
                     ) : (
                       <span onClick={() => { setRenaming({ kind: 'lane', id: lane.id }); setRenameVal(lane.name); }}
                         style={{ flex: 1, minWidth: 0, fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.85)', fontFamily: '"Barlow-Regular_2",sans-serif', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', cursor: 'pointer' }}>

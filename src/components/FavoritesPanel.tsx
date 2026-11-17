@@ -261,7 +261,7 @@ export default function FavoritesPanel({
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '9px 11px', borderRadius: 7, boxSizing: 'border-box',
     background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.14)',
-    color: '#fff', fontSize: 12, outline: 'none', marginBottom: 8,
+    color: '#fff', fontSize: 16, outline: 'none', marginBottom: 8,
     fontFamily: '"Barlow-Regular_2",sans-serif',
   };
 

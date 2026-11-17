@@ -985,10 +985,10 @@ export default function LooperPanel({ bpm, setBpm, active, visible }: LooperPane
                         <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
                           {renamingSlot === slot ? (
                             <div style={{ display: 'flex', gap: 3 }}>
-                              <input autoFocus value={slotNameVal}
+                              <input value={slotNameVal}
                                 onChange={e => setSlotNameVal(e.target.value)}
                                 onKeyDown={e => { if (e.key === 'Enter') commitSlotName(slot); }}
-                                style={{ flex: 1, height: 20, borderRadius: 4, border: '1px solid rgba(120,220,255,0.5)', background: '#252831', color: '#fff', fontSize: 11, padding: '0 5px', fontFamily: '"Barlow-Regular_2",sans-serif', minWidth: 0 }}
+                                style={{ flex: 1, height: 20, borderRadius: 4, border: '1px solid rgba(120,220,255,0.5)', background: '#252831', color: '#fff', fontSize: 16, padding: '0 5px', fontFamily: '"Barlow-Regular_2",sans-serif', minWidth: 0 }}
                               />
                               <button onClick={() => commitSlotName(slot)} style={{ height: 20, padding: '0 7px', borderRadius: 4, cursor: 'pointer', background: 'rgba(120,220,255,0.15)', border: '1px solid rgba(120,220,255,0.45)', color: '#7fd8ff', fontSize: 10.5, fontFamily: '"Barlow-Regular_2",sans-serif' }}>{t('btn.ok')}</button>
                             </div>
