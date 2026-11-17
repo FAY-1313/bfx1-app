@@ -642,11 +642,9 @@ function PresetsPanel({ visible, onClose, presetRev, connectedDeviceId, register
   const prevTargetGroup = PRESET_GROUPS[browsing ? homeGroup : prevHomeGroup] ?? PRESET_GROUPS[0];
 
   // B4: 条件挂载 → 每次打开重播 panelFade (index.css:196 已定义 180ms 上滑淡入)
+  // ★ v3.61：面板收缩为「内容高度卡片」，外层半透明遮罩；v3.67 卡片改用 ModalCard。
   return (
-    /* ★ v3.61（2026-10-24 用户拍板）：面板收缩为「内容高度卡片」——
-       全屏铺满 + 垂直居中会上下各留 200px 空白，改成对话框卡片：外层只做半透明遮罩。 */
-    /* ★ 2026-11-05（统一整改）：预设库与「我的音色库」同构，卡片改用 ModalCard ——
-       中间内容区在 ModalBody 内滚动，底部「调音器 / 节拍器」永远可见。 */
+    <>
     <ModalCard zIndex={51} maxWidth={520} background="#31343b" borderColor="#454b55" overlayStyle={{ animation: 'panelFade 0.18s ease-out' }}>
       {/* 加载档位: 全屏遮罩 */}
       {loading && (
@@ -656,20 +654,7 @@ function PresetsPanel({ visible, onClose, presetRev, connectedDeviceId, register
         </div>
       )}
       {/* Header */}
-      <PanelHeader title={t('panel.presets')} accent="#4cc9f0" onClose={onClose}
-        right={
-          <button onClick={() => setShowNamNotice(true)} title="TONE3000 · NAM A2"
-            style={{
-              height: 28, padding: '0 8px', borderRadius: 8, cursor: 'pointer',
-              background: 'rgba(180,160,255,0.12)', border: '1px solid rgba(180,160,255,0.42)',
-              display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0,
-            }}>
-            <img src="/brand/logo-bf@2x.png" alt="" draggable={false}
-              style={{ height: 15, width: 'auto', opacity: 0.9 }} />
-            <span style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: '0.06em', color: '#c9b8ff', fontFamily: '"Barlow-Regular_2",sans-serif' }}>TONE3000</span>
-          </button>
-        }
-      />
+      <PanelHeader title={t('panel.presets')} accent="#4cc9f0" onClose={onClose} />
 
       {/* ★ v3.60（2026-10-24 用户拍板）：外框随内容适配，按键保持比例、不被纵向拉长。
           ★ v3.61：频道键改竖矩形（固定高度 104，宽度吃满 1/4 行）——
@@ -829,34 +814,51 @@ function PresetsPanel({ visible, onClose, presetRev, connectedDeviceId, register
           </button>
         </div>
       </ModalFooter>
-
-      {/* ★ 2026-11-17 v4.24：TONE3000 · NAM A2 升级公告 —— 点任意处关闭 */}
-      {showNamNotice && (
-        <div onClick={() => setShowNamNotice(false)} style={{
-          position: 'absolute', inset: 0, zIndex: 70, cursor: 'pointer',
-          background: 'rgba(8,9,13,0.82)', backdropFilter: 'blur(4px)',
-          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          padding: '28px 24px', textAlign: 'center',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 22 }}>
-            <img src="/brand/logo-bf@2x.png" alt="BFX1" draggable={false} style={{ height: 30, width: 'auto' }} />
-            <span style={{ width: 1, height: 26, background: 'rgba(255,255,255,0.2)' }} />
-            <span style={{ fontSize: 17, fontWeight: 800, letterSpacing: '0.08em', color: '#c9b8ff', fontFamily: '"Barlow-Regular_2",sans-serif' }}>TONE3000</span>
-          </div>
-          <div style={{ fontSize: 18, fontWeight: 800, color: '#F0F2F5', fontFamily: '"Barlow-Regular_2",sans-serif', marginBottom: 16, letterSpacing: '0.02em' }}>
-            {lang === 'en' ? 'NAM A2 Upgrade Announcement' : 'NAM A2 升级公告'}
-          </div>
-          <div style={{ fontSize: 12.5, lineHeight: 1.9, color: '#c2c9d6', fontFamily: '"Barlow-Regular_2",sans-serif', maxWidth: 400 }}>
-            {lang === 'en'
-              ? 'Dear BFX1 users, we have reached a cooperation agreement with TONE3000 and will soon support NAM (Neural Amp Modeler) A2 format tones. We will provide free NAM A2 upgrade service for the first batch of users in China. Stay tuned for more NAM tones on BFX1.'
-              : '尊敬的BFX1用户，我们已与 TONE3000 达成合作协议，即将支持 NAM（Neural Amp Modeler）A2格式音色。我们将为中国区首批用户提供免费NAM A2升级服务，届时可在 BFX1 上加载更多NAM音色，敬请期待。'}
-          </div>
-          <div style={{ marginTop: 28, fontSize: 11, color: '#7C8494', fontFamily: '"Barlow-Regular_2",sans-serif', letterSpacing: '0.06em' }}>
-            {lang === 'en' ? 'Tap anywhere to close' : '点击任意处关闭'}
-          </div>
-        </div>
-      )}
     </ModalCard>
+
+    {/* ★ 2026-11-18 v4.26：TONE3000 入口 —— 移到预设库面板「外面、上方半透明区」。
+        zIndex 52 高于 ModalCard 遮罩(51)、低于公告(70)，absolute 定位在面板上方。 */}
+    <button onClick={() => setShowNamNotice(true)} title="TONE3000 · NAM A2"
+      style={{
+        position: 'absolute', zIndex: 52,
+        top: 'calc(var(--sa-top, 0px) + 10px)', left: '50%', transform: 'translateX(-50%)',
+        height: 40, padding: '0 12px', borderRadius: 10, cursor: 'pointer',
+        background: 'rgba(12,14,20,0.88)', border: '1px solid rgba(255,235,80,0.42)',
+        boxShadow: '0 6px 20px rgba(0,0,0,0.5)',
+        display: 'flex', alignItems: 'center', gap: 8,
+      }}>
+      <img src="/brand/tone3000-logo.svg" alt="TONE3000" draggable={false}
+        style={{ height: 18, width: 'auto', display: 'block' }} />
+      <img src="/brand/logo-bf@2x.png" alt="BFX1" draggable={false}
+        style={{ height: 20, width: 'auto', display: 'block', borderLeft: '1px solid rgba(255,255,255,0.22)', paddingLeft: 8 }} />
+    </button>
+
+    {/* ★ NAM A2 升级公告 —— 点任意处关闭（全屏层，zIndex 70） */}
+    {showNamNotice && (
+      <div onClick={() => setShowNamNotice(false)} style={{
+        position: 'absolute', inset: 0, zIndex: 70, cursor: 'pointer',
+        background: 'rgba(8,9,13,0.82)', backdropFilter: 'blur(4px)',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        padding: '28px 24px', textAlign: 'center',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 24 }}>
+          <img src="/brand/tone3000-logo.svg" alt="TONE3000" draggable={false} style={{ height: 30, width: 'auto' }} />
+          <img src="/brand/logo-bf@2x.png" alt="BFX1" draggable={false} style={{ height: 30, width: 'auto' }} />
+        </div>
+        <div style={{ fontSize: 18, fontWeight: 800, color: '#F0F2F5', fontFamily: '"Barlow-Regular_2",sans-serif', marginBottom: 16, letterSpacing: '0.02em' }}>
+          {lang === 'en' ? 'NAM A2 Upgrade Announcement' : 'NAM A2 升级公告'}
+        </div>
+        <div style={{ fontSize: 12.5, lineHeight: 1.9, color: '#c2c9d6', fontFamily: '"Barlow-Regular_2",sans-serif', maxWidth: 400 }}>
+          {lang === 'en'
+            ? 'Dear BFX1 users, we have reached a cooperation agreement with TONE3000 and will soon support NAM (Neural Amp Modeler) A2 format tones. We will provide free NAM A2 upgrade service for the first batch of users in China. Stay tuned for more NAM tones on BFX1.'
+            : '尊敬的BFX1用户，我们已与 TONE3000 达成合作协议，即将支持 NAM（Neural Amp Modeler）A2格式音色。我们将为中国区首批用户提供免费NAM A2升级服务，届时可在 BFX1 上加载更多NAM音色，敬请期待。'}
+        </div>
+        <div style={{ marginTop: 28, fontSize: 11, color: '#7C8494', fontFamily: '"Barlow-Regular_2",sans-serif', letterSpacing: '0.06em' }}>
+          {lang === 'en' ? 'Tap anywhere to close' : '点击任意处关闭'}
+        </div>
+      </div>
+    )}
+    </>
   );
 }
 
