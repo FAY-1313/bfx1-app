@@ -102,10 +102,12 @@ interface Props {
   onUploadToPreset?: (slot: number, mode?: 'one' | 'group', dst?: number) => Promise<boolean> | void;
   /** ★ 2026-11-16（用户要求）：四组上传 —— 本地库 1–16 一次覆盖硬件 1a–4d 全部 16 档 */
   onUploadAllGroups?: () => Promise<boolean> | void;
+  /** ★ 2026-11-17 v4.24：恢复出厂音色 —— 下发冻结的出厂 16 档，不读当前库 */
+  onRestoreFactory?: () => Promise<boolean> | void;
 }
 
 export default function LocalBankPage({
-  visible, onClose, getCurrentTone, onApply, onUploadToPreset, onUploadAllGroups,
+  visible, onClose, getCurrentTone, onApply, onUploadToPreset, onUploadAllGroups, onRestoreFactory,
 }: Props) {
   const { lang } = useI18n();
   const [slots, setSlots] = useState<BankItem[]>(() => {
@@ -279,21 +281,18 @@ export default function LocalBankPage({
     }
   };
 
-  /** ★ 2026-11-16：四组上传 —— 先弹确认框（覆盖 16 档是不可逆动作） */
+  /** ★ 2026-11-17 v4.24：恢复出厂音色 —— 弹确认框（覆盖 16 档不可逆）。
+      与旧的「四组上传」不同：恢复出厂下发冻结的出厂默认，**不依赖当前库是否合格**，
+      所以这里不再做 allOk 预检。 */
   const openUploadAll = () => {
-    if (!onUploadAllGroups) { flash('上传通道未就绪', false); return; }
-    if (!allOk) {
-      const bad = allChecks.findIndex((c) => !c.ok);
-      flash(`第 ${bad + 1} 组：${groupCheckReason(allChecks[bad], lang === 'en')}`, false);
-      return;
-    }
+    if (!onRestoreFactory) { flash('恢复通道未就绪', false); return; }
     setDlg('uploadAll');
   };
 
   const doUploadAll = () => {
-    if (!onUploadAllGroups) { setDlg(null); flash('上传通道未就绪', false); return; }
+    if (!onRestoreFactory) { setDlg(null); flash('恢复通道未就绪', false); return; }
     setDlg(null);
-    const r = onUploadAllGroups() as unknown;
+    const r = onRestoreFactory() as unknown;
     if (r && typeof (r as Promise<unknown>).then === 'function') {
       void (r as Promise<boolean | void>);
     }
@@ -518,27 +517,19 @@ export default function LocalBankPage({
         </button>
       </ModalBody>
 
-      {/* 底部固定操作位：「保存本地 / 整组上传」+ ★ 2026-11-16 新增「四组上传」 */}
+      {/* 底部固定操作位：「保存本地 / 整组上传」+ ★ 2026-11-17「恢复出厂音色」 */}
       <ModalFooter style={{ padding: '10px 12px 12px', borderTop: `1px solid ${LINE}` }}>
-        {/* ★ 2026-11-16（用户要求）：四组上传 —— 一次覆盖硬件 1a–4d 全部 16 档。
-            不合格时不再禁用（禁用会变成"灰色但不知道为什么"），点一下直接说明原因。 */}
+        {/* ★ 2026-11-17 v4.24：恢复出厂音色 —— 把硬件 1a–4d 恢复到冻结的出厂 16 档。
+            下发的是出厂默认，与当前库内容/合格与否无关，故按钮恒可用、不显示 allOk 提示。 */}
         <button onClick={openUploadAll} style={{
-          width: '100%', height: 44, borderRadius: 10, marginBottom: allOk ? 8 : 6,
+          width: '100%', height: 44, borderRadius: 10, marginBottom: 8,
           cursor: 'pointer',
           background: 'rgba(240,80,80,0.10)',
-          border: `1px solid ${allOk ? APPLIED : 'rgba(240,80,80,0.5)'}`,
-          color: allOk ? APPLIED : '#E08A8A',
+          border: `1px solid rgba(240,80,80,0.5)`,
+          color: '#E08A8A',
           fontSize: 12, fontWeight: 800, letterSpacing: '0.04em',
           fontFamily: '"Barlow-Regular_2",sans-serif',
-        }}>{lang === 'en' ? 'UPLOAD ALL 4 GROUPS' : '四组上传（覆盖 1a–4d）'}</button>
-        {!allOk && (
-          <div style={{
-            marginBottom: 8, padding: '5px 8px', borderRadius: 8,
-            background: 'rgba(240,80,80,0.10)', border: '1px solid rgba(240,80,80,0.35)',
-            fontSize: 10, lineHeight: 1.45, color: '#F0A0A0',
-            fontFamily: '"Barlow-Regular_2",sans-serif',
-          }}>{allBadReason}</div>
-        )}
+        }}>{lang === 'en' ? 'RESTORE FACTORY TONES' : '恢复出厂音色（覆盖 1a–4d）'}</button>
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={openSave} style={{
             flex: 1, height: 44, borderRadius: 10, cursor: 'pointer',
@@ -720,52 +711,22 @@ export default function LocalBankPage({
                 </>
               ) : dlg === 'uploadAll' ? (
                 <>
-                  {/* ★ 2026-11-16：四组上传确认 —— 逐组显示是否合格 */}
+                  {/* ★ 2026-11-17 v4.24：恢复出厂音色确认（不再显示当前库合格状态） */}
                   <div style={{
                     marginTop: 10, fontSize: 10.5, fontWeight: 700, color: '#7C8494',
                     letterSpacing: '0.08em', fontFamily: '"Barlow-Regular_2",sans-serif',
                   }}>
-                    {lang === 'en' ? 'ALL GROUPS' : '四组状态'}
+                    {lang === 'en' ? 'FACTORY TONES · 16 CHANNELS' : '出厂音色 · 16 档（1a–4d）'}
                   </div>
                   <div style={{
-                    marginTop: 5, borderRadius: 9, overflow: 'hidden', border: `1px solid ${LINE}`,
-                  }}>
-                    {allChecks.map((c, gi) => (
-                      <div key={c.first} style={{
-                        display: 'flex', alignItems: 'center', gap: 8, padding: '7px 9px',
-                        background: gi % 2 ? 'rgba(255,255,255,0.025)' : 'transparent',
-                        borderTop: gi ? `1px solid ${LINE}` : 'none',
-                      }}>
-                        <span style={{
-                          width: 18, flexShrink: 0, fontSize: 10.5, fontWeight: 800, color: '#7C8494',
-                          fontFamily: '"Barlow-Regular_2",sans-serif',
-                        }}>{gi + 1}</span>
-                        <span style={{
-                          flex: 1, minWidth: 0, fontSize: 10.5,
-                          color: c.ok ? '#C8D0DC' : '#F08A8A',
-                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                        }}>
-                          {c.passthrough
-                            ? (lang === 'en' ? 'Cable passthrough' : '线材直通')
-                            : `${c.baseAmp || '?'} / ${c.baseCab || '?'}`}
-                        </span>
-                        <span style={{
-                          flexShrink: 0, fontSize: 9.5, fontWeight: 700,
-                          color: c.ok ? '#6FBF95' : '#F05050',
-                          fontFamily: '"Barlow-Regular_2",sans-serif',
-                        }}>{c.ok ? (lang === 'en' ? 'OK' : '合格') : (lang === 'en' ? 'BLOCKED' : '不可传')}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <div style={{
-                    marginTop: 8, padding: '7px 9px', borderRadius: 8,
+                    marginTop: 8, padding: '8px 10px', borderRadius: 9,
                     background: 'rgba(240,80,80,0.10)', border: '1px solid rgba(240,80,80,0.38)',
-                    fontSize: 10.5, lineHeight: 1.55, color: '#F0A0A0',
+                    fontSize: 11, lineHeight: 1.6, color: '#F0A0A0',
                     fontFamily: '"Barlow-Regular_2",sans-serif',
                   }}>
                     {lang === 'en'
-                      ? 'Overwrites all 16 hardware channels (1a–4d) with local slots 1–16. This cannot be undone.'
-                      : '将用我的音色库 1–16 覆盖硬件 1a–4d 全部 16 档，覆盖后无法撤销。'}
+                      ? 'Restores hardware channels 1a–4d to the 16 factory tones (the original BFX1 default set). Your current library edits will NOT be used. This cannot be undone.'
+                      : '将把硬件 1a–4d 全部 16 档恢复为出厂音色（BFX1 原始默认套装）。不会使用你当前编辑的我的音色库内容。此操作覆盖后无法撤销。'}
                   </div>
                 </>
               ) : (
@@ -888,7 +849,7 @@ export default function LocalBankPage({
                   fontSize: 12, fontWeight: 800, fontFamily: '"Barlow-Regular_2",sans-serif',
                 }}>{lang === 'en' ? 'CANCEL' : '取消'}</button>
               <button
-                disabled={(dlg === 'upload' && (!upDst || !upCheck.ok)) || (dlg === 'uploadAll' && !allOk)}
+                disabled={(dlg === 'upload' && (!upDst || !upCheck.ok))}
                 onClick={() => {
                   if (dlg === 'save') { doSave(); return; }
                   if (dlg === 'uploadAll') { doUploadAll(); return; }
@@ -896,8 +857,8 @@ export default function LocalBankPage({
                 }}
                 style={{
                   flex: 1.4, height: 40, borderRadius: 9,
-                  cursor: (dlg === 'upload' && (!upDst || !upCheck.ok)) || (dlg === 'uploadAll' && !allOk) ? 'default' : 'pointer',
-                  opacity: (dlg === 'upload' && (!upDst || !upCheck.ok)) || (dlg === 'uploadAll' && !allOk) ? 0.42 : 1,
+                  cursor: (dlg === 'upload' && (!upDst || !upCheck.ok)) ? 'default' : 'pointer',
+                  opacity: (dlg === 'upload' && (!upDst || !upCheck.ok)) ? 0.42 : 1,
                   background: dlg === 'save' ? 'rgba(240,180,41,0.18)' : 'rgba(240,111,33,0.18)',
                   border: `1px solid ${dlg === 'save' ? GOLD : APPLIED}`,
                   color: dlg === 'save' ? GOLD : APPLIED,
@@ -906,7 +867,7 @@ export default function LocalBankPage({
                 {dlg === 'save'
                   ? (lang === 'en' ? 'SAVE' : '保存')
                   : dlg === 'uploadAll'
-                    ? (lang === 'en' ? 'OVERWRITE ALL 16' : '覆盖全部 16 档')
+                    ? (lang === 'en' ? 'RESTORE FACTORY' : '确认恢复出厂')
                     : (upDst
                       ? (lang === 'en' ? `UPLOAD TO GROUP ${(upDst - 1) / 4 + 1}` : `上传到 ${(upDst - 1) / 4 + 1} 组`)
                       : (lang === 'en' ? 'UPLOAD' : '上传'))}

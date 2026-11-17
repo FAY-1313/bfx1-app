@@ -812,15 +812,27 @@ class BLEManager {
       if (!alive) await this.hardResetLink(id);
       return alive;
     }
-    /* ★★ 2026-11-17（iOS TestFlight 无限重连根治 · 第二环）：
-       iOS 插件通过原生 didDisconnectPeripheral 事件可靠回调断线（connect 时注册的
-       onDisconnect 监听），**不依赖**主动读探测。这里对 F2 做裸 GATT read，在
-       iOS 上与 CCCD 通知 / 上传帧抢链路，一次读超时不代表掉线；旧实现「连续两次
-       读不到 → hardResetLink → onDisconnectHandler → 重连环」会在 iOS 上自激出
-       一条永不停止的重连链（面板每 12s 探一次，硬拆→重连→再探→再拆）。
-       iOS 直接信任原生断线回调：只要内部还记着连接就算活着，不再主动判死。
-       Android 保留原逻辑（其固件掉电常不发 GATT 断线事件）。 */
-    if (Capacitor.getPlatform() === 'ios') return true;
+    /* ★★ v4.24（iOS 写入失败真正根治）：
+       旧实现 iOS 直接 return true → 即便 peripheral.state 已不是 connected，
+       App 永远认为"连着"，每次写入都在原生 getDevice 的 isConnected() 守卫被 reject
+       （"Not connected to device."，帧根本没发出去），且不触发重连 → 永久"连着写不进"。
+       改为原生 getConnectedDevices 真值核验（只读、不抢写入 GATT、不会自激重连）：
+       查不到这台设备 = 真的断了 → hardResetLink 触发上层自动重连自愈。 */
+    if (Capacitor.getPlatform() === 'ios') {
+      try {
+        const { BleClient } = await importBlePlugin();
+        const res: any = await withTimeout(
+          (BleClient as any).getConnectedDevices([BLE_SERVICE]),
+          timeoutMs, 'probe connected');
+        const list: any[] = Array.isArray(res) ? res : (res?.devices ?? []);
+        const alive = list.some((d: any) => String(d?.deviceId ?? '').toLowerCase() === id.toLowerCase());
+        if (!alive) { await this.hardResetLink(id); return false; }
+        return true;
+      } catch {
+        /* 核验本身失败不判死 —— 交给上层连续写失败的后续重试，避免误拆健康链路 */
+        return true;
+      }
+    }
     /* ★ 2026-11-16（用户报障「连接不稳定时特别容易卡住」）：
        一次读超时**不代表链路死了** —— 上传/切换时 GATT 正忙，读探测经常撞上拥塞。
        旧实现一次失败就 hardResetLink → 把健康链路拆掉 → 触发重连 → 用户看到"卡住/重启"。
@@ -912,11 +924,20 @@ class BLEManager {
       noteSwitchWrite(regAddr, regValue);
       return true;
     } catch (e) {
-      console.error("BLE write failed:", e);
-      // ★ 2026-10-07: 原实现「一次失败即判断连」过于激进 —— 节流前 GATT 拥塞
-      //   会抛出瞬时错误, 于是第二次加载箱体时被判掉线, 后续写入全部失效。
-      //   改为连续 WRITE_FAIL_DISCONNECT_THRESHOLD 次失败才判定断连。
+      const emsg = String((e as any)?.message || e || '');
+      console.error("BLE write failed:", emsg);
       this._consecutiveWriteFailures++;
+      /* ★★ v4.24：识别「JS 标志已连、原生实际断开」的失同步错误。
+         原生 getDevice 在每次写前检查 peripheral.state，设备实际断开时 reject
+         "Not connected to device." / "Device not found"；这类错误不是 GATT 忙，
+         重试无用，必须立刻清标志 + 触发上层自动重连，否则永久"连着写不进"。 */
+      const linkLost = /not connected|device not found|not discovered|characteristic not found/i.test(emsg);
+      if (linkLost && this._connectedDeviceId) {
+        console.warn('[BLE] 写入时发现链路失同步，触发重连:', emsg);
+        await this.hardResetLink(this._connectedDeviceId);
+        return false;
+      }
+      // 其余（超时/拥塞）：连续 3 次才探活，避免单次抖动误判
       if (this._consecutiveWriteFailures >= WRITE_FAIL_DISCONNECT_THRESHOLD && this._connectedDeviceId) {
         console.warn(`[BLE] 连续 ${this._consecutiveWriteFailures} 次写失败 → 探测链路是否存活`);
         await this.confirmDeadLink();

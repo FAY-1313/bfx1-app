@@ -313,3 +313,69 @@ export function buildLocalBank2026Seeds(): LocalPreset[] {
   }
   return out;
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   ★ 2026-11-17（v4.24 用户拍板）：「我的音色库」新 16 档
+   —— 与出厂默认 16 档完全不同，另选 4 套平台：12 吉他 + 4 贝斯。
+   出厂默认已冻结到 factoryBank2026.ts（旧的 US CLEAN / PLEXI / BASS300 等），
+   这里的新音色只影响 App 库显示/保存，不影响「恢复出厂音色」按钮。
+   ═══════════════════════════════════════════════════════════════════ */
+const MY_GROUPS: LocalGroup[] = [
+  /* 新 1 组：US TIGHT 100 + 4x12 US OVERSIZE —— 美式高增益（现代） */
+  {
+    headKey: 'g01-us-tight',
+    cabKey: 'gc02-us-oversize',
+    tones: [
+      { name: 'TIGHT CLEAN', gainDb: 3, volDb: -3, masterDb: -6, vol2Db: -1, boost: 0.1, gate: 0.20, comp: 'la2a', reverb: 'reverb-room', reverbMix: 10 },
+      { name: 'TIGHT CRUNCH', gainDb: 7, volDb: -4, masterDb: -7, vol2Db: -2, boost: 0.25, gate: 0.22, comp: 'cs2', od: 'od10-g-od-03', odDriveDb: 12, odLevelDb: -3, reverb: 'reverb-room', reverbMix: 10 },
+      { name: 'TIGHT RHYTHM', gainDb: 10, volDb: -4, masterDb: -8, vol2Db: -2, driveSteps: 4, boost: 0.35, gate: 0.24, comp: 'cs2', od: 'od10-g-od-05', odDriveDb: 18, odLevelDb: -3, reverb: 'reverb-room', reverbMix: 10 },
+      { name: 'TIGHT LEAD', gainDb: 12, volDb: -5, masterDb: -10, vol2Db: -3, driveSteps: 6, boost: 0.45, gate: 0.28, comp: 'cs2', od: 'od10-g-od-07', odDriveDb: 24, odLevelDb: -3, delay: 'delay-analog', reverb: 'reverb-hall', reverbMix: 14 },
+    ],
+  },
+  /* 新 2 组：BRIT CHIME 30 + 2x12 BRIT CHIME —— 英式清音（Vox 系） */
+  {
+    headKey: 'g04-brit-chime',
+    cabKey: 'gc05-brit-chime',
+    tones: [
+      { name: 'CHIME CLEAN', gainDb: 2, volDb: -3, masterDb: -6, vol2Db: -1, boost: 0.1, gate: 0.20, comp: 'la2a', chorus: 'chorus-ce2', reverb: 'reverb-room', reverbMix: 12 },
+      { name: 'CHIME TWANG', gainDb: 3, volDb: -3, masterDb: -6, vol2Db: -1, boost: 0.12, gate: 0.20, comp: 'la2a', chorus: 'chorus-ce2', delay: 'delay-analog', reverb: 'reverb-room', reverbMix: 12 },
+      { name: 'CHIME CRUNCH', gainDb: 7, volDb: -4, masterDb: -7.5, vol2Db: -2, driveSteps: 3, boost: 0.28, gate: 0.24, comp: 'cs2', od: 'od10-g-od-02', odDriveDb: 14, odLevelDb: -3, reverb: 'reverb-room', reverbMix: 10 },
+      { name: 'CHIME SOLO', gainDb: 9, volDb: -5, masterDb: -9, vol2Db: -3, driveSteps: 4, boost: 0.4, gate: 0.26, comp: 'cs2', od: 'od10-g-od-04', odDriveDb: 20, odLevelDb: -3, delay: 'delay-analog', reverb: 'reverb-hall', reverbMix: 14 },
+    ],
+  },
+  /* 新 3 组：GER PUNCH 20 + 4x12 GER XXL —— 德系中频 */
+  {
+    headKey: 'g15-ger-punch',
+    cabKey: 'gc12-ger-xxl',
+    tones: [
+      { name: 'PUNCH CLEAN', gainDb: 3, volDb: -3, masterDb: -6, vol2Db: -1, boost: 0.1, gate: 0.20, comp: 'la2a', reverb: 'reverb-room', reverbMix: 10 },
+      { name: 'PUNCH EDGE', gainDb: 5, volDb: -3, masterDb: -6.5, vol2Db: -1, boost: 0.18, gate: 0.22, comp: 'cs2', chorus: 'chorus-ce2', reverb: 'reverb-room', reverbMix: 11 },
+      { name: 'PUNCH RHYTHM', gainDb: 9, volDb: -4, masterDb: -8, vol2Db: -2, driveSteps: 4, boost: 0.32, gate: 0.24, comp: 'cs2', od: 'od10-g-od-06', odDriveDb: 16, odLevelDb: -3, reverb: 'reverb-room', reverbMix: 10 },
+      { name: 'PUNCH LEAD', gainDb: 11, volDb: -5, masterDb: -9.5, vol2Db: -3, driveSteps: 5, boost: 0.44, gate: 0.28, comp: 'cs2', od: 'od10-g-od-01', odDriveDb: 22, odLevelDb: -3, delay: 'delay-digital', reverb: 'reverb-hall', reverbMix: 14 },
+    ],
+  },
+  /* 新 4 组：US BASS 1200 + 4x10 US BASS —— 贝斯（现代大功率） */
+  {
+    headKey: 'b02-us-bass',
+    cabKey: 'bc02-us-bass',
+    tones: [
+      { name: 'BASS 1200 CLEAN', gainDb: 2, volDb: -3, masterDb: -6, vol2Db: -1, boost: 0.1, gate: 0.20, comp: 'bassist' },
+      { name: 'BASS 1200 ROUND', gainDb: 4, volDb: -3, masterDb: -7.5, vol2Db: -1, boost: 0.15, gate: 0.22, comp: 'bassist' },
+      { name: 'BASS 1200 BRIGHT', gainDb: 6, volDb: -4, masterDb: -9, vol2Db: -2, boost: 0.2, gate: 0.26, comp: 'bassist', od: 'od10-b-od-01', odDriveDb: 3, odLevelDb: -2, reverb: 'reverb-room', reverbMix: 6 },
+      { name: 'BASS 1200 DRIVE', gainDb: 8, volDb: -5, masterDb: -9, vol2Db: -2, boost: 0.25, gate: 0.30, comp: 'bassist', od: 'od10-b-od-02', odDriveDb: 5, odLevelDb: -2, reverb: 'reverb-room', reverbMix: 6 },
+    ],
+  },
+];
+
+/** 新「我的音色库」16 档：4 组 × 4 档（12 吉他 + 4 贝斯），与出厂默认不重复。 */
+export function buildMyToneBank2026(): LocalPreset[] {
+  const out: LocalPreset[] = [];
+  let slot = 1;
+  for (const group of MY_GROUPS) {
+    for (const tone of group.tones) {
+      out.push(makePreset(group, tone, slot, Date.now() - (slot - 1)));
+      slot++;
+    }
+  }
+  return out;
+}

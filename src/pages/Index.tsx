@@ -68,6 +68,7 @@ import {
 import TutorialOverlay, { TourStep } from '../components/TutorialOverlay';
 import HwGuidePanel from '../ui2/HwGuidePanel';
 import { FULLSCREEN_SAFE_STYLE } from '../utils/safeArea';
+import { buildFactoryBank2026 } from '../data/factoryBank2026';
 /* ★ 2026-11-05（统一整改）：预设库弹窗改用通用 ModalCard —— 中间可滚动、底部固定。 */
 import { ModalCard, ModalBody, ModalFooter } from '../ui2/ModalCard';
 import { PanelHeader } from '../ui/PanelHeader';
@@ -345,6 +346,8 @@ function PresetsPanel({ visible, onClose, presetRev, connectedDeviceId, register
     if (ok) notifyOk(text); else notifyErr(text);
   };
   const { t, lang } = useI18n();
+  /* ★ 2026-11-17 v4.24：预设库顶部「TONE3000 · NAM A2 升级公告」弹窗开关 */
+  const [showNamNotice, setShowNamNotice] = useState(false);
   /* ★ v3.59（F8，2026-10-24 用户拍板）：只显示当前编组（4 格），用 BANK 键循环切换。
      切档 / 踩钉换档后自动跟随到目标档位所在组，避免"档位在 B 组、面板停在 A 组"。 */
   const [bankGroup, setBankGroup] = useState(() => Math.floor((activeSlot - 1) / 4));
@@ -653,7 +656,20 @@ function PresetsPanel({ visible, onClose, presetRev, connectedDeviceId, register
         </div>
       )}
       {/* Header */}
-      <PanelHeader title={t('panel.presets')} accent="#4cc9f0" onClose={onClose} />
+      <PanelHeader title={t('panel.presets')} accent="#4cc9f0" onClose={onClose}
+        right={
+          <button onClick={() => setShowNamNotice(true)} title="TONE3000 · NAM A2"
+            style={{
+              height: 28, padding: '0 8px', borderRadius: 8, cursor: 'pointer',
+              background: 'rgba(180,160,255,0.12)', border: '1px solid rgba(180,160,255,0.42)',
+              display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0,
+            }}>
+            <img src="/brand/logo-bf@2x.png" alt="" draggable={false}
+              style={{ height: 15, width: 'auto', opacity: 0.9 }} />
+            <span style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: '0.06em', color: '#c9b8ff', fontFamily: '"Barlow-Regular_2",sans-serif' }}>TONE3000</span>
+          </button>
+        }
+      />
 
       {/* ★ v3.60（2026-10-24 用户拍板）：外框随内容适配，按键保持比例、不被纵向拉长。
           ★ v3.61：频道键改竖矩形（固定高度 104，宽度吃满 1/4 行）——
@@ -813,6 +829,33 @@ function PresetsPanel({ visible, onClose, presetRev, connectedDeviceId, register
           </button>
         </div>
       </ModalFooter>
+
+      {/* ★ 2026-11-17 v4.24：TONE3000 · NAM A2 升级公告 —— 点任意处关闭 */}
+      {showNamNotice && (
+        <div onClick={() => setShowNamNotice(false)} style={{
+          position: 'absolute', inset: 0, zIndex: 70, cursor: 'pointer',
+          background: 'rgba(8,9,13,0.82)', backdropFilter: 'blur(4px)',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          padding: '28px 24px', textAlign: 'center',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 22 }}>
+            <img src="/brand/logo-bf@2x.png" alt="BFX1" draggable={false} style={{ height: 30, width: 'auto' }} />
+            <span style={{ width: 1, height: 26, background: 'rgba(255,255,255,0.2)' }} />
+            <span style={{ fontSize: 17, fontWeight: 800, letterSpacing: '0.08em', color: '#c9b8ff', fontFamily: '"Barlow-Regular_2",sans-serif' }}>TONE3000</span>
+          </div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: '#F0F2F5', fontFamily: '"Barlow-Regular_2",sans-serif', marginBottom: 16, letterSpacing: '0.02em' }}>
+            {lang === 'en' ? 'NAM A2 Upgrade Announcement' : 'NAM A2 升级公告'}
+          </div>
+          <div style={{ fontSize: 12.5, lineHeight: 1.9, color: '#c2c9d6', fontFamily: '"Barlow-Regular_2",sans-serif', maxWidth: 400 }}>
+            {lang === 'en'
+              ? 'Dear BFX1 users, we have reached a cooperation agreement with TONE3000 and will soon support NAM (Neural Amp Modeler) A2 format tones. We will provide free NAM A2 upgrade service for the first batch of users in China. Stay tuned for more NAM tones on BFX1.'
+              : '尊敬的BFX1用户，我们已与 TONE3000 达成合作协议，即将支持 NAM（Neural Amp Modeler）A2格式音色。我们将为中国区首批用户提供免费NAM A2升级服务，届时可在 BFX1 上加载更多NAM音色，敬请期待。'}
+          </div>
+          <div style={{ marginTop: 28, fontSize: 11, color: '#7C8494', fontFamily: '"Barlow-Regular_2",sans-serif', letterSpacing: '0.06em' }}>
+            {lang === 'en' ? 'Tap anywhere to close' : '点击任意处关闭'}
+          </div>
+        </div>
+      )}
     </ModalCard>
   );
 }
@@ -2398,6 +2441,51 @@ export default function Index() {
   }, [commitLocalGroupToPresets, t, writeLocalGroupToHardware]);
 
   /**
+   * ★★ v4.24（用户拍板）：恢复出厂音色 —— 把冻结的出厂 16 档（1–16）
+   *   直接下发到硬件 1a–4d。**不读「我的音色库」当前内容**，用户把库改成什么样
+   *   都不影响恢复结果。数据源是 factoryBank2026.ts 的冻结快照。
+   */
+  const handleRestoreFactory = useCallback(async (): Promise<boolean> => {
+    if (isBusy()) return false;
+    if (!bleManager.connected) {
+      notifyInfo(t('toast.connectBtFirst'), { duration: 3000 });
+      return false;
+    }
+    const factory = buildFactoryBank2026();
+    beginBusy(
+      t('switch.loading') || '写入中…',
+      '恢复出厂音色 · 共 16 格（1a–4d）',
+    );
+    let done = 0;
+    for (let g = 0; g < 4; g++) {
+      for (let k = 0; k < 4; k++) {
+        const idx = g * 4 + k;
+        const dst = idx + 1;
+        const p = factory[idx];
+        if (!p) { endBusy(); notifyErr('出厂数据缺失，恢复中止', { duration: 3600 }); return false; }
+        const boost = (p.knobValues as Record<string, Record<string, number>> | undefined)?.['boost']?.['BOOST'];
+        const res = await syncChannelToHardware(
+          dst,
+          withSwitchPlan(p.registers ?? {}, p.modules as Record<string, boolean> | undefined),
+          boost,
+          true,
+          p.modules as Record<string, boolean> | undefined,
+          k === 0,   // 每组第 1 格做全表回读校验
+        );
+        if (!res.ok) {
+          endBusy();
+          notifyErr(`${hwSlotName(dst)} 写入中断（已完成 ${done}/16 格），请重试`, { duration: 3800 });
+          return false;
+        }
+        done++;
+      }
+    }
+    endBusy();
+    notifyOk(`已恢复出厂音色 ${done} 格 · 已校验`, { duration: 3800 });
+    return true;
+  }, [syncChannelToHardware, t]);
+
+  /**
    * ★ v6.2 连接后完整恢复 UI 到硬件当前频道的音色（本地镜像 → UI，不写硬件）：
    * 寄存器镜像 + 播放模式 / 模块开关 / 子型号 / IO / 旋钮位置（与切台 handleSlotSelect 的 2/3/4 步一致）。
    * 硬件此时已处于该频道音色状态，因此不写任何 BLE（PGA 也不写）。
@@ -3333,6 +3421,8 @@ export default function Index() {
                 onUploadToPreset={handleUploadLocalToPreset}
                 /* ★ 2026-11-16：四组上传 —— 一次覆盖硬件 1a–4d 全部 16 档 */
                 onUploadAllGroups={handleUploadAllLocalGroups}
+                /* ★ 2026-11-17 v4.24：恢复出厂音色（下发冻结的出厂16档，不读当前库） */
+                onRestoreFactory={handleRestoreFactory}
               />
             </div>
           )}

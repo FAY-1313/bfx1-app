@@ -33,7 +33,7 @@ import { PASSTHROUGH_MODULES, MODULE_PARAM_RANGES, getModuleOffRegs, applyWhitel
 import { CAB_SETS } from './_def/cabinetDef';
 import { TONE25_CABS, TONE25_HEADS } from './_def/tone25';
 import { PRESETS25, type Preset25Spec } from './_def/presets25';
-import { buildLocalBank2026Seeds } from './localBank2026';
+import { buildLocalBank2026Seeds, buildMyToneBank2026 } from './localBank2026';
 import { CABINET_PEQ } from '../data/cabinetPeqData';
 /* ★★★ 2026-10-31（用户拍板·第二次修正）：预设库 16 格 = **固件出厂 16 档**，
  *   寄存器与模块开关逐条取自 data/firmwareBank.ts（= 固件 tone_channels_v1.c）。
@@ -1276,9 +1276,9 @@ export const LOCAL_BANK_TONES: ToneDef[] = [
 ];
 
 export function buildLocalBankSeeds(): LocalPreset[] {
-  /* 2026-11-16：我的音色库改为四组新音色，直接使用最新 25+25、OD10 与 FX
-     参数；B/C 参考型号不再进入本地库。 */
-  return buildLocalBank2026Seeds();
+  /* ★ 2026-11-17 v4.24：我的音色库换成新 16 档（12 吉他 + 4 贝斯，
+     型号与出厂默认不同）。旧的 16 档已冻结到 factoryBank2026.ts 供「恢复出厂」用。 */
+  return buildMyToneBank2026();
 }
 
 /**
@@ -1361,7 +1361,7 @@ const LOCAL_SEED_KEY = 'bfx_localBankSeeds_v31';
  *  只把仍叫出厂名字的格子刷新为新参数（音量 239 + 激励器 PGA）。
  *  用户改过名 / 另存的音色不动。 */
 const LOCAL_SEED_CONTENT_KEY = 'bfx_localBank2026_content';
-const LOCAL_SEED_CONTENT_VER = '2026-11-16-plexi-drive2';
+const LOCAL_SEED_CONTENT_VER = '2026-11-17-new-mybank-12g4b';
 /* ★ 2026-11-16（用户拍板）：四组重构 —— 1 组线材直通、2 组 US CLEAN、
    3 组马歇尔 PLEXI、4 组贝斯（后两档带 ≤5 dB 过载）。
    下表同时保留**上一版**的出厂名（CRUNCH/SOLO/FINGER…），
@@ -1388,7 +1388,7 @@ function refreshLocalBank2026FactoryTones(): number {
   } catch { /* 隐私模式：仍然尝试 */ }
   let n = 0;
   try {
-    const seeds = buildLocalBank2026Seeds();
+    const seeds = buildMyToneBank2026();
     const slots = loadBankSlots();
     for (const seed of seeds) {
       const cur = slots.find((x) => x.slot === seed.slot);
