@@ -67,6 +67,7 @@ import {
 } from '../data/ampParams';
 import TutorialOverlay, { TourStep } from '../components/TutorialOverlay';
 import HwGuidePanel from '../ui2/HwGuidePanel';
+import { FULLSCREEN_SAFE_STYLE } from '../utils/safeArea';
 /* ★ 2026-11-05（统一整改）：预设库弹窗改用通用 ModalCard —— 中间可滚动、底部固定。 */
 import { ModalCard, ModalBody, ModalFooter } from '../ui2/ModalCard';
 import { PanelHeader } from '../ui/PanelHeader';
@@ -3602,7 +3603,7 @@ export default function Index() {
     {/* ── Full-screen PDF viewer ── */}
     {fullScreenPdf && (
       <div style={{
-        position: 'fixed', inset: 0, zIndex: 200,
+        ...FULLSCREEN_SAFE_STYLE, zIndex: 200,
         background: '#525659', display: 'flex', flexDirection: 'column',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 10px', background: 'rgba(0,0,0,0.7)', flexShrink: 0 }}>

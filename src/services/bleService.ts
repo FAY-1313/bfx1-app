@@ -599,10 +599,13 @@ class BLEManager {
             await BleClient.connect(deviceId, this._disconnectCallback, {
               /* 官方默认 10s：iOS 需覆盖「物理连接 + 服务/特征发现」全过程 */
               timeout: CONN_TIMEOUT_MS,
-              /* ★ 2026-11-17（连接提速）：官方 connect 选项，跳过描述符发现。
-                 本 App 只用 F1/F2 特征值读写，从不读 descriptor；跳过能为每次
-                 iOS 连接省下一整轮 GATT 发现往返（官方明确用于 improve connection speed）。 */
-              skipDescriptorDiscovery: true,
+              /* ★ 2026-11-17（撤回提速参数·写入失败根因）：
+                 之前为提速加了 skipDescriptorDiscovery:true，但官方 issue #809 确认
+                 iOS 上该标志存在线程竞态——重连时读回 stale false，去等永远不会来的
+                 descriptor 发现 → connect 超时/得到半连接，表现为「连上了但旋钮写不进去」。
+                 改回官方默认 false（完整发现服务+特征+描述符），稳定性优先。
+                 代价：每次 iOS 连接多约 0.5~1s，但写入可靠。 */
+              skipDescriptorDiscovery: false,
             });
             lastErr = null;
             break;

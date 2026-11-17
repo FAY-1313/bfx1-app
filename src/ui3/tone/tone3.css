@@ -1377,7 +1377,10 @@
   --t3-mint: #57e3a5;
   --t3-red: #ff4b3e;
   position: fixed;
-  inset: 0;
+  top: var(--sa-top, env(safe-area-inset-top, 0px));
+  bottom: var(--sa-bottom, env(safe-area-inset-bottom, 0px));
+  left: var(--sa-left, 0px);
+  right: var(--sa-right, 0px);
   z-index: 120;
   display: flex;
   align-items: flex-end;
@@ -1388,11 +1391,12 @@
 }
 .t3sheet {
   width: 100%;
-  max-width: 560px;
-  max-height: 86dvh;
+  max-width: min(560px, 100%);
+  box-sizing: border-box;
+  max-height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 0 12px calc(10px + env(safe-area-inset-bottom));
+  padding: 0 12px calc(10px + var(--sa-bottom, env(safe-area-inset-bottom, 0px)));
   border-radius: 18px 18px 0 0;
   border: 1px solid rgba(255, 255, 255, 0.11);
   border-bottom: 0;
@@ -1417,9 +1421,10 @@
   gap: 10px;
   padding: 4px 2px 8px;
 }
-.t3sheet-head > div { flex: 1; min-width: 0; }
+.t3sheet-head > div { flex: 1 1 0; min-width: 0; overflow: hidden; }
 .t3sheet-head h2 {
   margin: 0;
+  max-width: 100%;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;

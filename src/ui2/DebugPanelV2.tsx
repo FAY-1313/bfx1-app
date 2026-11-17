@@ -28,6 +28,7 @@ import KnobRing from './KnobRing';
 import { peqGainDb } from './Knob';
 import { exportParams } from './paramExport';
 import { TONE25_CABS, TONE25_HEADS } from '../data/_def/tone25';
+import { FULLSCREEN_SAFE_STYLE } from '../utils/safeArea';
 
 /**
  * 自定义模块卡片上的旋钮「只读视图」：寄存器原值 → { 归一位置, 读数 }。
@@ -726,7 +727,7 @@ export default function DebugPanelV2({
 
   return (
     <div style={{
-      position: 'fixed', inset: 0, zIndex: 320, display: 'flex', flexDirection: 'column',
+      ...FULLSCREEN_SAFE_STYLE, zIndex: 320, display: 'flex', flexDirection: 'column',
       background: '#2a2e37', color: '#E6EAF0',
       fontFamily: '"Barlow-Regular_2", -apple-system, "PingFang SC", sans-serif',
     }}>

@@ -1,4 +1,19 @@
 import { Capacitor } from '@capacitor/core';
+import type { CSSProperties } from 'react';
+
+/**
+ * 全屏浮层统一安全区填充（替代 `position:fixed; inset:0`）。
+ * fixed 元素不受 #root 的 padding 影响、从视口 y=0 起，会被状态栏/灵动岛盖住。
+ * 用 CSS 变量把四边都收进安全区，iOS + Android 沉浸式状态栏一并兼容。
+ * 用法：<div style={{ ...FULLSCREEN_SAFE_STYLE, zIndex: 60, ... }}>…</div>
+ */
+export const FULLSCREEN_SAFE_STYLE: CSSProperties = {
+  position: 'fixed',
+  top: 'var(--sa-top, 0px)',
+  bottom: 'var(--sa-bottom, 0px)',
+  left: 'var(--sa-left, 0px)',
+  right: 'var(--sa-right, 0px)',
+};
 
 /**
  * ★ 2026-11-11（用户反馈「上方与 iOS 系统 UI 重叠，显示不了也点不到」）：
@@ -31,24 +46,35 @@ export function applySafeAreaInsets(): void {
   probe.remove();
 
   if (Capacitor.getPlatform() === 'ios' && top === 0) {
-    /* ★★ 2026-11-17（全机型适配）：必须用 **screen.height**（设备逻辑高度，恒定），
-       不能用 innerHeight —— TestFlight 顶部横幅 / 键盘弹出 / Safari 工具栏都会让
-       innerHeight 变小，导致把灵动岛机型误判成刘海、把刘海误判成老机型，
-       顶栏就又被压住（用户报的「返回点不到」）。screen 不受这些影响。 */
+    /* ★★ 2026-11-17（v4.20 · 按宽度+高度联合判机型，根治 iPhone 13 显示不全）：
+       旧逻辑只按高度 h>=840 判灵动岛(59)，而 iPhone 13=844、13 Pro=852、
+       13 Pro Max=926 全都 >=840 → 被误判成灵动岛、顶部多留 12px、底部留白、
+       内容被压缩显示不全。真实逻辑分辨率：
+         SE(1/2/3) 375x667 / 老机型 ~667-700 → 状态栏 20、无 Home 条 padding
+         iPhone X/XS/11 Pro 375x812 → 刘海 47 / 34
+         iPhone 13/13 Pro/14 390x844、393x852 → 刘海 47 / 34
+         iPhone 13/14 Pro Max 428x926、430x932 → 刘海/灵动岛 47~59 / 34
+         iPhone 14 Pro/15 系列（灵动岛）→ 59 / 34
+       单靠高度无法区分 13 Pro(852) 与 14 Pro(852)、13 Pro Max(926) 与 15 Pro Max(932)。
+       故联合宽度判断，并对「灵动岛 vs 刘海同高」的边界取更稳妥的 47（宁可少留、不遮挡）。
+       注意：这段只是 env()==0 时的兜底；env 正常时优先用真值。 */
     const w = window.screen.width || 0;
     const h = window.screen.height || 0;
     const iPad = w >= 700;               // iPad 全系竖屏宽度 ≥768
+    const isDynamicIsland = h >= 932 && w >= 420;  // 仅 14/15 Pro Max 级大屏判灵动岛
     if (iPad) {
       /* iPad：无 Home 指示条机型 bottom=0；全面屏 iPad Pro 底部手势区 20~34。
          env() 正常时不会进这里；这里只是 env=0 的兜底。 */
       top = top || 20;
       bottom = bottom || 0;
-    } else if (h >= 840) {               // iPhone 灵动岛（14/15/16 Pro 等）
+    } else if (isDynamicIsland) {
       top = 59; bottom = bottom || 34;
-    } else if (h >= 780) {               // iPhone 刘海（X/11/12/13 等）
+    } else if (h >= 780) {
+      /* 刘海机型（X/11/12/13/14 全系，含 Pro/Max）统一 47/34。
+         13 Pro Max(926) 等若实为灵动岛，env 正常时会给 59；这里兜底取 47 更安全。 */
       top = 47; bottom = bottom || 34;
-    } else if (h >= 700) {               // iPhone 老机型（带状态栏、无刘海）
-      top = 20;
+    } else if (h >= 640) {
+      top = 20; bottom = bottom || 0;    // 老机型 / SE（667）
     }
   }
 

@@ -14,6 +14,7 @@ import {
   GUIDE_FEATURES, FEATURE_MAP, DEMO_STEPS, DEMO_SPEEDS, initialDemoState,
   type DemoState, type KeyId, type KeyAct,
 } from '../data/deviceGuide';
+import { FULLSCREEN_SAFE_STYLE } from '../utils/safeArea';
 
 const ORANGE = '#F06F21';
 const CARD_BG = 'rgba(28,29,33,0.97)';
@@ -177,7 +178,7 @@ export default function HwGuidePanel({ open, tutorial = false, onClose, lang = '
 
   return (
     <div style={{
-      position: 'fixed', inset: 0, zIndex: 60, background: '#24262b',
+      ...FULLSCREEN_SAFE_STYLE, zIndex: 60, background: '#24262b',
       display: 'flex', flexDirection: 'column', fontFamily: FONT, color: TEXT,
     }}>
       {/* 顶部栏 */}
