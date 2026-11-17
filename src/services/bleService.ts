@@ -599,6 +599,10 @@ class BLEManager {
             await BleClient.connect(deviceId, this._disconnectCallback, {
               /* 官方默认 10s：iOS 需覆盖「物理连接 + 服务/特征发现」全过程 */
               timeout: CONN_TIMEOUT_MS,
+              /* ★ 2026-11-17（连接提速）：官方 connect 选项，跳过描述符发现。
+                 本 App 只用 F1/F2 特征值读写，从不读 descriptor；跳过能为每次
+                 iOS 连接省下一整轮 GATT 发现往返（官方明确用于 improve connection speed）。 */
+              skipDescriptorDiscovery: true,
             });
             lastErr = null;
             break;

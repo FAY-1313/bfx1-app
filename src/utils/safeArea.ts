@@ -31,10 +31,25 @@ export function applySafeAreaInsets(): void {
   probe.remove();
 
   if (Capacitor.getPlatform() === 'ios' && top === 0) {
-    const h = window.innerHeight || window.screen.height || 0;
-    if (h >= 840) { top = 59; bottom = bottom || 34; }
-    else if (h >= 780) { top = 47; bottom = bottom || 34; }
-    else if (h >= 700) { top = 20; }
+    /* ★★ 2026-11-17（全机型适配）：必须用 **screen.height**（设备逻辑高度，恒定），
+       不能用 innerHeight —— TestFlight 顶部横幅 / 键盘弹出 / Safari 工具栏都会让
+       innerHeight 变小，导致把灵动岛机型误判成刘海、把刘海误判成老机型，
+       顶栏就又被压住（用户报的「返回点不到」）。screen 不受这些影响。 */
+    const w = window.screen.width || 0;
+    const h = window.screen.height || 0;
+    const iPad = w >= 700;               // iPad 全系竖屏宽度 ≥768
+    if (iPad) {
+      /* iPad：无 Home 指示条机型 bottom=0；全面屏 iPad Pro 底部手势区 20~34。
+         env() 正常时不会进这里；这里只是 env=0 的兜底。 */
+      top = top || 20;
+      bottom = bottom || 0;
+    } else if (h >= 840) {               // iPhone 灵动岛（14/15/16 Pro 等）
+      top = 59; bottom = bottom || 34;
+    } else if (h >= 780) {               // iPhone 刘海（X/11/12/13 等）
+      top = 47; bottom = bottom || 34;
+    } else if (h >= 700) {               // iPhone 老机型（带状态栏、无刘海）
+      top = 20;
+    }
   }
 
   const root = document.documentElement.style;

@@ -130,10 +130,18 @@ export function LoginScreen({
 }) {
   const cells = Array.from({ length: 12 }, (_, i) => i);
   const vp = useVisualViewport();
+  /* ★★ 2026-11-17（iOS TestFlight 返回键被状态栏盖住根治）：
+     本组件 portal 到 document.body，**绕过了 #root 的 padding**（安全区只加在 #root 上），
+     所以这里必须自己吃进 --sa-top/--sa-bottom。否则 iPhone 灵动岛(59px)/刘海(47px)/
+     TestFlight 顶部条会把 52px 的标题栏压住 → 左上角「返回」和标题点不到、重叠。
+     用 CSS var 读取 safeArea.ts 实测值，键盘弹出时仍以 visualViewport 为准。 */
+  const sTop = "var(--sa-top, 0px)";
+  const sBottom = "var(--sa-bottom, 0px)";
   const overlay = (
     <div
       style={{
-        position: 'fixed', left: 0, right: 0, top: vp.top, height: vp.height,
+        position: 'fixed', left: 0, right: 0, top: `calc(${vp.top}px + ${sTop})`,
+        height: `calc(${vp.height}px - ${sTop} - ${sBottom})`,
         background: C.bg, display: 'flex', flexDirection: 'column',
         overflow: 'hidden', zIndex: 4000,
       }}
@@ -164,7 +172,9 @@ export function LoginScreen({
         style={{
           position: 'relative', flex: 1, minHeight: 0,
           display: 'flex', flexDirection: 'column', justifyContent: 'flex-start',
-          padding: '8px 20px max(24px, env(safe-area-inset-bottom))',
+          /* ★ 2026-11-17：overlay 已减去 --sa-bottom，这里不再叠加 env()，
+             否则键盘/底部会多留一倍空白。 */
+          padding: '8px 20px 24px',
           overflowY: 'auto', WebkitOverflowScrolling: 'touch',
         }}
         className="no-scrollbar"

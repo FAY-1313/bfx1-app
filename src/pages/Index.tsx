@@ -3468,7 +3468,19 @@ export default function Index() {
         )}
 
         {/* ── BOTTOM MENU BAR · v5.2 三 tab（TONE / LIBRARY / PRESET · 原型样式） ── */}
-        <div style={{ flexShrink: 0, background: '#2c2f36', borderTop: '1px solid #454b55', display: 'flex', alignItems: 'stretch', padding: '3px 6px 5px', gap: 4 }}>
+        {/* ★★ 2026-11-17（全机型适配 · 底栏贴底）：#root 有 padding-bottom:--sa-bottom，
+            以前底栏停在该 padding 上沿，真机（Home 指示条 34px）下方就露出一条
+            页面底色的空白带，看着像"菜单没到底"。这里让底栏背景用负 margin 向下
+            延伸穿过这段 padding 到物理屏底，同时用等量的 padding-bottom 把按钮
+            内容顶回安全区上方 —— 既贴底又不被 Home 指示条挡住。
+            sa-bottom=0 的机型（浏览器/Android 无手势条）计算后仍是原样，无副作用。 */}
+        <div style={{
+          flexShrink: 0, background: '#2c2f36', borderTop: '1px solid #454b55',
+          display: 'flex', alignItems: 'stretch', gap: 4,
+          padding: '3px 6px 5px',
+          marginBottom: 'calc(-1 * var(--sa-bottom, 0px))',
+          paddingBottom: 'calc(5px + var(--sa-bottom, 0px))',
+        }}>
           {/* 1. TONE — 四分区音色链路首页 */}
           {/* ★ 2026-10-17（用户要求）：双击 = 复位默认配色，长按 600ms = 锁定/解锁配色。
               注意这里**不能再用 disabled** —— 禁用按钮不派发事件，手势会收不到；

@@ -395,7 +395,8 @@ export default function BluetoothPanel({
          ★ 2026-11-16：订阅已并入 bleManager.connect()（自动重连也走那条路），
            这里保留调用是为了让 _onNotify 挂上业务回调；重复订阅是幂等的。 */
       onConnect(deviceId);
-      void bleManager.startNotifications(() => {}).catch(() => {});
+      /* ★ 2026-11-17（连接提速）：订阅已在 bleManager.connect() 内完成，
+         这里原本再 startNotifications(()=>{}) 一次是多余的原生往返，去掉。 */
     } else {
       onConnectFail?.();
       notifyErr(t('bt.connectFail'));
