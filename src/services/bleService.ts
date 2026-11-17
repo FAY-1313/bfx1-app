@@ -273,6 +273,27 @@ class BLEManager {
     this._consecutiveWriteFailures = 0;
   }
 
+  /**
+   * ★★ v4.21（iOS 写入失败根治）：统一 GATT 写调用。
+   * 官方 issue #661：iOS 上 BleClient.write（withResponse）在设备**已成功写入**后，
+   * didWriteValueFor 回调不触发 → promise 超时 → 误报「写入失败」；加大超时无效，
+   * 而同一固件 Android 正常。固件 F1 属性 0x0c 含 WRITE_NO_RSP，且本项目 EA 批量写
+   * 一直用 writeWithoutResponse 且工作正常。
+   * 故 iOS 单帧写也改用 writeWithoutResponse（发出即 resolve，不等回调），
+   * Android 保持 withResponse（其回调可靠）。noResponse 调用方显式要求时也走无响应。
+   */
+  private async writeOnGatt(dv: DataView, label: string): Promise<void> {
+    const id = this._connectedDeviceId!;
+    const { BleClient } = await importBlePlugin();
+    if (!BleClient) throw new Error('BleClient not available');
+    const noRsp = Capacitor.getPlatform() === 'ios';
+    await withTimeout(
+      noRsp
+        ? BleClient.writeWithoutResponse(id, BLE_SERVICE, BLE_WRITE_CHAR, dv)
+        : BleClient.write(id, BLE_SERVICE, BLE_WRITE_CHAR, dv),
+      WRITE_CALL_TIMEOUT_MS, label);
+  }
+
   /** 写时隙：排队 + 最小间隔（见 _acquireWriteSlot） */
   private async _acquireWriteSlot(command: number): Promise<() => void> {
     const gap = command === CMD_SAVE ? EB_WRITE_GAP_MS : MIN_WRITE_GAP_MS;
@@ -855,16 +876,15 @@ class BLEManager {
         const { BleClient, numbersToDataView } = await importBlePlugin();
         if (!BleClient) { console.warn('[BLE] BleClient not available'); return false; }
         const dv = numbersToDataView(frame);
-        /* ★★ v3.75（H5）：插件 promise 加超时 —— 永不 settle 时否则会一直挂着，
-           外层 finally（duckOff / endBusy）永远不执行 = 整机静音 + 全局锁死。 */
+        /* ★★ v4.21：iOS 走 writeWithoutResponse 绕开 didWriteValueFor 不回调的缺陷；
+           显式 noResponse（整表/批处理调用方）也尊重；Android 保持 withResponse。
+           writeOnGatt 内部已含超时与 BleClient 获取。 */
         if (noResponse) {
           await withTimeout(
             BleClient.writeWithoutResponse(this._connectedDeviceId, BLE_SERVICE, BLE_WRITE_CHAR, dv),
             WRITE_CALL_TIMEOUT_MS, 'ble write');
         } else {
-          await withTimeout(
-            BleClient.write(this._connectedDeviceId, BLE_SERVICE, BLE_WRITE_CHAR, dv),
-            WRITE_CALL_TIMEOUT_MS, 'ble write');
+          await this.writeOnGatt(dv, 'ble write');
         }
       }
       this._consecutiveWriteFailures = 0;
@@ -960,9 +980,7 @@ class BLEManager {
          `await onParam('PGA', lv)`）也就永远不返回，try/finally 的 endBusy
          执行不到 = LOADING 遮罩永久停留。排队锁虽然 3s 会重建，
          但救不了「已挂住的这一个 promise」。 */
-      await withTimeout(
-        BleClient.write(this._connectedDeviceId, BLE_SERVICE, BLE_WRITE_CHAR, numbersToDataView(frame)),
-        WRITE_CALL_TIMEOUT_MS, 'pga write');
+      await this.writeOnGatt(numbersToDataView(frame), 'pga write');
       this._consecutiveWriteFailures = 0;
       return true;
     } catch (e) {
@@ -993,9 +1011,7 @@ class BLEManager {
       console.log(`[EQ FILE] index=${idx} frame=${hex}`);
       const { BleClient, numbersToDataView } = await importBlePlugin();
       if (!BleClient) return false;
-      await withTimeout(
-        BleClient.write(this._connectedDeviceId, BLE_SERVICE, BLE_WRITE_CHAR, numbersToDataView(frame)),
-        WRITE_CALL_TIMEOUT_MS, 'eq file write');
+      await this.writeOnGatt(numbersToDataView(frame), 'eq file write');
       this._consecutiveWriteFailures = 0;
       return true;
     } catch (e) {
@@ -1327,9 +1343,8 @@ class BLEManager {
       if (this._useWebBluetooth && this._writeChar) {
         await this._writeChar.writeValue(new Uint8Array(bytes));
       } else {
-        const { BleClient, numbersToDataView } = await importBlePlugin();
-        if (!BleClient) { console.warn('[BLE] BleClient not available'); return false; }
-        await BleClient.write(this._connectedDeviceId, BLE_SERVICE, BLE_WRITE_CHAR, numbersToDataView(bytes));
+        const { numbersToDataView } = await importBlePlugin();
+        await this.writeOnGatt(numbersToDataView(bytes), 'ble raw');
       }
       this._consecutiveWriteFailures = 0;
       return true;
@@ -1429,11 +1444,8 @@ class BLEManager {
       if (this._useWebBluetooth && this._writeChar) {
         await withTimeout(this._writeChar.writeValue(new Uint8Array(frame)), WRITE_CALL_TIMEOUT_MS, 'webble tone');
       } else {
-        const { BleClient, numbersToDataView } = await importBlePlugin();
-        if (!BleClient) return false;
-        await withTimeout(
-          BleClient.write(this._connectedDeviceId, BLE_SERVICE, BLE_WRITE_CHAR, numbersToDataView(frame)),
-          WRITE_CALL_TIMEOUT_MS, 'ble tone');
+        const { numbersToDataView } = await importBlePlugin();
+        await this.writeOnGatt(numbersToDataView(frame), 'ble tone');
       }
       this._consecutiveWriteFailures = 0;
       return true;
