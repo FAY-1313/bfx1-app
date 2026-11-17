@@ -299,7 +299,13 @@ class BLEManager {
       let lastErr: any = null;
       for (let attempt = 0; attempt < 2; attempt++) {
         try {
-          await BleClient.writeWithoutResponse(id, BLE_SERVICE, BLE_WRITE_CHAR, dv);
+          /* ★ v4.25：必须给插件调用套超时 —— 插件全局 queue 一旦被某个原生不回调的调用
+             堵住，writeWithoutResponse 会永久 pending；外层超时让 onParam 能及时失败返回，
+             不至于把旋钮 UI 卡在 loading。writeWithoutResponse 正常路径是同步 resolve，
+             这个超时只在实际卡死时才触发。 */
+          await withTimeout(
+            BleClient.writeWithoutResponse(id, BLE_SERVICE, BLE_WRITE_CHAR, dv),
+            WRITE_CALL_TIMEOUT_MS, 'ios write');
           return;
         } catch (e) {
           lastErr = e;
@@ -812,27 +818,14 @@ class BLEManager {
       if (!alive) await this.hardResetLink(id);
       return alive;
     }
-    /* ★★ v4.24（iOS 写入失败真正根治）：
-       旧实现 iOS 直接 return true → 即便 peripheral.state 已不是 connected，
-       App 永远认为"连着"，每次写入都在原生 getDevice 的 isConnected() 守卫被 reject
-       （"Not connected to device."，帧根本没发出去），且不触发重连 → 永久"连着写不进"。
-       改为原生 getConnectedDevices 真值核验（只读、不抢写入 GATT、不会自激重连）：
-       查不到这台设备 = 真的断了 → hardResetLink 触发上层自动重连自愈。 */
-    if (Capacitor.getPlatform() === 'ios') {
-      try {
-        const { BleClient } = await importBlePlugin();
-        const res: any = await withTimeout(
-          (BleClient as any).getConnectedDevices([BLE_SERVICE]),
-          timeoutMs, 'probe connected');
-        const list: any[] = Array.isArray(res) ? res : (res?.devices ?? []);
-        const alive = list.some((d: any) => String(d?.deviceId ?? '').toLowerCase() === id.toLowerCase());
-        if (!alive) { await this.hardResetLink(id); return false; }
-        return true;
-      } catch {
-        /* 核验本身失败不判死 —— 交给上层连续写失败的后续重试，避免误拆健康链路 */
-        return true;
-      }
-    }
+    /* ★★ v4.25（iOS 写入失败真正根治 · 撤回 v4.24 的错误探活）：
+       v4.24 这里用 BleClient.getConnectedDevices 做核验，但它**走插件全局 queue**——
+       withTimeout 只是让 JS 放弃等待，队列里那个调用若因原生不回调而永不 settle，
+       会把整条 queue 永久堵住，之后**每一次 write 都排在它后面全部超时**
+       → 表现正是「显示已连接、一拧旋钮就写入失败、改写入方式全无效、iOS-only」。
+       彻底移除：iOS 不做任何走插件 API 的主动探活，信任原生 didDisconnect 回调；
+       链路真断时由 writeRegister catch 里的错误文本识别（不进 queue）触发重连。 */
+    if (Capacitor.getPlatform() === 'ios') return true;
     /* ★ 2026-11-16（用户报障「连接不稳定时特别容易卡住」）：
        一次读超时**不代表链路死了** —— 上传/切换时 GATT 正忙，读探测经常撞上拥塞。
        旧实现一次失败就 hardResetLink → 把健康链路拆掉 → 触发重连 → 用户看到"卡住/重启"。
