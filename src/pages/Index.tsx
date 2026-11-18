@@ -2892,8 +2892,10 @@ export default function Index() {
 
         {/* ── HEADER ── */}
         <header style={{
-          height: 48, background: '#2c2f36',
-          borderBottom: '1px solid #454b55',
+          /* ★ v4.31：灰模式下底色/分隔线走变量（--bfx-bar 由 config/theme.ts 写入），
+             深色模式变量不存在 → 回落原来的 #2c2f36 / #454b55，观感不变。 */
+          height: 48, background: 'var(--bfx-bar, #2c2f36)',
+          borderBottom: '1px solid var(--bfx-bar-line, #454b55)',
           // flex 行: BFX1 — 频谱(居中于 BFX1 与胶囊之间) — GUITAR/BASS胶囊 — 语言
           // 两侧弹性空档吸收语言切换宽度变化 → 切换零位移
           display: 'flex', alignItems: 'center',
@@ -2927,13 +2929,13 @@ export default function Index() {
                  · 不再需要 320ms 双击等待，点下即切
                  · 回滚：THEME_SWITCH=false 时这里直接 return，只剩弹跳动画 */
               if (!THEME_SWITCH) return;
-              const next: ThemeMode = themeMode === 'light' ? 'dark' : 'light';
+              const next: ThemeMode = themeMode === 'grey' ? 'dark' : 'grey';
               setThemeMode(next);
               saveTheme(next);
               notifyInfo(
-                next === 'light'
-                  ? (lang === 'zh' ? '暖色（浅色）模式' : 'Warm light theme')
-                  : (lang === 'zh' ? '深色模式' : 'Dark theme'),
+                next === 'grey'
+                  ? (lang === 'zh' ? '灰色底板' : 'Grey panels')
+                  : (lang === 'zh' ? '深色底板' : 'Dark panels'),
                 { duration: 1200 },
               );
             }}
@@ -3561,7 +3563,9 @@ export default function Index() {
             内容顶回安全区上方 —— 既贴底又不被 Home 指示条挡住。
             sa-bottom=0 的机型（浏览器/Android 无手势条）计算后仍是原样，无副作用。 */}
         <div style={{
-          flexShrink: 0, background: '#2c2f36', borderTop: '1px solid #454b55',
+          /* ★ v4.31：底栏与顶栏、底板同色（--bfx-bar） */
+          flexShrink: 0, background: 'var(--bfx-bar, #2c2f36)',
+          borderTop: '1px solid var(--bfx-bar-line, #454b55)',
           display: 'flex', alignItems: 'stretch', gap: 4,
           padding: '3px 6px 5px',
           marginBottom: 'calc(-1 * var(--sa-bottom, 0px))',
