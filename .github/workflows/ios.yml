@@ -2,6 +2,11 @@ name: iOS CI (TestFlight)
 
 on:
   workflow_dispatch:        # 手动触发（Actions 页面 ▸ Run workflow）
+    inputs:
+      run_maestro:          # 是否顺带跑模拟器 UI 冒烟（默认关，省 macOS 额度）
+        description: 'Run Maestro UI smoke (burns ~15 macOS minutes)'
+        type: boolean
+        default: false
   push:
     branches: [ ios-ci ]    # 推到 ios-ci 分支自动构建
 
@@ -140,8 +145,16 @@ jobs:
   #   每步截图；任一机型失败即整体失败。用于 UI 回归，不替代真机蓝牙测试。
   # ══════════════════════════════════════════════════════════════════
   maestro-smoke:
+    # ★ 2026-11-18：默认**不在 push 时跑**。
+    #   原因：① 它长期失败（.maestro 脚本本身不稳），一直是整体 workflow 变红的唯一原因，
+    #           而 IPA 上传在 build-ios 里，与它无关；
+    #         ② 它每次都要完整 npm ci + build + 起模拟器，实测 15 分钟起 ——
+    #           GitHub Free 的 macOS runner 按 **10 倍**计费，等于每次 push 白烧 150 分钟额度
+    #           （额度确实被烧光了，见 Billing）。
+    #   需要跑 UI 冒烟时：Actions ▸ iOS CI ▸ Run workflow ▸ 勾 run_maestro。
+    if: github.event_name == 'workflow_dispatch' && inputs.run_maestro == true
     runs-on: macos-latest
-    timeout-minutes: 45
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
