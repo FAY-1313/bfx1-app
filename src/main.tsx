@@ -2,6 +2,10 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 import { applySafeAreaInsets } from "./utils/safeArea.ts";
+import { applyTheme, readTheme } from "./config/theme.ts";
+
+/* ★ v4.30：主题要在首帧之前落到 <html> 上，否则会看到"深色闪一下再变浅" */
+applyTheme(readTheme());
 
 /* 安全区先量一次，再挂 React —— 免得首帧顶栏压在灵动岛下面闪一下 */
 applySafeAreaInsets();

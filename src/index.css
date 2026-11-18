@@ -708,3 +708,29 @@ input, textarea, [contenteditable="true"] {
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: none; }
 }
+
+/* ══════════════ 浅色（暖色）主题 · 全局部分（v4.30） ══════════════
+ * 启用：<html data-theme="light">（见 src/config/theme.ts）
+ * 回滚：theme.ts 的 THEME_SWITCH = false
+ * 说明：音色页的换肤在 ui3/tone/tone3.css 末尾那一大段；这里只管
+ *       ① 页面/外壳底色 ② 全局提示浮层 ③ 状态栏配色。
+ * ⚠ 强调色不能用 #ffa53a（暖白底上只有 1.9:1）——
+ *   图形用 #e2661b，小字号文字用 #b8500f（5.9:1）。 */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bfx-page: #ece7dc;
+}
+:root[data-theme="light"] body { background: #ece7dc; }
+
+/* 全局提示浮层：暖白底 + 深字（原来深底浅字，户外反而更糊） */
+:root[data-theme="light"] .fhint {
+  background: rgba(255, 253, 247, 0.985);
+  box-shadow: 0 10px 26px rgba(120, 100, 70, 0.22);
+}
+:root[data-theme="light"] .fhint-main { color: #2a2620; }
+:root[data-theme="light"] .fhint.is-single .fhint-main { color: var(--fh, #b8500f); }
+:root[data-theme="light"] .fhint-sub { color: var(--fh, #b8500f); }
+:root[data-theme="light"] .fhint-ok   { --fh: #b8500f; border-color: rgba(184, 80, 15, 0.52); }
+:root[data-theme="light"] .fhint-err  { --fh: #c0392b; border-color: rgba(192, 57, 43, 0.58); }
+:root[data-theme="light"] .fhint-warn { --fh: #a86a08; border-color: rgba(168, 106, 8, 0.55); }
+:root[data-theme="light"] .fhint-info { --fh: #5f5a50; border-color: rgba(95, 90, 80, 0.38); }

@@ -20,6 +20,8 @@ import { getUiSnapshot } from '../services/uiSnapshot';
 /* ★★ 2026-10-17：循环压测模式（仅测试包，正式版 TEST_SWEEP_MODE = false） */
 import { TEST_SWEEP_MODE } from '../config/testMode';
 import { APP_VERSION } from '../config/appVersion';
+/* ★ v4.30：明暗主题（LOGO 单击切换）。回滚见 config/theme.ts 头部说明 */
+import { THEME_SWITCH, applyTheme, readTheme, saveTheme, type ThemeMode } from '../config/theme';
 import { BG_ID, bgTint, getAccents, rollAccent, resetAccents, toggleAccentLock, subscribeAccents } from '../services/accentTheme';
 import { TEST_SWEEP_MAP } from '../data/_def/testSweep';
 import { savePresetLocal, loadPresetsLocal, getPresetLocal, markChannelDirty, markChannelClean, getDirtyChannels, getLocalBankApplied, setLocalBankApplied, getBankSlot, markBankSlotUploaded, markPresetUserSlot, getPresetUserSlots, saveBankSlot } from '../services/localPresets';
@@ -1023,14 +1025,16 @@ export default function Index() {
   const [debugMode, setDebugMode] = useState(false);
   /* ★★ v3.68：诊断类提示（「硬件切换到 X」「未能读取频道」）只在工程模式下显示 */
   useEffect(() => { setNotifyDebugMode(debugMode); }, [debugMode]);
-  /* ★ 2026-10-19：LOGO 手势
-       · 单击 = 播放弹跳动画（无副作用）
-       · 双击（320ms 内）= 中 / 英切换
+  /* ★ 2026-10-19 / ★ v4.30：LOGO 手势
+       · 单击 = **切换深色 / 暖色（浅色）主题**（弹跳动画保留当切换反馈）
+       · 双击 = 已取消（原「中 / 英切换」，语言入口挪到顶栏的「中·EN」按钮）
        · 长按 900ms = 进入 / 退出调试模式
        · logoHoldRef.timer：长按计时；fired = 本次长按已处理（用于吞掉随后的 click）
        · logoPopKey：每次点击自增 → 作为 key 让 CSS 动画重播 */
-  const logoClickRef = useRef({ last: 0 });
   const logoHoldRef = useRef({ timer: null as ReturnType<typeof setTimeout> | null, fired: false });
+  /* ★ v4.30：主题状态（默认深色；浅色是可选方案，切换后记忆） */
+  const [themeMode, setThemeMode] = useState<ThemeMode>(readTheme);
+  useEffect(() => { applyTheme(themeMode); }, [themeMode]);
   /* ★ 2026-10-17（用户要求）：配色 —— 顶栏空白处换底板色；TONE 键双击复位、长按锁定。
      配色存在 services/accentTheme.ts（跨组件共享），这里只订阅用于给整页底色上色。 */
   const [accMap, setAccMap] = useState(() => getAccents());
@@ -2918,14 +2922,20 @@ export default function Index() {
                 logoHoldRef.current.fired = false;
                 return;
               }
-              const r = logoClickRef.current;
-              const now = Date.now();
-              if (now - r.last < 320) {                    // 双击 → 切语言
-                r.last = 0;
-                setLang(lang === 'zh' ? 'en' : 'zh');
-                return;
-              }
-              r.last = now;
+              /* ★★★ v4.30（用户拍板）：单击 = 深 / 浅主题切换。
+                 · 双击切语言已取消 → 语言入口挪到顶栏「中·EN」按钮
+                 · 不再需要 320ms 双击等待，点下即切
+                 · 回滚：THEME_SWITCH=false 时这里直接 return，只剩弹跳动画 */
+              if (!THEME_SWITCH) return;
+              const next: ThemeMode = themeMode === 'light' ? 'dark' : 'light';
+              setThemeMode(next);
+              saveTheme(next);
+              notifyInfo(
+                next === 'light'
+                  ? (lang === 'zh' ? '暖色（浅色）模式' : 'Warm light theme')
+                  : (lang === 'zh' ? '深色模式' : 'Dark theme'),
+                { duration: 1200 },
+              );
             }}
             onPointerDown={() => {
               if (!btConnected) return;
@@ -2982,6 +2992,29 @@ export default function Index() {
             title={lang === 'zh' ? '点这里换底板颜色' : 'Tap to change background'}
             style={{ flex: 1, minWidth: 0, alignSelf: 'stretch', cursor: 'pointer' }}
           />
+
+          {/* ★ v4.30（用户要求）：语言切换入口 ——
+              原来挂在 LOGO 双击上，双击被改成"切主题"后挪到这里。
+              44 高热区、视觉 22 高小胶囊，和右侧图标按钮同一套语言。 */}
+          <button
+            type="button"
+            onClick={() => setLang(lang === 'zh' ? 'en' : 'zh')}
+            aria-label={lang === 'zh' ? 'Switch to English' : '切换到中文'}
+            title={lang === 'zh' ? '中 · EN' : 'EN · 中'}
+            style={{
+              flexShrink: 0, marginRight: 6, height: 40, padding: '0 9px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              border: 'none', background: 'none', cursor: 'pointer',
+            }}
+          >
+            <span style={{
+              display: 'flex', alignItems: 'center', height: 22, padding: '0 7px',
+              borderRadius: 6, border: '1px solid rgba(255,255,255,0.18)',
+              background: 'rgba(255,255,255,0.06)',
+              color: '#cfd5dd', fontSize: 10, fontWeight: 800, letterSpacing: '0.06em',
+              fontFamily: '"Barlow-Regular_2", sans-serif', lineHeight: 1,
+            }}>{lang === 'zh' ? '中 / EN' : 'EN / 中'}</span>
+          </button>
 
           {/* ★ 2026-10-17（用户要求）：删除首页顶部的「档位 + 音色名」常显胶囊。
               原先这里是 v69 的 H6 改动，用户确认不需要在首页顶部显示当前音色。 */}
