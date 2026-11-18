@@ -83,7 +83,8 @@ export interface QuickCardProps {
   variant: string;
   accent: string;
   on?: boolean;
-  onToggle?: () => void;
+  /** v4.29：回传电源按钮的矩形，供浮层贴到按钮上方 */
+  onToggle?: (rect?: DOMRect) => void;
   toggleAria?: string;
   knobLabel: string;
   hideKnobLabel?: boolean;
@@ -133,7 +134,7 @@ export function QuickCard({
           className="t3card-head t3power-head"
           aria-pressed={on}
           aria-label={toggleAria ?? title}
-          onClick={onToggle}
+          onClick={(e) => onToggle(e.currentTarget.getBoundingClientRect())}
         >
           {head}
         </button>
@@ -169,7 +170,7 @@ export interface PedalCardProps {
   row: ToneRow;
   values: Record<string, number>;
   on: boolean;
-  onToggle: () => void;
+  onToggle: (rect?: DOMRect) => void;
   onOpenPicker: () => void;
   onKnobChange: (label: string, v: number) => void;
   onKnobCommit: (label: string, v: number, prev: number) => void;
@@ -185,7 +186,7 @@ export function PedalCard({
         <button
           type="button"
           className="t3power-title"
-          onClick={onToggle}
+          onClick={(e) => onToggle(e.currentTarget.getBoundingClientRect())}
           aria-pressed={on}
           aria-label={`${title} ${t3(lang, on ? 'on' : 'off')}`}
         >
@@ -221,7 +222,7 @@ export interface FxCardProps {
   row: ToneRow;
   values: Record<string, number>;
   on: boolean;
-  onToggle: () => void;
+  onToggle: (rect?: DOMRect) => void;
   onOpenPicker?: () => void;
   presetName?: string;
   onOpenPresets?: () => void;
@@ -240,7 +241,7 @@ export function FxCard({
         <button
           type="button"
           className="t3power-title"
-          onClick={onToggle}
+          onClick={(e) => onToggle(e.currentTarget.getBoundingClientRect())}
           aria-pressed={on}
           aria-label={`${title} ${t3(lang, on ? 'on' : 'off')}`}
         >

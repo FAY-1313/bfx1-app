@@ -8,7 +8,8 @@ export interface AmpFaceProps {
   row: ToneRow;
   values: Record<string, number>;
   on: boolean;
-  onToggle: () => void;
+  /** v4.29：回传按钮矩形，供浮层贴着按钮弹出 */
+  onToggle: (rect?: DOMRect) => void;
   onOpenPicker: () => void;
   onKnobChange: (label: string, v: number) => void;
   onKnobCommit: (label: string, v: number, prev: number) => void;
@@ -79,7 +80,7 @@ export default function AmpFace({
         <button
           type="button"
           className="t3amp25-power"
-          onClick={onToggle}
+          onClick={(e) => onToggle(e.currentTarget.getBoundingClientRect())}
           aria-pressed={on}
           aria-label={t3(lang, 'ampPower')}
         >

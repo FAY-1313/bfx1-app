@@ -12,7 +12,8 @@ export interface CabSectionProps {
   count: number;
   hasPrev: boolean;
   hasNext: boolean;
-  onTogglePower: () => void;
+  /** v4.29：回传按钮矩形，供浮层贴着按钮弹出 */
+  onTogglePower: (rect?: DOMRect) => void;
   onToggleExpanded: () => void;
   onOpenPicker: () => void;
   onPrev: () => void;
@@ -37,7 +38,7 @@ export default function CabSection({
         <button
           type="button"
           className={`t3cab-led${on ? ' on' : ''}`}
-          onClick={onTogglePower}
+          onClick={(e) => onTogglePower(e.currentTarget.getBoundingClientRect())}
           aria-pressed={on}
           aria-label={t3(lang, 'cabPower')}
         >

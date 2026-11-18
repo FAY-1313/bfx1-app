@@ -632,3 +632,79 @@ input, textarea, [contenteditable="true"] {
   50%      { filter: drop-shadow(0 0 15px rgba(91,200,245,.78)) drop-shadow(0 0 34px rgba(91,200,245,.34)); }
 }
 
+
+/* ══════════════ 统一浮层提示（v4.29） ══════════════
+ * 与旋钮数值浮框（ui3/tone/tone3.css 的 .t3k-bubble）同一套视觉语言：
+ * 深底 rgba(9,11,14,.96) + 1px 语义色描边 + 10px 圆角。
+ * 位置由 components/FloatHint.tsx 决定：默认顶栏下方居中（--sa-top + 64px），
+ * 带 anchor 时贴着被点的按钮。层级 9998（旋钮浮层 9999 更高）。
+ * 整层 pointer-events:none —— 提示期间按钮照样能点。 */
+.fhint-layer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  z-index: 9998;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+/* 锚点模式：left/top/transform 由 JS 按控件实测坐标写入 */
+.fhint-layer.is-anchor {
+  left: auto;
+  right: auto;
+  display: block;
+}
+
+.fhint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  min-width: 120px;
+  max-width: 86vw;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: rgba(9, 11, 14, 0.96);
+  border: 1px solid rgba(255, 165, 58, 0.5);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+  font-family: "Barlow-Regular_2", sans-serif;
+  text-align: center;
+  white-space: normal;
+  word-break: break-word;
+  pointer-events: none;
+  animation: fhintIn 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.fhint-main {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0.02em;
+  color: #f2f3f5;
+}
+/* 只有一行时，正文直接用语义色（与旋钮浮框的数值同色） */
+.fhint.is-single .fhint-main { color: var(--fh, #ffa53a); }
+.fhint-sub {
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 0.06em;
+  color: var(--fh, #ffa53a);
+}
+
+.fhint-ok   { --fh: #ffa53a; border-color: rgba(255, 165, 58, 0.50); }
+.fhint-err  { --fh: #ff6b6b; border-color: rgba(229, 72, 77, 0.62); }
+.fhint-warn { --fh: #f5a524; border-color: rgba(245, 165, 36, 0.55); }
+.fhint-info { --fh: #c3c8d0; border-color: rgba(160, 166, 178, 0.40); }
+
+/* 淡出：必须显式关掉入场动画，否则 fill:both 会把 opacity 锁回 1 */
+.fhint.is-out {
+  animation: none;
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+@keyframes fhintIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}

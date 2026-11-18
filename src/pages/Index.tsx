@@ -1808,23 +1808,13 @@ export default function Index() {
     try { return localStorage.getItem('bfx_tour_done') === '1'; } catch { return false; }
   });
 
-  const [knobDisplayText, setKnobDisplayText] = useState<string | null>(null);
-  const [knobDisplayVisible, setKnobDisplayVisible] = useState(false);
-  const displayAutoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
+  /* ★★★ v4.29（用户拍板下线）：旧的「屏幕中部 18px 橙字」旋钮浮层已删除。
+     它和 ui3 的 `.t3k-bubble` 干的是同一件事，却是两套完全不同的样式
+     （一个 12px 圆角橙字、一个 8px 圆角深底带标签），同一个 App 出现两种"旋钮数值"。
+     现在统一走全局浮层（顶栏下方居中，与旋钮浮框同款皮肤），文案与停留时长保持原样。 */
   const handleKnobDisplay = useCallback((text: string | null) => {
-    if (displayAutoTimerRef.current) { clearTimeout(displayAutoTimerRef.current); displayAutoTimerRef.current = null; }
-    if (text === null) {
-      setKnobDisplayVisible(false);
-    } else {
-      setKnobDisplayText(text);
-      setKnobDisplayVisible(true);
-      // Auto-hide after 1.5s (fade out takes 1s)
-      displayAutoTimerRef.current = setTimeout(() => {
-        setKnobDisplayVisible(false);
-        displayAutoTimerRef.current = null;
-      }, 1500);
-    }
+    if (!text) return;
+    notifyInfo(text, { duration: 1500 });
   }, []);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -2879,36 +2869,6 @@ export default function Index() {
         transition: 'background .22s ease',
       }}
     >
-      {/* Knob value floating display — 1s fade out */}
-      <div style={{
-        /* ★ 2026-11-11：fixed 元素不吃 #root 的 padding，
-           原来 top:8% 会压在灵动岛上 → 加上安全区偏移 */
-        position: 'fixed', top: 'calc(var(--sa-top, 0px) + 8%)', left: '50%', transform: 'translateX(-50%)',
-        zIndex: 200, pointerEvents: 'none',
-        opacity: knobDisplayVisible ? 1 : 0,
-        transition: 'opacity 1s ease-out',
-      }}>
-        <div style={{
-          background: 'rgba(35, 36, 40, 0.95)',
-          border: '1px solid #45464c',
-          borderRadius: 12,
-          padding: '10px 22px',
-          backdropFilter: 'blur(10px)',
-          boxShadow: '0 8px 30px rgba(0,0,0,0.5)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          minWidth: 120,
-        }}>
-          <span style={{
-            fontSize: 18, fontWeight: 800, letterSpacing: '0.02em',
-            fontFamily: '"Barlow-Regular_2", sans-serif',
-            color: '#F06F21',
-            whiteSpace: 'nowrap',
-          }}>
-            {knobDisplayText ?? ''}
-          </span>
-        </div>
-      </div>
-
       {/* ★★ v3.68：两段式全屏 —— 点下连接立刻出「正在连接」（慢呼吸），
           连上后原地切成「闪烁 → 常亮 2.1s」，再关面板进首页/教程。 */}
       <ConnectionFlash

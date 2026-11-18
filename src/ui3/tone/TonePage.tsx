@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useI18n } from '../../i18n';
 import { EA_WRITE_MS } from '../../config/writeTiming';
 import { orderBypassSplit, switchWindowMs } from '../../data/passThrough';
-import { notifyErr, notifyInfo, notifyOk } from '../../services/feedback';
+import { notifyAt, notifyErr, notifyInfo, notifyOk } from '../../services/feedback';
 import { bleManager } from '../../services/bleService';
 import { PRE_BYPASS_FX } from '../../services/switchPacks';
 import { beginBusy, endBusy, endBusyAfter, isBusy } from '../../services/switchBusy';
@@ -502,17 +502,29 @@ export default function TonePage({
     return familyTitle(lang, key as ToneFamily);
   }, [lang]);
 
-  const notifySwitch = useCallback((key: string, next: boolean): void => {
-    notifyInfo(`${moduleLabel(key)} · ${t3(lang, next ? 'on' : 'off')}`);
+  /**
+   * ★ v4.29（方案 C）：开关提示**贴着被点的按钮**弹出（上方 8px，空间不够翻下方），
+   *   不再跑到底部。拿到了按钮矩形就锚定，拿不到就退回顶部居中 —— 两种都不影响功能。
+   *   文案两级：主行 = 模块名（过载 / 箱头…），副行 = 状态（开 / 关）。
+   */
+  const notifySwitch = useCallback((key: string, next: boolean, rect?: DOMRect): void => {
+    const label = moduleLabel(key);
+    const state = t3(lang, next ? 'on' : 'off');
+    const o = { sub: state, duration: 1300, kind: next ? 'ok' as const : 'info' as const };
+    if (rect) {
+      notifyAt(label, { left: rect.left, top: rect.top, width: rect.width, height: rect.height }, o);
+    } else {
+      notifyInfo(label, o);
+    }
   }, [lang, moduleLabel]);
 
-  const toggleModule = useCallback((key: string) => {
+  const toggleModule = useCallback((key: string, rect?: DOMRect) => {
     if (!requireOnline()) return;
     if (isBusy()) return;
     const next = !(onRef.current[key] ?? false);
     setOn((prev) => ({ ...prev, [key]: next }));
     onBypass(key, next);
-    notifySwitch(key, next);
+    notifySwitch(key, next, rect);
 
     if ((HOME_FAMILIES as readonly string[]).includes(key)) {
       const family = key as HomeFamily;
@@ -577,7 +589,7 @@ export default function TonePage({
     }
   }, [lang, onParam, requireOnline]);
 
-  const commitGate = useCallback(async (v: number) => {
+  const commitGate = useCallback(async (v: number, rect?: DOMRect) => {
     if (!requireOnline()) return;
     if (isBusy()) return;
     const value = Math.round(clamp01(v) * 100);
@@ -590,12 +602,12 @@ export default function TonePage({
       if (onRef.current['noise-gate'] !== nextOn) {
         setOn((prev) => ({ ...prev, 'noise-gate': nextOn }));
         onBypass('noise-gate', nextOn);
-        notifySwitch('noise-gate', nextOn);
+        notifySwitch('noise-gate', nextOn, rect);
       }
     } else notifyErr(t3(lang, 'writeFailed'));
   }, [lang, notifySwitch, onBypass, onParam, requireOnline]);
 
-  const commitBoost = useCallback(async (v: number) => {
+  const commitBoost = useCallback(async (v: number, rect?: DOMRect) => {
     if (!requireOnline()) return;
     if (isBusy()) return;
     const value = Math.round(clamp01(v) * 10);
@@ -608,7 +620,7 @@ export default function TonePage({
       if (!!onRef.current.boost !== nextOn) {
         setOn((prev) => ({ ...prev, boost: nextOn }));
         onBypass('boost', nextOn);
-        notifySwitch('boost', nextOn);
+        notifySwitch('boost', nextOn, rect);
       }
     } else notifyErr(t3(lang, 'writeFailed'));
   }, [lang, notifySwitch, onBypass, onParam, requireOnline]);
@@ -827,7 +839,7 @@ export default function TonePage({
               variant="t3quick-gate"
               accent="#9fb4c7"
               on={on['noise-gate'] !== false && gate > 0.001}
-              onToggle={() => { void commitGate(on['noise-gate'] !== false && gate > 0.001 ? 0 : (gate > 0.001 ? gate : 0.1)); }}
+              onToggle={(r) => { void commitGate(on['noise-gate'] !== false && gate > 0.001 ? 0 : (gate > 0.001 ? gate : 0.1), r); }}
               toggleAria={`${gateTitle} ${t3(lang, on['noise-gate'] !== false && gate > 0.001 ? 'on' : 'off')}`}
               knobLabel={t3(lang, 'gateThreshold')}
               hideKnobLabel
@@ -835,7 +847,7 @@ export default function TonePage({
               defaultValue={0.5}
               formatValue={(v) => String(Math.round(v * 10))}
               onChange={setGate}
-              onCommit={commitGate}
+              onCommit={(v) => { void commitGate(v); }}
             />
             <QuickCard
               lang={lang}
@@ -843,7 +855,7 @@ export default function TonePage({
               variant="t3quick-boost"
               accent="#7ee787"
               on={!!on.boost && boost > 0.001}
-              onToggle={() => { void commitBoost(!!on.boost && boost > 0.001 ? 0 : (boost > 0.001 ? boost : 0.1)); }}
+              onToggle={(r) => { void commitBoost(!!on.boost && boost > 0.001 ? 0 : (boost > 0.001 ? boost : 0.1), r); }}
               toggleAria={`${boostTitle} ${t3(lang, !!on.boost && boost > 0.001 ? 'on' : 'off')}`}
               knobLabel={t3(lang, 'boostLevel')}
               hideKnobLabel
@@ -851,7 +863,7 @@ export default function TonePage({
               defaultValue={0.5}
               formatValue={(v) => String(Math.round(v * 10))}
               onChange={setBoost}
-              onCommit={commitBoost}
+              onCommit={(v) => { void commitBoost(v); }}
             />
             <QuickCard
               lang={lang}
@@ -889,7 +901,7 @@ export default function TonePage({
               row={selected.compressor}
               values={values.compressor}
               on={on.compressor !== false}
-              onToggle={() => toggleModule('compressor')}
+              onToggle={(r) => toggleModule('compressor', r)}
               onOpenPicker={() => setOpenPicker('compressor')}
               onKnobChange={(label, v) => setKnobValue('compressor', label, v)}
               onKnobCommit={(label, v) => { void commitKnob('compressor', label, v); }}
@@ -909,7 +921,7 @@ export default function TonePage({
                     row={selected.overdrive}
                     values={values.overdrive}
                     on={on.overdrive !== false}
-                    onToggle={() => toggleModule('overdrive')}
+                    onToggle={(r) => toggleModule('overdrive', r)}
                     onOpenPicker={() => setOpenPicker('overdrive')}
                     onKnobChange={(label, v) => setKnobValue('overdrive', label, v)}
                     onKnobCommit={(label, v) => { void commitKnob('overdrive', label, v); }}
@@ -959,7 +971,7 @@ export default function TonePage({
                   row={ampRow}
                   values={values['amp-head']}
                   on={on['amp-head'] !== false}
-                  onToggle={() => toggleModule('amp-head')}
+                  onToggle={(r) => toggleModule('amp-head', r)}
                   onOpenPicker={() => setOpenPicker('amp-head')}
                   onKnobChange={(label, v) => setKnobValue('amp-head', label, v)}
                   onKnobCommit={(label, v) => { void commitKnob('amp-head', label, v); }}
@@ -1009,7 +1021,7 @@ export default function TonePage({
             count={cabSiblings.length}
             hasPrev={cabIndex > 0}
             hasNext={cabIndex < cabSiblings.length - 1}
-            onTogglePower={() => toggleModule('cabinet')}
+            onTogglePower={(r) => toggleModule('cabinet', r)}
             onToggleExpanded={() => setCabOpen((v) => !v)}
             onOpenPicker={() => setOpenPicker('cabinet')}
             onPrev={() => stepFamily('cabinet', cabSiblings, cabIndex, -1)}
@@ -1028,7 +1040,7 @@ export default function TonePage({
               row={selected.chorus}
               values={values.chorus}
               on={on.chorus !== false}
-              onToggle={() => toggleModule('chorus')}
+              onToggle={(r) => toggleModule('chorus', r)}
               presetName={CHORUS_UI_PRESETS[fxPreset.chorus]?.name}
               onOpenPresets={() => setPresetSheet('chorus')}
               onKnobChange={(label, v) => setKnobValue('chorus', label, v)}
@@ -1043,7 +1055,7 @@ export default function TonePage({
               row={selected.delay}
               values={values.delay}
               on={on.delay !== false}
-              onToggle={() => toggleModule('delay')}
+              onToggle={(r) => toggleModule('delay', r)}
               presetName={DELAY_UI_PRESETS[fxPreset.delay]?.name}
               onOpenPresets={() => setPresetSheet('delay')}
               onKnobChange={(label, v) => setKnobValue('delay', label, v)}
@@ -1058,7 +1070,7 @@ export default function TonePage({
               row={selected.reverb}
               values={values.reverb}
               on={on.reverb !== false}
-              onToggle={() => toggleModule('reverb')}
+              onToggle={(r) => toggleModule('reverb', r)}
               presetName={REVERB_UI_PRESETS[fxPreset.reverb]?.name}
               onOpenPresets={() => setPresetSheet('reverb')}
               onKnobChange={(label, v) => setKnobValue('reverb', label, v)}
