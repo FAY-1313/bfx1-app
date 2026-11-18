@@ -85,6 +85,91 @@ export function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promis
   });
 }
 
+/* ══════════════ ★★★ v4.27：iOS 写入失败的真正根因修复 ══════════════
+ *
+ * 一、为什么以前改写入方式全无效
+ *   iOS 原生 `Device.write()` 在 writeType == .withoutResponse 时是**发出即 resolve**
+ *   （Device.swift:304-309），根本不等 didWriteValueFor。也就是说 v4.21 之后
+ *   iOS 上的"写入"这个动作不可能失败 —— `writeRegister` 返回 false 只有三种来源：
+ *     ① 插件**全局串行队列**被别的调用堵住 → JS 侧超时；
+ *     ② 原生前置校验 reject（Not connected / Device not found / Characteristic not found）；
+ *     ③ JS 的 `_connectedDeviceId` 已被清空。
+ *   所以 v4.21~v4.25 在 withResponse / withoutResponse / 超时 / 重试上来回改，
+ *   改的全是"写"这一层，而故障在它上面一层（队列）和下面一层（连接）。
+ *
+ * 二、两个真正的杀手
+ *   ① `BleClient.initialize()` 在 iOS 原生上是**非幂等**的：Plugin.swift:62-72 每次都
+ *      无条件 `new DeviceManager(...)` → 内部 `new CBCentralManager`。旧 manager 是唯一
+ *      强引用，被替换即释放 → 它名下已建立的连接被系统拆掉，且**不触发 didDisconnect**。
+ *      App 却在 5 处反复调 initialize：启动预热、面板 isEnabled（**每 2.5 秒**）、
+ *      startScan、每次 connect 前。于是"连着的时候连接每 2.5 秒被自己拆一次"，
+ *      JS 仍认为已连接 → 之后每次写都 reject "Not connected to device."。
+ *      安卓的 initialize 只是申请权限、幂等，所以 Android 从来没事。
+ *   ② 插件的所有 BLE 调用共用**一条**串行 Promise 链（dist/esm/queue.js），
+ *      而 `withTimeout` 只 reject JS 的 promise，**不会把原生调用出队**。
+ *      原生侧 DEFAULT_TIMEOUT=5s、CONNECTION_TIMEOUT=10s，JS 侧只等 1.2s/1.5s，
+ *      时间差里所有写都排在队头后面 → 成片"写入失败"。
+ *      更狠的是 iOS 的 `centralManagerDidUpdateState` 在 .unknown / .resetting 时
+ *      **只 emit 不 resolve** "initialize"（DeviceManager.swift:48-70）→ 那条调用
+ *      永久悬挂 → 队列永久堵死 → 只能重启 App。
+ *
+ * 三、本版对策（只改这个文件，不动原生、不 patch 插件）
+ *   A. `ensureNativeReady()`：进程内只 initialize 一次，并发共享同一 Promise，
+ *      并把 JS 侧超时罩在上面 —— 再也不会因为重复 initialize 拆掉连接。
+ *   B. iOS 上初始化成功后立刻 `BleClient.disableQueue()`：项目自己已有
+ *      `_acquireWriteSlot` + 全 await 串行，插件那条队列是冗余的第二把锁，
+ *      却是全局单点故障。关掉它 = 任何一次调用卡住都只影响它自己，
+ *      **已经堵死的队列也会立刻恢复**（不用重启 App）。
+ *   C. 所有会卡住的原生调用都显式传 `timeout`，且**原生超时 < JS 超时**：
+ *      谁也不会先被 JS 放弃后仍占着链路。
+ *   D. iOS 连续 3 次写失败直接判死重连（队列已关，写超时只可能是链路/native 卡死）——
+ *      补回 iOS 缺失的自愈闭环。
+ * ═══════════════════════════════════════════════════════════════════ */
+const IS_IOS = Capacitor.getPlatform() === 'ios';
+/** initialize 的 JS 侧硬超时（原生层这个调用**没有**超时，见上面 ②） */
+const INIT_TIMEOUT_MS = 4000;
+/** 原生侧超时：必须小于对应的 JS 超时，否则 JS 先放弃、原生仍占着链路 */
+const NATIVE_TIMEOUT_MS = 1200;
+/** JS 侧超时：比 NATIVE_TIMEOUT_MS 长，保证"先由原生给结论" */
+const CALL_TIMEOUT_MS = 2000;
+
+let _nativeInit: Promise<boolean> | null = null;
+let _queueDisabled = false;
+/** 诊断用：插件全局队列是否已被我们关掉（iOS 应为 true） */
+export function isPluginQueueDisabled(): boolean { return _queueDisabled; }
+
+/**
+ * 原生层初始化：**全工程唯一入口**，成功后永不再调。
+ * 并发调用共享同一个 Promise（不会出现第二个 CBCentralManager）。
+ * 只有"原生明确 reject"（权限被拒等，说明调用已 settle）才允许下次重试；
+ * 超时（悬挂）不复位 —— 否则重试会再造一个 central，把仅有的连接也拆掉。
+ */
+export function ensureNativeReady(): Promise<boolean> {
+  if (_nativeInit) return _nativeInit;
+  _nativeInit = (async () => {
+    const { BleClient } = await importBlePlugin();
+    if (!BleClient) return false;
+    try {
+      await withTimeout(BleClient.initialize(), INIT_TIMEOUT_MS, 'ble initialize');
+    } catch (e) {
+      _nativeInit = null;          // 交给下一次调用重试（原生已 settle，不会产生孤儿）
+      throw e;
+    }
+    if (IS_IOS) {
+      /* ★ 关键：关掉插件全局串行队列。必须在 initialize 之后、任何业务调用之前。 */
+      try {
+        BleClient.disableQueue?.();
+        _queueDisabled = true;
+        console.log('[BLE] iOS: 已关闭插件全局队列（改用 App 自己的写闸门串行）');
+      } catch (e) {
+        console.warn('[BLE] disableQueue 失败（继续用插件队列）', e);
+      }
+    }
+    return true;
+  })();
+  return _nativeInit;
+}
+
 /* ── EA 多帧打包（BFRT10.187 / M77-eapack）：见 writeEaBatch ── */
 /** 设备侧每包帧数硬上限（规则 5） */
 export const EA_MAX_FRAMES_PER_PKT = 20;
@@ -299,10 +384,10 @@ class BLEManager {
       let lastErr: any = null;
       for (let attempt = 0; attempt < 2; attempt++) {
         try {
-          /* ★ v4.25：必须给插件调用套超时 —— 插件全局 queue 一旦被某个原生不回调的调用
-             堵住，writeWithoutResponse 会永久 pending；外层超时让 onParam 能及时失败返回，
-             不至于把旋钮 UI 卡在 loading。writeWithoutResponse 正常路径是同步 resolve，
-             这个超时只在实际卡死时才触发。 */
+          /* ★ v4.25：必须给插件调用套超时。
+             ★ v4.27：插件全局队列已在 iOS 上关掉（ensureNativeReady），
+               这条写不会再被别的调用堵住；这里的超时只兜"原生 bridge 本身卡住"。
+               writeWithoutResponse 正常路径是同步 resolve，超时值不必再压到 1.2s。 */
           await withTimeout(
             BleClient.writeWithoutResponse(id, BLE_SERVICE, BLE_WRITE_CHAR, dv),
             WRITE_CALL_TIMEOUT_MS, 'ios write');
@@ -315,9 +400,13 @@ class BLEManager {
       console.error(`[BLE] ${label} iOS writeWithoutResponse 失败:`, lastErr);
       throw lastErr;
     }
+    /* ★★★ v4.27（别让 JS 先"弃单"）：显式传原生 timeout。
+       旧实现只靠外层 withTimeout(1.2s) 放弃 —— 原生那边仍在跑（默认 5s），
+       这 3.8s 里这条调用一直占着插件队列，后面所有写全部超时。
+       现在让原生 1.2s 先 reject（队列立刻前进），JS 2s 兜底。 */
     await withTimeout(
-      BleClient.write(id, BLE_SERVICE, BLE_WRITE_CHAR, dv),
-      WRITE_CALL_TIMEOUT_MS, label);
+      BleClient.write(id, BLE_SERVICE, BLE_WRITE_CHAR, dv, { timeout: NATIVE_TIMEOUT_MS }),
+      CALL_TIMEOUT_MS, label);
   }
 
   /** 写时隙：排队 + 最小间隔（见 _acquireWriteSlot） */
@@ -412,8 +501,17 @@ class BLEManager {
     try {
       const { BleClient } = await importBlePlugin();
       if (!BleClient) return true;
-      await BleClient.initialize();
-      return await BleClient.isEnabled();
+      /* ★★★ v4.27（iOS 写入失败根治）：**不再调用 BleClient.initialize()**。
+         旧实现在这里每次都 initialize —— 而 iOS 原生的 initialize 非幂等
+         （无条件新建 DeviceManager + CBCentralManager），旧 central 一释放，
+         它名下那条连接就被系统拆掉，且不触发 didDisconnect：
+           JS 仍显示"已连接" → 之后每次写都被原生 reject "Not connected to device."
+           → 命中 linkLost → 拆链路重连 → 重连里又 initialize → 死循环。
+         蓝牙面板可见时这里被 **每 2.5 秒** 调一次（BluetoothPanel 的 probe 轮询），
+         等于连着的时候连接每 2.5 秒被自己拆一次 —— Android 的 initialize 是幂等的，
+         所以这个坑只在 iOS 上出现。改成走 ensureNativeReady()（进程内只一次）。 */
+      await withTimeout(ensureNativeReady(), INIT_TIMEOUT_MS, 'ble ready').catch(() => {});
+      return await withTimeout(BleClient.isEnabled(), CALL_TIMEOUT_MS, 'ble isEnabled');
     } catch (e) {
       console.warn('[BLE] isEnabled check failed:', e);
       return true;
@@ -476,7 +574,10 @@ class BLEManager {
       }
       // Ensure Bluetooth is enabled
       try {
-        await BleClient.initialize();
+        /* ★★★ v4.27：走 ensureNativeReady（进程内只初始化一次）。
+           旧实现每次扫描都 initialize —— iOS 上会重建 CBCentralManager，
+           把已建立的连接拆掉（详见文件头）。 */
+        await ensureNativeReady();
       } catch (e: any) {
         /* ★ iOS：权限被拒 / 蓝牙不可用时 initialize 会 reject。
            旧实现一律吞掉 → 界面永远停在“搜索中”却搜不到任何设备（用户以为 App 识别坏了）。
@@ -615,8 +716,11 @@ class BLEManager {
          * 梯度退避正好跨过这段。 */
         /* ★ 2026-11-16：自动重连链里不经过 startScan，插件可能还没 initialize
            （首次连接后 App 被系统回收、或用户从后台回来）—— 这里补一次，幂等。
-           失败不阻塞：真正的权限问题会在 connect 时给出明确错误。 */
-        try { await BleClient.initialize(); } catch { /* 已初始化 / 无权限：继续交给 connect */ }
+           失败不阻塞：真正的权限问题会在 connect 时给出明确错误。
+           ★ v4.27：改走 ensureNativeReady —— 旧实现在这里裸调 initialize，
+             自动重连每次都重建 CBCentralManager，等于"重连前先把上一次的连接拆掉"，
+             是 iOS 无限重连的一环。 */
+        try { await ensureNativeReady(); } catch { /* 已初始化 / 无权限：继续交给 connect */ }
         /* ★★★ 2026-11-17（官方文档要求 · iOS 自动重连关键）：
            官方 README「getDevices」章节明确：iOS 上要用 deviceId 连接一个
            「之前连过、但本次没有先扫描」的设备，必须先 getDevices()——
@@ -682,6 +786,12 @@ class BLEManager {
            表现就是「显示已连接，但旋钮不同步、回读收不到」。
            这里在 iOS 上等 F1/F2 两个特征值真正出现再返回成功。 */
         await this.ensureIOSReady(deviceId);
+        /* ★★★ v4.27：**先订阅，再置"已连接"**（顺序反转）。
+         *   旧顺序：先置 `_connectedDeviceId`（UI 立刻显示已连接）→ 再 await 订阅。
+         *   订阅的原生超时 5s、这里 JS 只等 1.5s —— 那 3.5s 空窗里用户拧第一下旋钮，
+         *   写就排在订阅后面 → 1.2s 超时 → 弹"刚连上就写入失败"。
+         *   现在订阅完成（或明确超时）之后才把 connected 置起来，这个窗口自然消失。 */
+        await this._subscribeNotifications(deviceId);
         this._connectedDeviceId = deviceId;
         this._connectedDeviceName = deviceName || deviceId;
         /* ★★★ 2026-11-16（用户报障「断联后特别容易卡住」的根因之一）：
@@ -692,8 +802,8 @@ class BLEManager {
          *     · E9 提交回执收不到
          *   用户看到的就是「连上了，但切档/上传像卡住」。
          *   现在把订阅并入 connect()：任何连接路径（手动 / 自动 / 补连）都自带。
+         *   ★ v4.27：订阅已上移到置"已连接"之前（见上），这里不再重复调用。
          */
-        await this._subscribeNotifications();
       }
       // ★ 2026-10-07: 新连接 = 干净状态, 复位写节奏闸门
       this._resetWriteChain();
@@ -854,6 +964,16 @@ class BLEManager {
    */
   private async confirmDeadLink(): Promise<void> {
     if (!this._connectedDeviceId) return;
+    /* ★★★ v4.27（iOS 自愈闭环）：
+       v4.25 为了避开"插件队列被探活堵死"，iOS 上直接 `probeAlive → true`，
+       结果 iOS 失去了唯一的自愈路径 —— 失同步后永远不重连，只能重启 App。
+       现在插件全局队列已经关掉（见 ensureNativeReady），"写超时"不再可能是排队，
+       只可能是链路/native 卡死 → 直接判死，交给上层自动重连。 */
+    if (IS_IOS) {
+      console.warn('[BLE] iOS 连续写失败 → 判定链路失同步，重建连接');
+      await this.hardResetLink(this._connectedDeviceId);
+      return;
+    }
     if (await this.probeAlive()) {
       this._consecutiveWriteFailures = 0;   // 链路还活着：只清计数，不重连
       return;
@@ -918,8 +1038,12 @@ class BLEManager {
       return true;
     } catch (e) {
       const emsg = String((e as any)?.message || e || '');
-      console.error("BLE write failed:", emsg);
       this._consecutiveWriteFailures++;
+      /* ★ v4.27：失败日志带上"队列是否已关 / 连续失败次数"，测试员一看就知道
+         是"链路断"还是"队列堵"（队列已关的情况下不可能再是排队问题）。 */
+      console.error(
+        `BLE write failed: ${emsg} | platform=${Capacitor.getPlatform()}` +
+        ` queueDisabled=${_queueDisabled} consecutive=${this._consecutiveWriteFailures}`);
       /* ★★ v4.24：识别「JS 标志已连、原生实际断开」的失同步错误。
          原生 getDevice 在每次写前检查 peripheral.state，设备实际断开时 reject
          "Not connected to device." / "Device not found"；这类错误不是 GATT 忙，
@@ -1079,10 +1203,12 @@ class BLEManager {
       } else {
         const { BleClient, dataViewToNumbers } = await importBlePlugin();
         if (!BleClient) return null;
-        /* ★★ v3.80（P1-7）：同 writePGA，读也要有超时（原为裸 await） */
+        /* ★★ v3.80（P1-7）：同 writePGA，读也要有超时（原为裸 await）
+           ★★★ v4.27：原生 timeout(1.2s) < JS(2s) —— 读超时也必须由原生先给结论，
+           否则 JS 放弃后原生仍占链路（默认 5s），期间所有写都"写入失败"。 */
         const dv = await withTimeout<DataView>(
-          BleClient.read(this._connectedDeviceId, BLE_SERVICE, BLE_READ_CHAR) as Promise<DataView>,
-          WRITE_CALL_TIMEOUT_MS, 'ble read');
+          BleClient.read(this._connectedDeviceId, BLE_SERVICE, BLE_READ_CHAR, { timeout: NATIVE_TIMEOUT_MS }) as Promise<DataView>,
+          CALL_TIMEOUT_MS, 'ble read');
         const parsed = parseFrame(dataViewToNumbers(dv));
         return parsed ? parsed.regValue : null;
       }
@@ -1244,19 +1370,29 @@ class BLEManager {
    * ★ 2026-11-16：真正下发 CCCD 订阅（幂等，失败不抛）。
    *   connect() 与 startNotifications() 共用；重连后必须重新订阅，
    *   否则整表回读 / 频道推送 / 提交回执全部收不到（表现为"连上但卡住"）。
+   *
+   * ★★★ v4.27：
+   *   ① 支持显式传 deviceId —— connect() 现在**先订阅再置 connected**，
+   *      此时 `_connectedDeviceId` 还是 null。
+   *   ② **必须给原生传 timeout**：iOS 的 setNotifications 默认超时 5s，
+   *      而这里 JS 只等 1.5s → JS 放弃后原生仍占着链路 3.5s，期间所有写都超时。
+   *      现在让原生 1.2s 先给结论，JS 2s 兜底，谁也不会先"弃单"再占位。
    */
-  private async _subscribeNotifications(): Promise<void> {
-    if (this._demoMode || !this._connectedDeviceId) return;
+  private async _subscribeNotifications(deviceId?: string): Promise<void> {
+    const id = deviceId ?? this._connectedDeviceId;
+    if (this._demoMode || !id) return;
     if (this._useWebBluetooth) return;   // WebBLE 在 connect 时已 startNotifications
+    const opts = { timeout: NATIVE_TIMEOUT_MS };
     try {
       const { BleClient, dataViewToNumbers } = await importBlePlugin();
       if (!BleClient) return;
       await withTimeout(
         BleClient.startNotifications(
-          this._connectedDeviceId, BLE_SERVICE, BLE_READ_CHAR,
+          id, BLE_SERVICE, BLE_READ_CHAR,
           (value: DataView) => this._dispatchNotify(dataViewToNumbers(value)),
+          opts,
         ),
-        1500, 'subscribe notify',
+        CALL_TIMEOUT_MS, 'subscribe notify',
       );
     } catch (e) {
       /* 服务发现还没完全就绪时会抛 "Characteristic not found" —— 隔 180ms 再试一次 */
@@ -1265,10 +1401,11 @@ class BLEManager {
         await new Promise((r) => setTimeout(r, 180));
         await withTimeout(
           BleClient?.startNotifications(
-            this._connectedDeviceId, BLE_SERVICE, BLE_READ_CHAR,
+            id, BLE_SERVICE, BLE_READ_CHAR,
             (value: DataView) => this._dispatchNotify(dataViewToNumbers(value)),
+            opts,
           ),
-          1500, 'subscribe notify retry',
+          CALL_TIMEOUT_MS, 'subscribe notify retry',
         );
       } catch (e2) {
         console.warn('[BLE] startNotifications failed:', e, e2);
@@ -1585,8 +1722,8 @@ class BLEManager {
       const { BleClient, dataViewToNumbers } = await importBlePlugin();
       if (!BleClient) return null;
       const dv = await withTimeout<DataView>(
-        BleClient.read(this._connectedDeviceId, BLE_SERVICE, BLE_READ_CHAR) as Promise<DataView>,
-        WRITE_CALL_TIMEOUT_MS, 'ble readraw');
+        BleClient.read(this._connectedDeviceId, BLE_SERVICE, BLE_READ_CHAR, { timeout: NATIVE_TIMEOUT_MS }) as Promise<DataView>,
+        CALL_TIMEOUT_MS, 'ble readraw');
       return dataViewToNumbers(dv);
     } catch (e) {
       console.warn('[BLE] readRaw failed:', e);
@@ -1647,8 +1784,8 @@ export function warmupBle(): Promise<void> {
     /* 演示模式不动真实蓝牙，也就没必要初始化原生插件（否则会白弹一次权限框） */
     if (bleManager.demoMode) return;
     try {
-      const { BleClient } = await importBlePlugin();
-      if (BleClient) await BleClient.initialize();
+      /* ★ v4.27：统一走 ensureNativeReady（进程内只 initialize 一次 + iOS 关队列） */
+      await ensureNativeReady();
     } catch { /* ignore */ }
   })();
   return _warm;

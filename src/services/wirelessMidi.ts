@@ -17,7 +17,7 @@
  * 与预设库/App 切档完全同一条路径，因此不会引入第二条写协议。
  */
 
-import { bleManager } from './bleService';
+import { bleManager, ensureNativeReady } from './bleService';
 
 // ─── 标准 BLE MIDI UUID（Capacitor 插件统一用小写） ──────────────────
 export const MIDI_SERVICE = '03b80e5a-ede8-4b33-a751-6ce34ec4c700';
@@ -150,7 +150,11 @@ class WirelessMidiManager {
 
     const { BleClient } = await importBlePlugin();
     if (!BleClient) return false;
-    try { await BleClient.initialize(); } catch { /* 已初始化 */ }
+    /* ★★★ v4.27：**绝不能再调 BleClient.initialize()**。
+       iOS 原生 initialize 会重建 DeviceManager + CBCentralManager，
+       旧 central 一释放，它名下已连着的音箱就被系统拆掉（且不触发 didDisconnect）
+       —— 也就是"连踏板 = 把音箱踢掉"。统一走 bleService 的一次性初始化。 */
+    try { await ensureNativeReady(); } catch { /* 已初始化 / 无权限：交给 connect */ }
 
     try {
       await BleClient.connect(deviceId, () => {
@@ -166,7 +170,7 @@ class WirelessMidiManager {
       await BleClient.startNotifications(deviceId, MIDI_SERVICE, MIDI_CHAR, (dv: DataView) => {
         const raw = Array.from(new Uint8Array(dv.buffer, dv.byteOffset, dv.byteLength));
         void this._handleMessages(parseMidiPacket(raw));
-      });
+      }, { timeout: 2000 });
 
       this._deviceId = deviceId;
       this._deviceName = name || deviceId;

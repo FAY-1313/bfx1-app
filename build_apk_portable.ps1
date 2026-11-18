@@ -56,7 +56,7 @@ $apk = Get-ChildItem (Join-Path $App 'android\app\build\outputs\apk') -Recurse -
 if (-not $apk) { Write-Host 'FAIL: apk not found'; exit 1 }
 
 $stamp = Get-Date -Format 'yyyyMMdd'
-$dest = Join-Path $Out ("app-debug-$stamp-v4.26-tone3000-logo.apk")
+$dest = Join-Path $Out ("app-debug-$stamp-v4.27-ios-ble-fix.apk")
 Copy-Item $apk.FullName $dest -Force
 $md5 = (Get-FileHash $dest -Algorithm MD5).Hash.ToLower()
 Write-Host ""
