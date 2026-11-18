@@ -11,7 +11,7 @@ android {
         applicationId "com.bfx1.processor"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 147
+        versionCode 148
         /* ★★ 2026-10-22：3.50 —— 本地库 16 槽草稿箱（与预设库同构）。
            ① BankItem 去 id、加 slot(1–16) + tableHash；LOCAL_BANK_MAX 20 → 16；
               存储键 bfx_localBank20 → bfx_localBank16，旧库自动迁移（取前 16 条，多的存 overflow）。
@@ -20,7 +20,7 @@ android {
            ③ 每格可「上传覆盖到预设库同槽」：withSwitchPlan → savePresetLocal → EB 落盘 → 记指纹。
            ④ 相邻延迟显示：寄存器差异条数 × 20 ms（EA 间隔），不加固定开销。
            ⚠️ 与 src/config/appVersion.ts 的 APP_VERSION 必须一致。 */
-        versionName "4.31"
+        versionName "4.32"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

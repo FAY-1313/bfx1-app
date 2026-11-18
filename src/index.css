@@ -722,3 +722,11 @@ input, textarea, [contenteditable="true"] {
   /* 原来的金属纹理 + 深色渐变在灰底上会发脏，灰模式下改成纯色片 */
   background-image: none;
 }
+
+/* v4.32：音色页顶部那条 quick 条（NOISE / BOOST / MASTER）也并入同一个灰。
+ * 它原来是「深色渐变 + 金属纹理」的两层 background，灰模式下直接换成纯色片；
+ * 内部三张 quick 卡本来就是透明底，所以会自然透出这层灰。 */
+:root[data-theme="grey"] .t3sec-quick {
+  background: #4a4e55;
+  border-bottom: 1px solid var(--bfx-bar-line, #5f646b);
+}
