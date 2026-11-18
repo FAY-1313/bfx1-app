@@ -11,4 +11,4 @@
  *
  * ⚠️ 每次出包必须与 `android/app/build.gradle` 的 `versionName` 保持一致。
  */
-export const APP_VERSION = '4.27';
+export const APP_VERSION = '4.28';

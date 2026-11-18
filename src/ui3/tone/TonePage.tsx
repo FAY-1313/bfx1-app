@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useI18n } from '../../i18n';
 import { EA_WRITE_MS } from '../../config/writeTiming';
 import { orderBypassSplit, switchWindowMs } from '../../data/passThrough';
-import { notifyErr, notifyOk } from '../../services/feedback';
+import { notifyErr, notifyInfo, notifyOk } from '../../services/feedback';
 import { bleManager } from '../../services/bleService';
 import { PRE_BYPASS_FX } from '../../services/switchPacks';
 import { beginBusy, endBusy, endBusyAfter, isBusy } from '../../services/switchBusy';
@@ -492,12 +492,27 @@ export default function TonePage({
     else saveSnapshot(family, row);
   }, [recallSnapshot, saveSnapshot, snaps]);
 
+  /* ★★★ v4.28（用户要求）：模块开/关时给一条浮动提示。
+     动机：「关掉箱头 / 箱体 / 某个效果器之后声音变了，但看不出是哪个被关了」。
+     遵循 v3.68 定下的规矩 —— **全工程只有底部那一个反馈位置**，
+     所以这里复用 notifyInfo，不在面板里另画一条提示条。 */
+  const moduleLabel = useCallback((key: string): string => {
+    if (key === 'noise-gate') return t3(lang, 'gate');
+    if (key === 'boost') return t3(lang, 'boost');
+    return familyTitle(lang, key as ToneFamily);
+  }, [lang]);
+
+  const notifySwitch = useCallback((key: string, next: boolean): void => {
+    notifyInfo(`${moduleLabel(key)} · ${t3(lang, next ? 'on' : 'off')}`);
+  }, [lang, moduleLabel]);
+
   const toggleModule = useCallback((key: string) => {
     if (!requireOnline()) return;
     if (isBusy()) return;
     const next = !(onRef.current[key] ?? false);
     setOn((prev) => ({ ...prev, [key]: next }));
     onBypass(key, next);
+    notifySwitch(key, next);
 
     if ((HOME_FAMILIES as readonly string[]).includes(key)) {
       const family = key as HomeFamily;
@@ -510,7 +525,7 @@ export default function TonePage({
         });
       }
     }
-  }, [onBypass, requireOnline]);
+  }, [notifySwitch, onBypass, requireOnline]);
 
   const applyFxPreset = useCallback(async (family: 'chorus' | 'delay' | 'reverb', index: number): Promise<void> => {
     if (!requireOnline()) return;
@@ -575,9 +590,10 @@ export default function TonePage({
       if (onRef.current['noise-gate'] !== nextOn) {
         setOn((prev) => ({ ...prev, 'noise-gate': nextOn }));
         onBypass('noise-gate', nextOn);
+        notifySwitch('noise-gate', nextOn);
       }
     } else notifyErr(t3(lang, 'writeFailed'));
-  }, [lang, onBypass, onParam, requireOnline]);
+  }, [lang, notifySwitch, onBypass, onParam, requireOnline]);
 
   const commitBoost = useCallback(async (v: number) => {
     if (!requireOnline()) return;
@@ -592,9 +608,10 @@ export default function TonePage({
       if (!!onRef.current.boost !== nextOn) {
         setOn((prev) => ({ ...prev, boost: nextOn }));
         onBypass('boost', nextOn);
+        notifySwitch('boost', nextOn);
       }
     } else notifyErr(t3(lang, 'writeFailed'));
-  }, [lang, onBypass, onParam, requireOnline]);
+  }, [lang, notifySwitch, onBypass, onParam, requireOnline]);
 
   /* ══════════════ ★ 2026-11-16：PRE EQ 隐藏段（翻面） ══════════════ */
 

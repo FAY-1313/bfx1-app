@@ -595,11 +595,15 @@
 .t3k.is-amp .t3k-lab { color: rgba(24, 20, 14, 0.82); font-size: 5.6px; letter-spacing: 0.03em; }
 .t3k.is-amp .t3k-val { color: rgba(24, 20, 14, 0.6); font-size: 5px; }
 .t3fx .t3k-lab { font-size: 5.1px; font-weight: 500; letter-spacing: 0.02em; }
+/* ★★★ v4.28：旋钮数值浮层。
+   旧实现 `left:50%; top:7px` + position:fixed 的坐标是相对**最近的包含块**算的 ——
+   箱头卡有 `container-type: inline-size`，于是浮层被重新锚到那张卡上（勉强能看见）；
+   其余旋钮没有这样的祖先，就直接画到视口顶部 7px（iOS 上正好被状态栏/顶栏盖住），
+   表现为「只有箱头和过载有浮动框」。
+   现在由 ToneKnob 用 portal 挂到 body，并按旋钮实测坐标写入 left/top。 */
 .t3k-bubble {
   position: fixed;
-  left: 50%;
-  top: 7px;
-  z-index: 500;
+  z-index: 9999;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -609,7 +613,7 @@
   height: 34px;
   padding: 2px 7px;
   border-radius: 8px;
-  transform: translateX(-50%);
+  transform: translate(-50%, -100%);
   border: 1px solid rgba(255, 165, 58, 0.48);
   background: rgba(9, 11, 14, 0.96);
   color: var(--t3k-accent, #ffa53a);
@@ -619,19 +623,21 @@
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6), 0 0 12px rgba(255, 165, 58, 0.1);
   pointer-events: none;
 }
+/* 旋钮上方空间不足（靠近顶栏 / 安全区）时翻到旋钮下方 */
+.t3k-bubble.is-below { transform: translate(-50%, 0); }
 .t3k-bubble span {
   max-width: 64px;
   overflow: hidden;
   text-overflow: ellipsis;
   color: #aeb5bc;
-  font-size: 5.5px;
+  font-size: 7px;
   font-weight: 700;
   line-height: 1;
   letter-spacing: 0.05em;
 }
 .t3k-bubble b {
   color: var(--t3k-accent, #ffa53a);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
   line-height: 1.15;
   font-variant-numeric: tabular-nums;
