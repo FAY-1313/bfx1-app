@@ -2460,6 +2460,9 @@ export default function Index() {
       return false;
     }
     const factory = buildFactoryBank2026();
+    /* ★ 2026-11-19：诊断用 —— 记录总耗时，结束时连同 MTU / 每包帧数一起显示，
+       用来区分「MTU 没协商上（批量退化成逐帧）」和「批量生效但仍慢」。 */
+    const t0 = Date.now();
     beginBusy(
       t('switch.loading') || '写入中…',
       '恢复出厂音色 · 共 16 格（1a–4d）',
@@ -2489,7 +2492,11 @@ export default function Index() {
       }
     }
     endBusy();
-    notifyOk(`已恢复出厂音色 ${done} 格 · 已校验`, { duration: 3800 });
+    /* ★ 2026-11-19：把「耗时 / MTU / 每包帧数」直接显示出来 ——
+       framesPerPacket 为 1 就说明 MTU 还停在 23，批量写等于没生效。 */
+    const secs = ((Date.now() - t0) / 1000).toFixed(1);
+    const perf = `MTU${bleManager.mtu}/${bleManager.framesPerPacket}帧`;
+    notifyOk(`已恢复出厂音色 ${done} 格 · 已校验（${secs}s · ${perf}）`, { duration: 6000 });
     return true;
   }, [syncChannelToHardware, t]);
 
