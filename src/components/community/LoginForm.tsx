@@ -195,11 +195,27 @@ export default function LoginForm({
         </div>
       )}
 
+      {/* ★ 2026-11-19（合规）：原来这两个是纯文字 span，点了没反应。
+          应用宝/工信部要求「隐私政策必须可访问」，纯文字会被判隐私政策缺失。
+          改为可点击，走 window.open(_system) —— 与项目内其它外链一致，
+          Capacitor 下会交给系统浏览器打开，Web 下则新开标签页。 */}
       <div style={{ marginTop: 13, fontSize: 11, color: C.text3, fontFamily: C.font, lineHeight: 1.7, textAlign: 'center' }}>
         {zh ? '继续即表示同意' : 'By continuing you agree to '}
-        <span style={{ color: C.text2 }}>{zh ? '《用户协议》' : 'Terms'}</span>
+        <a
+          href="https://www.brian-fay.com/terms.html"
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => { e.preventDefault(); window.open('https://www.brian-fay.com/terms.html', '_system'); }}
+          style={{ color: C.text2, textDecoration: 'underline', cursor: 'pointer' }}
+        >{zh ? '《用户协议》' : 'Terms'}</a>
         {zh ? '与' : ' and '}
-        <span style={{ color: C.text2 }}>{zh ? '《隐私政策》' : 'Privacy Policy'}</span>
+        <a
+          href="https://www.brian-fay.com/privacy.html"
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => { e.preventDefault(); window.open('https://www.brian-fay.com/privacy.html', '_system'); }}
+          style={{ color: C.text2, textDecoration: 'underline', cursor: 'pointer' }}
+        >{zh ? '《隐私政策》' : 'Privacy Policy'}</a>
       </div>
 
       {onCancel && (
