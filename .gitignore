@@ -48,3 +48,11 @@ _tmp
 _verify
 src_backup_*
 *.apk
+
+# ─────────────────────────────────────────────────────────────
+# ★ 2026-11-19：正式签名密钥（应用宝等安卓商店上架用）
+#   仓库是 public —— 这两个文件含明文密码/私钥，提交一次等于公开泄露。
+#   keystore 本体放在仓库外 C:/Users/FAY/bfx1-keystore/，这里再加一道保险。
+android/keystore.properties
+*.jks
+*.keystore

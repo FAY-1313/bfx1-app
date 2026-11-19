@@ -40,23 +40,32 @@ if (-not $skipWeb) {
   if ($LASTEXITCODE -ne 0) { Write-Host 'FAIL: cap sync'; exit 1 }
 }
 
-Write-Host "`n=== 3/3 gradle assembleDebug ==="
+Write-Host "`n=== 3/3 gradle assembleRelease ==="
 Set-Location (Join-Path $App 'android')
 $gradle = Join-Path $parent 'bfx1app\tools\_android\gradle-8.14.3\bin\gradle.bat'
 $log = Join-Path $env:TEMP 'build_apk.log'
-& $gradle assembleDebug --no-daemon --console=plain 2>&1 | Tee-Object -FilePath $log | Select-Object -Last 12
+# 2026-11-19: assembleRelease - app stores reject debug-signed APKs.
+#   Signing params come from android/keystore.properties (gitignored).
+& $gradle assembleRelease --no-daemon --console=plain 2>&1 | Tee-Object -FilePath $log | Select-Object -Last 12
 if ($LASTEXITCODE -ne 0) {
   Write-Host 'FAIL: gradle'
   Get-Content $log -Tail 25
   exit 1
 }
 
-$apk = Get-ChildItem (Join-Path $App 'android\app\build\outputs\apk') -Recurse -Filter '*.apk' -EA SilentlyContinue |
-       Sort-Object LastWriteTime -Descending | Select-Object -First 1
-if (-not $apk) { Write-Host 'FAIL: apk not found'; exit 1 }
+# 2026-11-19: release output path is fixed - reference it directly.
+#   Previous recursive search silently returned empty when the release dir did not exist yet,
+#   which looked like 'gradle succeeded but FAIL: apk not found'.
+$apk = Get-Item (Join-Path $App 'android\app\build\outputs\apk\release\app-release.apk') -EA SilentlyContinue
+if (-not $apk) {
+  Write-Host 'FAIL: apk not found, dir listing:'
+  Get-ChildItem (Join-Path $App 'android\app\build\outputs\apk') -Recurse -Filter '*.apk' -EA SilentlyContinue |
+    ForEach-Object { Write-Host ('  ' + $_.FullName) }
+  exit 1
+}
 
 $stamp = Get-Date -Format 'yyyyMMdd'
-$dest = Join-Path $Out ("app-debug-$stamp-v4.32-grey-quickbar.apk")
+$dest = Join-Path $Out ("app-release-$stamp-v4.33-signed.apk")
 Copy-Item $apk.FullName $dest -Force
 $md5 = (Get-FileHash $dest -Algorithm MD5).Hash.ToLower()
 Write-Host ""

@@ -1,8 +1,30 @@
 apply plugin: 'com.android.application'
 
+/* ★ 2026-11-19：正式签名配置（应用宝等安卓商店上架必须用 release 签名，debug 包会被拒）。
+   密钥路径与密码放在 android/keystore.properties —— 该文件已被 .gitignore 排除。
+   仓库是 public，**绝对不要**把密码写回本文件。
+   文件缺失时自动跳过签名，debug 构建和 CI 不受任何影响。
+   密钥本体：C:/Users/FAY/bfx1-keystore/bfx1-release.jks（仓库外，务必另行备份） */
+def keystorePropsFile = rootProject.file("keystore.properties")
+def hasReleaseKeystore = keystorePropsFile.exists()
+def keystoreProps = new Properties()
+if (hasReleaseKeystore) {
+    keystorePropsFile.withInputStream { keystoreProps.load(it) }
+}
+
 android {
     namespace = "com.bfx1.processor"
     compileSdk = rootProject.ext.compileSdkVersion
+    signingConfigs {
+        if (hasReleaseKeystore) {
+            release {
+                storeFile file(keystoreProps['storeFile'])
+                storePassword keystoreProps['storePassword']
+                keyAlias keystoreProps['keyAlias']
+                keyPassword keystoreProps['keyPassword']
+            }
+        }
+    }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
@@ -11,7 +33,7 @@ android {
         applicationId "com.bfx1.processor"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 148
+        versionCode 149
         /* ★★ 2026-10-22：3.50 —— 本地库 16 槽草稿箱（与预设库同构）。
            ① BankItem 去 id、加 slot(1–16) + tableHash；LOCAL_BANK_MAX 20 → 16；
               存储键 bfx_localBank20 → bfx_localBank16，旧库自动迁移（取前 16 条，多的存 overflow）。
@@ -20,7 +42,7 @@ android {
            ③ 每格可「上传覆盖到预设库同槽」：withSwitchPlan → savePresetLocal → EB 落盘 → 记指纹。
            ④ 相邻延迟显示：寄存器差异条数 × 20 ms（EA 间隔），不加固定开销。
            ⚠️ 与 src/config/appVersion.ts 的 APP_VERSION 必须一致。 */
-        versionName "4.32"
+        versionName "4.33"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -30,6 +52,10 @@ android {
     }
     buildTypes {
         release {
+            /* ★ 2026-11-19：有 keystore.properties 时用正式签名；缺失时保持未签名（不影响 debug） */
+            if (hasReleaseKeystore) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
