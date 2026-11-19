@@ -1706,24 +1706,42 @@
      Android WebView(Chromium) 支持无前缀写法，所以只有 iOS 出问题。 */
   -webkit-transform-style: preserve-3d;
   transition: transform .42s cubic-bezier(.22,.72,.28,1);
-  -webkit-transition: -webkit-transform .42s cubic-bezier(.22,.72,.28,1);
+  /* ★ v4.38：两条 transform 都要过渡；旧写法只过渡 -webkit-transform，
+     标准 transform 变化没有动画，配合 iOS 塌陷就会出现「瞬间贴图式重叠」。 */
+  -webkit-transition: transform .42s cubic-bezier(.22,.72,.28,1), -webkit-transform .42s cubic-bezier(.22,.72,.28,1);
 }
-.t3flip-host.flipped .t3flip-inner { transform: rotateY(180deg); }
+.t3flip-host.flipped .t3flip-inner {
+  transform: rotateY(180deg);
+  /* ★ v4.38：补前缀。v4.35 只修了 transform-style，漏了真正执行翻转的 transform，
+     iOS WebKit 上翻转不生效 → 正反面同时朝前 → 旋钮重叠。 */
+  -webkit-transform: rotateY(180deg);
+}
 .t3flip-front, .t3flip-back {
   height: 100%;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+  /* ★★★ v4.38 兜底（关键）：iOS WebKit 的 backface-visibility 会因祖先/自身的
+     overflow:hidden(.t3card/.t3flip-back)、filter、opacity 等属性静默失效，
+     光靠 -webkit- 前缀仍会复现重叠。这里用 .flipped state class 在翻转动画中点
+     (420ms 的 210ms) 硬切 visibility：静止时永远只有一面可见，
+     旋转到 90° 侧视时切换，肉眼看不到跳变，动画与正确性兼得。 */
+  transition: visibility 0s linear .21s;
 }
-.t3flip-front { position: relative; }
+.t3flip-front { position: relative; visibility: visible; }
 .t3flip-front > .t3card { height: 100%; }
 .t3flip-back {
   position: absolute; inset: 0;
   transform: rotateY(180deg);
+  -webkit-transform: rotateY(180deg);
   overflow: hidden;
+  visibility: hidden;
 }
 .t3flip-back > * { height: 100%; }
-.t3flip-host.flipped .t3flip-front { pointer-events: none; }
-.t3flip-host:not(.flipped) .t3flip-back { pointer-events: none; }
+/* ★ v4.38：visibility 由 state 决定，不再依赖 WebKit 的 3D backface 是否生效。 */
+.t3flip-host.flipped .t3flip-front { pointer-events: none; visibility: hidden; }
+.t3flip-host:not(.flipped) .t3flip-back { pointer-events: none; visibility: hidden; }
+.t3flip-host.flipped .t3flip-back { visibility: visible; }
+.t3flip-host:not(.flipped) .t3flip-front { visibility: visible; }
 
 /* 左下角翻转按钮（视觉 26、热区外扩由 padding 保证） */
 .t3flip-btn {
