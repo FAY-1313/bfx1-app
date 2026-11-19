@@ -58,6 +58,24 @@ export const CHANNEL_MAX = 16;
 export const MIN_WRITE_GAP_MS = EA_WRITE_MS;
 /** EB(保存到硬件)路径按 K9 决策保持 5 ms, 不随 A3 的 20 ms 统一 */
 export const EB_WRITE_GAP_MS = EB_WRITE_MS;
+
+/**
+ * ★★★ 2026-11-19（用户报障「安卓上传音色、恢复出厂远慢于 iOS」的核心修复）：
+ *   Android 连接后**主动**协商的 MTU。
+ *
+ *   背景：本文件曾有三处注释写着「插件 connect 内部会 requestMtu(512)」，
+ *   但 Capacitor BLE 的 connect() 并**不会**自动协商 MTU —— `requestMtu`
+ *   在整个工程里只出现在注释中，代码从未调用过。后果：
+ *     · Android 一直停留在 BLE 规范默认 MTU 23
+ *     · framesPerPacket = floor((23-3)/12) = **1 帧/包**
+ *     · 而 iOS 由 CoreBluetooth 自动协商到约 185（**15 帧/包**）
+ *   同样数据量，Android 要多发 15~20 倍的包，再叠加「每包等 GATT 写回调」，
+ *   恢复出厂就从一个屏幕级操作变成了几十秒。
+ *
+ *   取值：185 —— 与 iOS 自动协商的量级一致，固件已经在 iOS 侧长期验证过，
+ *   先拿到 iOS 的水准最稳。等固件确认单包接收上限后可再调 512。
+ */
+export const ANDROID_MTU_REQUEST = 185;
 /** 连续写失败达到此次数才判定断连(原实现 1 次即断, GATT 拥塞会误判) */
 export const WRITE_FAIL_DISCONNECT_THRESHOLD = 3;
 
@@ -786,6 +804,31 @@ class BLEManager {
            表现就是「显示已连接，但旋钮不同步、回读收不到」。
            这里在 iOS 上等 F1/F2 两个特征值真正出现再返回成功。 */
         await this.ensureIOSReady(deviceId);
+        /* ★★★ 2026-11-19（安卓慢于 iOS 的根因修复）：
+           连接完成、服务已发现之后，Android 主动协商 MTU。
+           旧版本一直以为插件 connect 会自动 requestMtu(512)，实际从未发生 →
+           MTU 停在 23 → 每包只能装 1 帧（而 iOS 是 15 帧/包）。
+           放在订阅之前：SDK 的 onMtuChanged 会在订阅前落定，后续所有写都用新值。
+           失败静默（保持 23），行为与旧版完全一致，不会让连接失败。 */
+        if (Capacitor.getPlatform() === 'android') {
+          try {
+            const { BleClient: BC } = await importBlePlugin();
+            if (BC) {
+              await withTimeout(
+                BC.requestMtu(deviceId, ANDROID_MTU_REQUEST), 2500, 'requestMtu',
+              ).catch(() => { /* 协商失败不阻塞连接 */ });
+              const rawMtu = await withTimeout(BC.getMtu(deviceId), 1200, 'getMtu').catch(() => 0);
+              const m = Number(rawMtu);
+              if (Number.isFinite(m) && m > 23) {
+                this._mtu = m;
+                this._mtuKnown = true;
+                console.log('[BLE] Android MTU =', m, '→ framesPerPacket =', this.framesPerPacket);
+              } else {
+                console.warn('[BLE] Android MTU 仍是默认值，上传会偏慢（framesPerPacket=1）');
+              }
+            }
+          } catch { /* 插件缺失 / 平台不支持：保持旧行为 */ }
+        }
         /* ★★★ v4.27：**先订阅，再置"已连接"**（顺序反转）。
          *   旧顺序：先置 `_connectedDeviceId`（UI 立刻显示已连接）→ 再 await 订阅。
          *   订阅的原生超时 5s、这里 JS 只等 1.5s —— 那 3.5s 空窗里用户拧第一下旋钮，

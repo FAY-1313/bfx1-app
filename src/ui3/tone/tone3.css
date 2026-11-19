@@ -1690,11 +1690,23 @@
    翻面只翻内容，按钮固定在左下角；背面隐藏时 pointer-events:none，
    避免「看不见的一面吃掉点击」（本项目历史踩过的坑）。
    ══════════════════════════════════════════════════════════════════════ */
-.t3flip-host { position: relative; height: 100%; perspective: 1000px; }
+.t3flip-host {
+  position: relative; height: 100%;
+  perspective: 1000px;
+  /* ★ 2026-11-19（iOS 旋钮重叠修复）：老 WebKit 需要 -webkit-perspective */
+  -webkit-perspective: 1000px;
+}
 .t3flip-inner {
   position: relative; height: 100%;
   transform-style: preserve-3d;
+  /* ★★★ 2026-11-19（用户报障「iOS 上箱头/过载的隐藏参数旋钮与首页旋钮重叠」的根因）：
+     iOS Safari 只认 `-webkit-transform-style`。缺这一条时 preserve-3d 不生效，
+     3D 上下文塌陷 → 子元素的 backface-visibility 全部失效（尽管它写了 -webkit- 前缀），
+     于是背面 .t3flip-back 不再被隐藏，直接叠加渲染在正面卡片上。
+     Android WebView(Chromium) 支持无前缀写法，所以只有 iOS 出问题。 */
+  -webkit-transform-style: preserve-3d;
   transition: transform .42s cubic-bezier(.22,.72,.28,1);
+  -webkit-transition: -webkit-transform .42s cubic-bezier(.22,.72,.28,1);
 }
 .t3flip-host.flipped .t3flip-inner { transform: rotateY(180deg); }
 .t3flip-front, .t3flip-back {

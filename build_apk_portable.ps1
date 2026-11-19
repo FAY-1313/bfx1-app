@@ -65,7 +65,7 @@ if (-not $apk) {
 }
 
 $stamp = Get-Date -Format 'yyyyMMdd'
-$dest = Join-Path $Out ("app-release-$stamp-v4.34-signed.apk")
+$dest = Join-Path $Out ("app-release-$stamp-v4.35-signed.apk")
 Copy-Item $apk.FullName $dest -Force
 $md5 = (Get-FileHash $dest -Algorithm MD5).Hash.ToLower()
 Write-Host ""
