@@ -434,7 +434,7 @@ export default function LocalBankPage({
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
             transition: 'all 0.12s',
           }}>
-          <span style={{ fontSize: 20, lineHeight: 1, color: `${GROUP_COLORS[prevBankTarget]}99`, marginRight: 2 }}>{browsing ? '›' : '‹'}</span>
+          <span style={{ fontSize: 20, lineHeight: 1, color: `${GROUP_COLORS[prevBankTarget]}99`, marginRight: 2 }}>{'‹'}</span>
           <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: '#6E7686',
             fontFamily: '"Barlow-Regular_2",sans-serif' }}>{browsing ? (lang === 'en' ? 'BACK' : '返回') : (lang === 'en' ? 'PREV' : '上一组')}</span>
           <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
@@ -513,7 +513,7 @@ export default function LocalBankPage({
               fontFamily: '"Barlow-Regular_2",sans-serif', whiteSpace: 'nowrap',
             }}>{bankName(bankTarget)}</span>
           </span>
-          <span style={{ fontSize: 20, lineHeight: 1, color: `${GROUP_COLORS[bankTarget]}99`, marginLeft: 2 }}>{browsing ? '‹' : '›'}</span>
+          <span style={{ fontSize: 20, lineHeight: 1, color: `${GROUP_COLORS[bankTarget]}99`, marginLeft: 2 }}>{'›'}</span>
         </button>
       </ModalBody>
 

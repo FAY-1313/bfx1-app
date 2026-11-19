@@ -418,7 +418,12 @@ export function getLocalBankApplied(): number | null {
   try {
     const raw = localStorage.getItem(BANK_APPLIED_KEY) ?? localStorage.getItem('bfx_localBank20_applied');
     const n = raw ? Number(raw) : NaN;
-    return Number.isFinite(n) ? n : null;
+    /* ★★★ 2026-11-19：旧版本遗留键 `bfx_localBank20_applied` 里可能存着 17~20。
+       只做 Number.isFinite 不够 —— 越界值会被 LocalBankPage 直接当 cur 使用，
+       渲染出一个「17–20」的空组（四格全 EMPTY、当前格不高亮、两个翻组键都变成
+       「返回当前组」原地不动），用户就卡死在那屏，点「保存本地」还会误报
+       "已保存到 20"。这里夹到 1~16，越界一律当作「没有已加载项」。 */
+    return Number.isFinite(n) && n >= 1 && n <= 16 ? n : null;
   } catch { return null; }
 }
 

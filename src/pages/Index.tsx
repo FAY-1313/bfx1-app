@@ -445,7 +445,19 @@ function PresetsPanel({ visible, onClose, presetRev, connectedDeviceId, register
     try {
     // 1. 硬件: 仅发 EE <ch> (裸 2 字节) — 固件自行加载本频道已上传的 EA 表 (固件已测试通过)
     //    ★ 2026-10-16（P5）：空槽位也发 EE —— 否则界面已选中该档、硬件频道却没跟着变，软硬件分叉
-    if (connectedDeviceId) await bleManager.jumpChannel(slot).catch(() => {});
+    if (connectedDeviceId) {
+      /* ★★★ 2026-11-19（真机 + 代码审查共同确认的 BUG）：
+         `jumpChannel` 失败时返回 **false（不抛异常）**。旧写法
+         `await bleManager.jumpChannel(slot).catch(() => {})` 既接不住 false，
+         也没人检查返回值 —— 于是继续往下把该档的音色名、全部旋钮参数灌进 UI：
+         界面看起来切到了新档，硬件还停在上一个频道，听到的声音和看到的参数对不上。
+         这里必须判返回值：失败就提示并 return（finally 会撤掉 busy 锁）。 */
+      const jumped = await bleManager.jumpChannel(slot).catch(() => false);
+      if (!jumped) {
+        flashUp(t('toast.loadFail') || '切换失败，请重试', false);
+        return;
+      }
+    }
     if (!p) { endBusyAfter(slotBusyMs); handedOff = true; return; } // 空槽位: 仅选择, 不加载参数
 
     const item = preItem;
@@ -678,7 +690,7 @@ function PresetsPanel({ visible, onClose, presetRev, connectedDeviceId, register
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
             transition: 'all 0.12s',
           }}>
-          <span style={{ fontSize: 20, lineHeight: 1, color: `${prevTargetGroup.color}99`, marginRight: 2 }}>{browsing ? '›' : '‹'}</span>
+          <span style={{ fontSize: 20, lineHeight: 1, color: `${prevTargetGroup.color}99`, marginRight: 2 }}>{'‹'}</span>
           <span style={{
             fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: '#6E7686',
             fontFamily: '"Barlow-Regular_2",sans-serif',
@@ -778,7 +790,7 @@ function PresetsPanel({ visible, onClose, presetRev, connectedDeviceId, register
               fontFamily: '"Barlow-Regular_2",sans-serif', whiteSpace: 'nowrap',
             }}>{lang === 'en' ? `GROUP ${bankTargetGroup.label}` : `组 ${bankTargetGroup.label}`}</span>
           </span>
-          <span style={{ fontSize: 20, lineHeight: 1, color: `${bankTargetGroup.color}99`, marginLeft: 2 }}>{browsing ? '‹' : '›'}</span>
+          <span style={{ fontSize: 20, lineHeight: 1, color: `${bankTargetGroup.color}99`, marginLeft: 2 }}>{'›'}</span>
         </button>
       </ModalBody>
 
@@ -822,7 +834,12 @@ function PresetsPanel({ visible, onClose, presetRev, connectedDeviceId, register
         zIndex 52 高于 ModalCard 遮罩(51)、低于公告(70)，absolute 定位在面板上方。 */}
     <button onClick={() => setShowNamNotice(true)} title="TONE3000 · NAM A2"
       style={{
-        position: 'absolute', zIndex: 52,
+        /* ★ 2026-11-19（真机报障：TONE3000 入口浮在屏幕 1/4 处，遮住压缩机/过载卡片）：
+           原来用 absolute + top: calc(safe-top + 10px)。但 absolute 的定位参考系是
+           最近的 positioned 祖先（这里是内容区容器），不是视口 —— 于是它跟着内容
+           落在了屏幕中上部，还压住了卡片。
+           改成 fixed：相对视口定位，才是"浮在页面顶部"的本意。 */
+        position: 'fixed', zIndex: 52,
         top: 'calc(var(--sa-top, 0px) + 10px)', left: '50%', transform: 'translateX(-50%)',
         height: 40, padding: '0 12px', borderRadius: 10, cursor: 'pointer',
         background: 'rgba(12,14,20,0.88)', border: '1px solid rgba(255,235,80,0.42)',
@@ -3844,6 +3861,11 @@ function UserPanel({ visible, onClose, onOpenManualFullScreen, onOpenTutorial, o
     { name: 'mix 耳机 说明书', file: 'mix耳机说明书.pdf' },
   ];
 
+  /* ★ 2026-11-19（真机报障）：原生端点击"浏览器"无反应或打开错误页。
+     根因：'/docs/' + file 是**相对路径**，交给系统浏览器后解析成
+     https://localhost/docs/... —— 本地资源在系统浏览器里根本不存在。
+     App 内的"查看"（内置 PDF 阅读）是正常的，所以原生端直接不渲染该按钮，
+     见下方 IS_WEB_PREVIEW 包裹。这里保留函数供网页预览使用。 */
   const openManualExternal = (file: string) => { window.open('/docs/' + file, '_system'); };
 
   if (!visible) return null;
@@ -3863,7 +3885,10 @@ function UserPanel({ visible, onClose, onOpenManualFullScreen, onOpenTutorial, o
               <div style={{ width: 36, height: 36, borderRadius: 8, background: 'rgba(220,60,60,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><span style={{ fontSize: 15, fontWeight: 800, color: 'rgb(220,80,80)' }}>PDF</span></div>
               <span style={{ flex: 1, textAlign: 'left', fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.8)', fontFamily: '"Barlow-Regular_2",sans-serif' }}>{m.name}</span>
               <button onClick={() => onOpenManualFullScreen?.(m)} style={{ padding: '6px 12px', borderRadius: 8, background: 'rgba(180,160,255,0.12)', border: '1px solid rgba(180,160,255,0.25)', color: 'rgba(180,160,255,0.85)', fontSize: 11, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}><BookOpenIcon size={13} style={{ verticalAlign: '-2px' }} /> {t('manual.view')}</button>
-              <button onClick={() => openManualExternal(m.file)} style={{ padding: '6px 12px', borderRadius: 8, background: 'rgba(76,201,240,0.1)', border: '1px solid rgba(76,201,240,0.2)', color: 'rgba(76,201,240,0.8)', fontSize: 11, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}><GlobeIcon size={13} style={{ verticalAlign: '-2px' }} /> {t('manual.browser')}</button>
+              {/* 原生端不渲染：相对路径在系统浏览器里打不开，见 openManualExternal 注释 */}
+              {IS_WEB_PREVIEW && (
+                <button onClick={() => openManualExternal(m.file)} style={{ padding: '6px 12px', borderRadius: 8, background: 'rgba(76,201,240,0.1)', border: '1px solid rgba(76,201,240,0.2)', color: 'rgba(76,201,240,0.8)', fontSize: 11, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}><GlobeIcon size={13} style={{ verticalAlign: '-2px' }} /> {t('manual.browser')}</button>
+              )}
             </div>
           ))}
         </div>
