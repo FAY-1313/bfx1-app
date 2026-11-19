@@ -1382,6 +1382,116 @@ class BLEManager {
     return { ok: true, sent: idx, packets, perPacket: per, mtu: this._mtu };
   }
 
+  /**
+   * ★★★ 2026-11-19（用户报障「安卓恢复出厂 30 秒+，iOS 只要 8-9 秒」）：
+   *   EB 批量写 —— 固件已确认支持「一包多帧 EB」。
+   *
+   *   为什么需要它（实测数据反推）：
+   *     恢复出厂 = 16 格 × 约 117 条 ≈ 1872 帧，原来是一帧一次 GATT 写。
+   *     · iOS：CoreBluetooth 的 writeWithoutResponse **发出即返回**，每帧只花
+   *            EB_WRITE_MS = 5ms → 1872 × 5ms ≈ 9.4 秒（与实测 8-9 秒吻合）。
+   *     · Android：插件的 write() 必须等 onCharacteristicWrite（一个连接间隔
+   *            约 12~15ms）→ 每帧 ≈ 17~20ms → 1872 帧 ≈ 32~37 秒（与实测 30 秒+ 吻合）。
+   *
+   *     差距的本质不是"写得慢"，而是「1872 次 GATT 往返 vs 125 次」。
+   *
+   *   本方法把 N 帧拼成一包（N = framesPerPacket，MTU 185 时 = 15 帧），
+   *   Android 的往返次数降到 1/15，预计 30 秒 → 11 秒左右；iOS 基本不变（本来不等回调）。
+   *
+   *   ⚠️ 包间仍等 n × EB_WRITE_MS：GATT 回调只代表"数据已交给协议栈"，
+   *      不代表固件已逐帧处理完，所以节奏不能省，否则固件的表项可能被冲掉。
+   *
+   *   失败处理与 writeEaBatch 一致：整包重试 3 次，仍失败则中止（绝不跳过）。
+   *   调用方的"全表回读校验"是最后一道防线 —— 真丢帧会被比对出来并报错。
+   */
+  async writeToneEBBatch(
+    ch: number,
+    typ: number,
+    list: Array<{ addr: number; value: number }>,
+    onProgress?: (done: number, total: number, packets: number) => void,
+  ): Promise<{ ok: boolean; sent: number; packets: number; perPacket: number; mtu: number }> {
+    const per0 = this.framesPerPacket;
+    const empty = { ok: true, sent: 0, packets: 0, perPacket: per0, mtu: this._mtu };
+    if (!list.length) return empty;
+    if (!this._connectedDeviceId) return { ...empty, ok: false };
+    if (this._demoMode) {
+      for (let i = 0; i < list.length; i++) this._demoRegs.set(list[i].addr, list[i].value);
+      onProgress?.(list.length, list.length, 0);
+      return { ok: true, sent: list.length, packets: 0, perPacket: per0, mtu: 512 };
+    }
+    /* WebBLE 路径没有统一的 getMtu / 无响应写语义 → 报不支持，由调用方回退逐帧 */
+    if (this._useWebBluetooth) return { ...empty, ok: false };
+    /* ★ iOS 故意不走批量：CoreBluetooth 的 writeWithoutResponse 发出即返回，
+       逐帧本来就只有 5ms/帧（1872 帧 ≈ 9 秒），批量对它几乎没有收益，
+       没必要把一条已经验证稳定的路径换掉。只优化 Android（每帧等 12~15ms 回调）。
+       返回 ok:false → 调用方自动回退逐帧，行为与 v4.35 完全一致。 */
+    if (Capacitor.getPlatform() !== 'android') return { ...empty, ok: false };
+
+    await this._ensureMtu();
+    const per = this.framesPerPacket;
+
+    const { BleClient, numbersToDataView } = await importBlePlugin();
+    if (!BleClient) return { ...empty, ok: false, perPacket: per };
+
+    const sub = ((typ & 3) << 5) | (ch & 0x1f);
+    const total = list.length;
+    let idx = 0;
+    let packets = 0;
+
+    while (idx < total) {
+      const n = Math.min(per, total - idx);
+      const buf: number[] = [];
+      for (let k = 0; k < n; k++) {
+        const f = buildFrameSub(0xEB, sub, list[idx + k].addr, list[idx + k].value);
+        for (let b = 0; b < 12; b++) buf.push(f[b]);
+      }
+
+      /* 仍走全局闸门，保证与其它写 FIFO 排队 */
+      const release = await this._acquireWriteSlot(0xEB);
+      let ok = false;
+      try {
+        if (!this._connectedDeviceId) {
+          return { ok: false, sent: idx, packets, perPacket: per, mtu: this._mtu };
+        }
+        for (let attempt = 0; attempt < EA_PKT_RETRY && !ok; attempt++) {
+          try {
+            await withTimeout(
+              BleClient.writeWithoutResponse(
+                this._connectedDeviceId, BLE_SERVICE, BLE_WRITE_CHAR, numbersToDataView(buf)),
+              WRITE_CALL_TIMEOUT_MS, 'eb packet');
+            ok = true;
+          } catch {
+            /* 这包没发出去 → 退回重试（不能丢） */
+            if (attempt < EA_PKT_RETRY - 1) {
+              await new Promise((r) => setTimeout(r, EA_PKT_RETRY_DELAY_MS));
+            }
+          }
+        }
+      } finally {
+        release();
+      }
+
+      if (!ok) {
+        this._consecutiveWriteFailures++;
+        if (this._consecutiveWriteFailures >= WRITE_FAIL_DISCONNECT_THRESHOLD && this._connectedDeviceId) {
+          await this.confirmDeadLink();
+        }
+        console.warn(`[EB PACK] 第 ${packets + 1} 包发送失败，已发 ${idx}/${total} 帧`);
+        return { ok: false, sent: idx, packets, perPacket: per, mtu: this._mtu };
+      }
+
+      idx += n;
+      packets++;
+      this._consecutiveWriteFailures = 0;
+      /* 包间节拍 = 原来逐帧的 n × 5ms，保证固件逐帧处理的节奏不被撑爆 */
+      await new Promise((r) => setTimeout(r, n * EB_WRITE_GAP_MS));
+      onProgress?.(idx, total, packets);
+    }
+
+    console.info(`[EB PACK] 完成：${idx} 帧 / ${packets} 包（每包 ${per} 帧，MTU ${this._mtu}）`);
+    return { ok: true, sent: idx, packets, perPacket: per, mtu: this._mtu };
+  }
+
   /** 每包可装帧数：min((MTU-3)/12, 20)，至少 1 */
   get framesPerPacket(): number {
     return Math.max(1, Math.min(EA_MAX_FRAMES_PER_PKT, Math.floor((this._mtu - 3) / 12)));

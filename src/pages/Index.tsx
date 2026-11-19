@@ -2113,20 +2113,32 @@ export default function Index() {
       markChannelDirty(slot);
       return FAIL;
     }
-    let ebSent = 0;
-    for (const addr of sorted) {
-      let ok = await bleManager.writeToneEB(slot, 0, addr, uploadFull[addr]).catch(() => false);
-      if (!ok) {
-        await new Promise(r => setTimeout(r, 40));             // GATT 拥塞重试一次
-        ok = await bleManager.writeToneEB(slot, 0, addr, uploadFull[addr]).catch(() => false);
+    /* ★★★ 2026-11-19（用户报障「安卓恢复出厂 30 秒+，iOS 只要 8-9 秒」）：
+       原来是逐帧写 —— 一帧一次 GATT 往返。
+         · iOS：CoreBluetooth 发出即返回，每帧只花 EB_WRITE_MS(5ms) → 1872 帧 ≈ 9 秒
+         · Android：每帧要等 onCharacteristicWrite（连接间隔 12~15ms）→ ≈ 30 秒+
+       改为「一包多帧」（固件已确认支持），Android 往返次数降到 1/15，预计 30s → 11s。
+       批量不可用（WebBLE / MTU 未协商 / 中途失败）时自动回退逐帧，
+       并从 batch.sent 处继续，已成功的不重复写。 */
+    const ebList = sorted.map((addr) => ({ addr, value: uploadFull[addr] }));
+    const batch = await bleManager.writeToneEBBatch(slot, 0, ebList);
+    let ebSent = batch.sent;
+    if (!batch.ok) {
+      for (let i = batch.sent; i < ebList.length; i++) {
+        const { addr, value } = ebList[i];
+        let ok = await bleManager.writeToneEB(slot, 0, addr, value).catch(() => false);
+        if (!ok) {
+          await new Promise(r => setTimeout(r, 40));           // GATT 拥塞重试一次
+          ok = await bleManager.writeToneEB(slot, 0, addr, value).catch(() => false);
+        }
+        if (!ok) {
+          notifyDebug(`EB 写失败 ch=${slot} addr=${addr}（已发 ${ebSent}/${ebList.length}）`);
+          markChannelDirty(slot);
+          return FAIL;
+        }
+        ebSent++;
+        await new Promise(r => setTimeout(r, EB_WRITE_MS));
       }
-      if (!ok) {
-        notifyDebug(`EB 写失败 ch=${slot} addr=${addr}（已发 ${ebSent}/${sorted.length}）`);
-        markChannelDirty(slot);
-        return FAIL;
-      }
-      ebSent++;
-      await new Promise(r => setTimeout(r, EB_WRITE_MS));
     }
     /* ★★★ 2026-10-31（用户报障「UI 音色和固件音色不一致，特别是激励器」）：
      *   激励器（BOOST）不在 117 条寄存器里 —— 它是 ES8311 的模拟输入 PGA（Reg0x14），
