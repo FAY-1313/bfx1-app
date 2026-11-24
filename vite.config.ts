@@ -26,12 +26,25 @@ const lucideIconNames = Object.keys(lucide).filter(
   (k) => /^[A-Z]/.test(k) && k.endsWith("Icon")
 );
 
+// 生产包去掉 console.log/info/debug —— Capacitor 会把 console 桥接到 logcat，
+// BLE 写入热路径每帧一条 log 有实际开销。保留 warn/error 供诊断。
+// ⚠️ 只作用于 App 的 `vite build`：dev 和 `--ssr`（scripts/ 与 _verify/ 校验脚本）必须保留 console，
+//    否则校验脚本的输出会被整段摇树删掉、看起来"跑完没报错"。
+const stripConsoleInAppBuild: Plugin = {
+  name: "strip-console-in-app-build",
+  config(_cfg, { command, isSsrBuild }) {
+    if (command !== "build" || isSsrBuild) return;
+    return { esbuild: { pure: ["console.log", "console.info", "console.debug"], drop: ["debugger"] } };
+  },
+};
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
     dropOrtJsepWasm,
+    stripConsoleInAppBuild,
     AutoImport({
       dts: process.env.BFX_NO_AUTO_DTS ? false : "auto-imports.d.ts",
       include: [/\.[tj]sx?$/],

@@ -182,6 +182,9 @@ export default function CommunityPanel({
     setLoadErr('');
     try {
       takeFetchError();                 // 清掉上一次的残留
+      /* ★ 2026-11-24：三个关系查询不依赖音色列表 —— 与列表**同时**发出，弱网首屏少等一个 RTT。
+         它们走 social.ts，不写 takeFetchError 的错误槽，提前启动不影响 E4 的错误判定。 */
+      const relP = Promise.allSettled([listFavIds(), listFollowingUids(), listFollowerUids()]);
       const page = await fetchTonesPage({ limit: 30 });
       const list = await resolveCoverUrls(page.list);
       setTones(list);
@@ -191,7 +194,7 @@ export default function CommunityPanel({
          旧实现用 `Promise.all` —— 任一个 reject 就整体抛出、三个 Set 一个都不设，
          于是「已收藏」显示成「未收藏」；用户点一下走 addFav（幂等，返回 true）→
          再 bumpToneCount +1 → **favCount 虚增**。失败时保留旧值，绝不清空。 */
-      const rel = await Promise.allSettled([listFavIds(), listFollowingUids(), listFollowerUids()]);
+      const rel = await relP;
       const favs = rel[0].status === 'fulfilled' ? rel[0].value : null;
       const fo = rel[1].status === 'fulfilled' ? rel[1].value : null;
       const fr = rel[2].status === 'fulfilled' ? rel[2].value : null;
@@ -207,15 +210,17 @@ export default function CommunityPanel({
          界面统一用昵称首字色块占位。这里只取「最新昵称」与签名 ——
          取昵称还有一个用处：用户改名后，他以前发的音色要显示新名字。 */
       const uids = [...new Set(list.map((t) => t.uid).filter(Boolean) as string[])];
-      const prof = await fetchProfiles(uids);
+      /* ★ 2026-11-24：昵称 / 收藏音色 / 我的作品三者互不依赖 → 并行 */
+      const [prof, favList, mine] = await Promise.all([
+        fetchProfiles(uids),
+        favs && favs.length > 0 ? fetchTonesByIds(favs).then(resolveCoverUrls) : Promise.resolve([] as CommunityTone[]),
+        account?.name ? fetchMyTones(account.name).then(resolveCoverUrls) : Promise.resolve([] as CommunityTone[]),
+      ]);
       const next: Record<string, { name?: string; bio?: string }> = {};
       for (const [uid, p] of Object.entries(prof)) next[uid] = { name: p.name, bio: p.bio };
       if (account?.uid) next[account.uid] = { ...(next[account.uid] || {}), name: account.name, bio: account.bio };
       setProfiles(next);
-      // 收藏音色
-      const favList = favs && favs.length > 0 ? await resolveCoverUrls(await fetchTonesByIds(favs)) : [];
       setFavTones(favList);
-      const mine = account?.name ? await resolveCoverUrls(await fetchMyTones(account.name)) : [];
       setMyTones(mine);
       seedCounts([list, favList, mine]);   // E6：先灌一次基准计数
     } catch (e) {

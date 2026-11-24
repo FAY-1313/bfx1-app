@@ -242,11 +242,37 @@ export function ampHasKnob(ampIdx: number, knobLabel: string): boolean {
  * @returns 型号不认识 / 该型号没有这个旋钮 → null（调用方必须跳过，不可回退旧表）
  */
 export function ampLinkedDefsByName(ampName: string, knobLabel: string): AmpLinkedDef[] | null {
-  if (!ampName) return null;
-  const i = AMP_MODELS.findIndex((m) => m.key === ampName || m.name === ampName
-    || (m.aliases ?? []).includes(ampName) || m.id === ampName);
+  const i = ampIndexByName(ampName);
   if (i < 0) return null;
   return ampLinkedDefs(i, knobLabel);
+}
+
+/** 型号 key / 英文名 / 别名 / 旧 id → AMP_MODELS 索引；不认识返回 −1 */
+export function ampIndexByName(ampName: string | undefined): number {
+  if (!ampName) return -1;
+  return AMP_MODELS.findIndex((m) => m.key === ampName || m.name === ampName
+    || (m.aliases ?? []).includes(ampName) || m.id === ampName);
+}
+
+/** 箱头非音调旋钮（反解用；DC1/DC2 UI 不显示，不纳入） */
+const AMP_FIXED_KNOBS = ['GAIN', 'DRIVE', 'VOL1', 'VOL2', 'MASTER'];
+
+/**
+ * ★ 2026-11-24：箱头旋钮**反解**的唯一入口（与写入同一张 v3 表）。
+ *   regs 里读不到的旋钮不出现在结果里；型号不认识返回 {}（**不回退旧表**）。
+ */
+export function ampDecodeKnobs(ampName: string | undefined, readReg: (addr: number) => number | undefined): Record<string, number> {
+  const out: Record<string, number> = {};
+  const idx = ampIndexByName(ampName);
+  if (idx < 0) return out;
+  for (const label of [...AMP_FIXED_KNOBS, ...ampToneKnobs(idx)]) {
+    const def = ampLinkedDefs(idx, label)?.[0];
+    if (!def?.decode) continue;
+    const v = readReg(def.regAddr);
+    if (v === undefined) continue;
+    out[label] = Math.max(0, Math.min(1, def.decode(v)));
+  }
+  return out;
 }
 
 

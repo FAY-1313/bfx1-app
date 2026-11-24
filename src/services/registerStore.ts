@@ -12,6 +12,7 @@
 
 import { getParamDef, regValueToNormalized, normalizedToRegValue, MODULE_PARAM_MAP, SUB_MODEL_FORMULAS } from "../data/parameterMap";
 import type { ParamDef } from "../data/parameterMap";
+import { ampDecodeKnobs } from "../data/ampKnobResolve";
 
 /** 通用单调反解: 找到 n∈[0,1] 使 compute(n)≈regValue (兼容递增/递减, 适用于 PEQ gain 域与线性) */
 function invertKnob(compute: (n: number) => number, regValue: number): number {
@@ -107,6 +108,10 @@ class RegisterStore {
    * 否则回退 MODULE_PARAM_MAP 线性归一化. 公式未覆盖的旋钮仍从 MODULE_PARAM_MAP 补齐.
    */
   getModuleKnobValues(moduleId: string, subModelName?: string): Record<string, number> {
+    /* ★ 2026-11-24：箱头反解改走 v3 权威表（与写入同表）。旧的 SUB_MODEL_FORMULAS['amp-head'] /
+       MODULE_PARAM_MAP['amp-head'] 是 v13 旧布局（BASS/MID/TREBLE 段序错、GAIN 量程不同），
+       实测 20 型号 900 个点 240 个读偏、400 个读不到（_verify/ampReadback.ts）。不回退旧表。 */
+    if (moduleId === 'amp-head') return ampDecodeKnobs(subModelName, (a) => this._regs.get(a));
     const result: Record<string, number> = {};
     const moduleMap = MODULE_PARAM_MAP[moduleId];
     const formulaMap = ((subModelName && (SUB_MODEL_FORMULAS as any)[subModelName])

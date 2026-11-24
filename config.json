@@ -5,31 +5,5 @@
       "src": "src/pages/Index.tsx"
     }
   ],
-  "components": [
-    {
-      "name": "CabinetPanel",
-      "src": "src/components/CabinetPanel.tsx",
-      "route": "/preview/cabinet-panel"
-    },
-    {
-      "name": "FootSwitch",
-      "src": "src/components/FootSwitch.tsx",
-      "route": "/preview/foot-switch"
-    },
-    {
-      "name": "Knob",
-      "src": "src/components/Knob.tsx",
-      "route": "/preview/knob"
-    },
-    {
-      "name": "PedalPanel",
-      "src": "src/components/PedalPanel.tsx",
-      "route": "/preview/pedal-panel"
-    },
-    {
-      "name": "SubModelSelector",
-      "src": "src/components/SubModelSelector.tsx",
-      "route": "/preview/sub-model-selector"
-    }
-  ]
+  "components": []
 }

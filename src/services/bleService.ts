@@ -197,32 +197,10 @@ const EA_PKT_RETRY = 3;
 const EA_PKT_RETRY_DELAY_MS = 6;
 
 // ─── PGA I2C Commands ──────────────────────────────────────────────
-// PGA Gain via I2C: header=0xED00, device=0x30, register=0x14
-// PGA levels: 0=0dB, 1=3dB, 2=6dB, 3=9dB, 4=12dB, 5=15dB, 6=18dB, 7=21dB, 8=24dB, 9=27dB, 10=30dB
-const I2C_HEADER = 0xED;
-const I2C_DEVICE = 0x30;
-const I2C_REG_PGA = 0x14; // Register 0x14, bits[3:0] = PGA gain
-
-/** Build 12-byte I2C frame for PGA control */
-export function buildI2CFrame(deviceAddr: number, regAddr: number, value: number): number[] {
-  const f = new Array<number>(12).fill(0);
-  f[0] = I2C_HEADER; f[1] = 0x00;
-  f[2] = deviceAddr & 0xff;
-  f[3] = regAddr & 0xff;
-  f[4] = value & 0xff; f[5] = (value>>8)&0xff;
-  f[6] = (value>>16)&0xff; f[7] = (value>>24)&0xff;
-  const headerBE = (I2C_HEADER<<24) | ((deviceAddr&0xff)<<8) | (regAddr&0xff);
-  const valBE = ((value&0xff)<<24) | (((value>>8)&0xff)<<16) | (((value>>16)&0xff)<<8) | ((value>>>24)&0xff);
-  const cs = (headerBE ^ valBE) >>> 0;
-  f[8] = (cs>>>24)&0xff; f[9] = (cs>>>16)&0xff;
-  f[10] = (cs>>>8)&0xff; f[11] = cs&0xff;
-  return f;
-}
-
-/** PGA gain lookup: level 0-10 → register value */
-export function pgaLevelToValue(level: number): number {
-  return 0x10 | (Math.max(0, Math.min(10, Math.round(level))) & 0x0F);
-}
+// ─── 协议帧编解码：见 ./protocol/frames.ts（纯函数，2026-11-24 搬出）────────
+import { WriteGate } from './transport/writeGate';
+import { I2C_DEVICE, I2C_REG_PGA, buildI2CFrame, pgaLevelToValue, buildFrame, buildFrameSub, parseFrame } from './protocol/frames';
+export { buildI2CFrame, pgaLevelToValue, calcChecksum, buildFrame, buildFrameSub, parseFrame } from './protocol/frames';
 
 // ─── Device info ────────────────────────────────────────────────────
 export interface BLEDevice {
@@ -232,79 +210,6 @@ export interface BLEDevice {
   /** ★ 2026-11-04：广播里的服务 UUID 列表（无线 MIDI 踏板据此识别）。
    *  纯新增字段，不影响原有按名字过滤的逻辑。 */
   uuids?: string[];
-}
-
-// ─── Checksum ───────────────────────────────────────────────────────
-// CheckSum = BE32([header, 0x00, regAddr_lo, regAddr_hi]) ^ BE32(LE_bytes(regValue))
-// 校验值以大端序放入 [8..11] (参见协议 §1.2)
-export function calcChecksum(header: number, regAddr: number, regValue: number): number {
-  // BE32: header as MSB, then 0x00, then regAddr_lo, regAddr_hi as LSB
-  const headerRegBE = (header << 24) | ((regAddr & 0xff) << 8) | ((regAddr >> 8) & 0xff);
-  // The 4 regValue LE-bytes interpreted as BE32 (byte-swapped regValue)
-  const regValBE = ((regValue & 0xff) << 24) | (((regValue >> 8) & 0xff) << 16) |
-                   (((regValue >> 16) & 0xff) << 8) | ((regValue >>> 24) & 0xff);
-  return (headerRegBE ^ regValBE) >>> 0;
-}
-
-export function buildFrame(header: number, regAddr: number, regValue: number): number[] {
-  const frame = new Array<number>(12).fill(0);
-  frame[0] = header;
-  frame[1] = 0x00;
-  frame[2] = regAddr & 0xff;
-  frame[3] = (regAddr >> 8) & 0xff;
-  frame[4] = regValue & 0xff;
-  frame[5] = (regValue >> 8) & 0xff;
-  frame[6] = (regValue >> 16) & 0xff;
-  frame[7] = (regValue >> 24) & 0xff;
-  const cs = calcChecksum(header, regAddr, regValue);
-  // 校验值以大端序存储 (MSB first)
-  frame[8] = (cs >>> 24) & 0xff;
-  frame[9] = (cs >>> 16) & 0xff;
-  frame[10] = (cs >>> 8) & 0xff;
-  frame[11] = cs & 0xff;
-  return frame;
-}
-
-/* ★S2c：EB/E8/E9 用的帧（带 sub 字节：表类型+频道）
- * 校验公式不变：hdrBE 多了 sub<<16（对应帧[1]） */
-export function buildFrameSub(header: number, sub: number, regAddr: number, regValue: number): number[] {
-  const frame = new Array<number>(12).fill(0);
-  frame[0] = header & 0xff;
-  frame[1] = sub & 0xff;
-  frame[2] = regAddr & 0xff;
-  frame[3] = (regAddr >> 8) & 0xff;
-  frame[4] = regValue & 0xff;
-  frame[5] = (regValue >> 8) & 0xff;
-  frame[6] = (regValue >> 16) & 0xff;
-  frame[7] = (regValue >> 24) & 0xff;
-  const hdrBE = (((header & 0xff) << 24) | ((sub & 0xff) << 16) |
-                 ((regAddr & 0xff) << 8) | ((regAddr >> 8) & 0xff)) >>> 0;
-  const valBE = (((regValue & 0xff) << 24) | (((regValue >> 8) & 0xff) << 16) |
-                 (((regValue >> 16) & 0xff) << 8) | ((regValue >>> 24) & 0xff)) >>> 0;
-  const cs = (hdrBE ^ valBE) >>> 0;
-  frame[8] = (cs >>> 24) & 0xff;
-  frame[9] = (cs >>> 16) & 0xff;
-  frame[10] = (cs >>> 8) & 0xff;
-  frame[11] = cs & 0xff;
-  return frame;
-}
-
-export function parseFrame(data: number[]): {
-  header: number; regAddr: number; regValue: number; checksum: number;
-} | null {
-  if (data.length < 12) return null;
-  const header = data[0];
-  const regAddr = data[2] | (data[3] << 8);
-  /* ★ 2026-10-17 修复：必须 >>> 0 转无符号。
-     JS 的 `<<` 产出的是 int32，第 31 位置 1 时结果是负数（如 0xF8000000 → -134217728），
-     而 calcChecksum 返回的是 >>> 0 的无符号值 —— 用 === 直接比较会永远不相等，
-     导致 parseFrame 在本该成功的帧上返回 null（实测 62% 的 PEQ 帧被误判为校验失败）。
-     PEQ 的 S 字段占 bit27…31，S≥16 时必触发；校验值的 bit31 = 1 ^ (value.bit7)。 */
-  const regValue = (data[4] | (data[5] << 8) | (data[6] << 16) | (data[7] << 24)) >>> 0;
-  // checksum is big-endian stored (MSB first)
-  const checksum = ((data[8] << 24) | (data[9] << 16) | (data[10] << 8) | data[11]) >>> 0;
-  if (checksum !== calcChecksum(header, regAddr, regValue)) return null;
-  return { header, regAddr, regValue, checksum };
 }
 
 // ─── BLE Manager ────────────────────────────────────────────────────
@@ -358,21 +263,25 @@ class BLEManager {
   /** 是否已有 connect() 在飞（面板/重连环据此避让，不再另起一条） */
   get connecting(): boolean { return this._connectInFlight !== null; }
 
-  // ─── 写节奏闸门状态 (2026-10-07) ───────────────────────────────────
-  /** 上一次 BLE 写【结束】的时间戳(ms)。闸门据此补足最小间隔。 */
-  private _lastWriteEndAt: number = 0;
-  /** 串行化锁尾: 每个写请求接到链尾, 保证 FIFO 且同一时刻只有一个写在飞。 */
-  private _writeLock: Promise<void> = Promise.resolve();
+  // ─── 写节奏闸门 (2026-10-07；2026-11-24 抽成 transport/writeGate.ts) ─────
+  /** FIFO 串行 + 最小间隔 + 排队超时自愈，见 WriteGate */
+  private _gate = new WriteGate();
   /** 协商后的 ATT MTU（未读到前按 23 保守估计） */
   private _mtu = 23;
   /** 是否已成功读到过 MTU（读到后不再重复请求） */
   private _mtuKnown = false;
+  /**
+   * ★★★ 2026-11-20：EB 批量写的**实际结果**（供 UI 显示，别再让"MTU247/20帧"骗人）。
+   *   per  = 真正发出去的每包帧数（自适应降级后可能小于 framesPerPacket）
+   *   err  = 首包失败的原因（超时 / 被 GATT 拒绝 / 长度超限）
+   */
+  lastEbBatch: { ok: boolean; per: number; packets: number; err: string } =
+    { ok: false, per: 0, packets: 0, err: '' };
   /** 连续写失败计数; 成功即清零, 达 WRITE_FAIL_DISCONNECT_THRESHOLD 才判掉线。 */
   private _consecutiveWriteFailures: number = 0;
   /** 会话级重置 */
   private _resetWriteChain(): void {
-    this._writeLock = Promise.resolve();
-    this._lastWriteEndAt = 0;
+    this._gate.reset();
     this._consecutiveWriteFailures = 0;
   }
 
@@ -427,37 +336,11 @@ class BLEManager {
       CALL_TIMEOUT_MS, label);
   }
 
-  /** 写时隙：排队 + 最小间隔（见 _acquireWriteSlot） */
-  private async _acquireWriteSlot(command: number): Promise<() => void> {
-    const gap = command === CMD_SAVE ? EB_WRITE_GAP_MS : MIN_WRITE_GAP_MS;
-    let release!: () => void;
-    const mine = new Promise<void>((res) => { release = res; });
-    const prev = this._writeLock;
-    this._writeLock = prev.then(() => mine);
-
-    /* ★★ v3.75（H5）：排队等待加**硬上限**。
-       若上一个持有者因插件 promise 永不 settle 而没 release，这里原本会永远挂着 →
-       整条写链路死锁（连 duckOff 都发不出去）。超时后重建锁，让本次直接拿到时隙，
-       代价是可能和"失联的上一次写"重叠一次，比永久静音好得多。 */
-    const stuck = await new Promise<boolean>((res) => {
-      const t = setTimeout(() => res(true), WRITE_SLOT_TIMEOUT_MS);
-      prev.then(() => { clearTimeout(t); res(false); });
-    });
-    if (stuck) {
-      console.warn('[BLE] 写时隙等待超时 3s —— 重建锁继续（上一次写已失联）');
-      this._writeLock = mine;
-    }
-
-    const wait = this._lastWriteEndAt + gap - Date.now();
-    if (wait > 0) await new Promise((res) => setTimeout(res, wait)); // ② 补足最小间隔
-    let done = false;
-    return () => {
-      if (done) return;                            // 防重复 release
-      done = true;
-      this._lastWriteEndAt = Date.now();
-      release();
-    };
+  /** 写时隙：排队 + 最小间隔（0xEB 5ms，其余 20ms）。实现见 transport/writeGate.ts */
+  private _acquireWriteSlot(command: number): Promise<() => void> {
+    return this._gate.acquire(command === CMD_SAVE ? EB_WRITE_GAP_MS : MIN_WRITE_GAP_MS, WRITE_SLOT_TIMEOUT_MS);
   }
+
 
   // Web Bluetooth API 适配 (前端 + Capacitor 通用)
   private _bleServer: BluetoothRemoteGATTServer | null = null;
@@ -850,7 +733,6 @@ class BLEManager {
       }
       // ★ 2026-10-07: 新连接 = 干净状态, 复位写节奏闸门
       this._resetWriteChain();
-      this._lastWriteEndAt = 0;
       /* ★ 2026-10-20（C3）：新连接 = 硬件开关状态未知 → 清影子，保证首次对齐为全量写 */
       resetSwitchShadow();
       return true;
@@ -1053,11 +935,54 @@ class BLEManager {
     //   整模块一次压入(如箱体 35 段)时, 这里会自然摊成 35×20ms, 不再冲垮 GATT 队列。
     const release = await this._acquireWriteSlot(command);
     try {
+      return await this._writeRegisterLocked(regAddr, regValue, command, noResponse);
+    } finally {
+      release();
+    }
+  }
+
+  /** writeRegisterLatest 的待发表：key = regAddr·cmd → 尚未拿到写时隙的那一次（值可被后来者覆盖） */
+  private _latestPending = new Map<string, { value: number; p: Promise<boolean> }>();
+
+  /**
+   * ★ 2026-11-24：「最新值优先」写入 —— 只给**连续拖动类**控件用（总音量 / 输入音量）。
+   *   同一地址已有一次在排队、还没发出去时，不再新增一帧，只把它的值改成最新值。
+   *   旋钮 60–120 Hz 的 pointermove 不再堆出几十帧过时值，松手后硬件不再"追"旧值，
+   *   排在后面的切台 / 开关也不用陪着等。
+   *   ⚠️ 有先后语义的序列（静音 → 切台 → 解静音、EB 落盘）必须继续用 writeRegister（严格 FIFO）。
+   */
+  writeRegisterLatest(regAddr: number, regValue: number, command: number = CMD_WRITE): Promise<boolean> {
+    if (!this._connectedDeviceId) return Promise.resolve(false);
+    if (this._demoMode) return this.writeRegister(regAddr, regValue, command);
+    const key = `${regAddr}:${command}`;
+    const pending = this._latestPending.get(key);
+    if (pending) { pending.value = regValue; return pending.p; }
+    const entry = { value: regValue, p: Promise.resolve(false) };
+    entry.p = (async () => {
+      const release = await this._acquireWriteSlot(command);
+      /* 拿到时隙 = 即将发出：之后的新值另起一帧排队，不能再改这一帧 */
+      this._latestPending.delete(key);
+      try {
+        return await this._writeRegisterLocked(regAddr, entry.value, command, false);
+      } finally {
+        release();
+      }
+    })();
+    this._latestPending.set(key, entry);
+    return entry.p;
+  }
+
+  /** 已持有写时隙时的单帧写入（调用方负责 acquire / release） */
+  private async _writeRegisterLocked(regAddr: number, regValue: number, command: number, noResponse: boolean): Promise<boolean> {
+    try {
       if (!this._connectedDeviceId) return false;   // 排队期间可能已掉线
       const frame = buildFrame(command, regAddr, regValue);
-      const hex = frame.map(b => b.toString(16).padStart(2,'0').toUpperCase()).join(' ');
-      const path = (this._useWebBluetooth && this._writeChar) ? 'WebBLE' : 'Capacitor';
-      console.log(`[BLE WRITE] reg=${regAddr} val=${regValue} cmd=0x${command.toString(16).toUpperCase()} path=${path} frame=${hex}`);
+      /* 每帧 hex 拼接只在 dev 做（生产包 console.log 已被剥离，但参数里的 map/join 仍会执行） */
+      if (import.meta.env.DEV) {
+        const hex = frame.map(b => b.toString(16).padStart(2,'0').toUpperCase()).join(' ');
+        const path = (this._useWebBluetooth && this._writeChar) ? 'WebBLE' : 'Capacitor';
+        console.log(`[BLE WRITE] reg=${regAddr} val=${regValue} cmd=0x${command.toString(16).toUpperCase()} path=${path} frame=${hex}`);
+      }
       if (this._useWebBluetooth && this._writeChar) {
         await withTimeout(this._writeChar.writeValue(new Uint8Array(frame)), WRITE_CALL_TIMEOUT_MS, 'webble write');
       } else {
@@ -1103,8 +1028,6 @@ class BLEManager {
         await this.confirmDeadLink();
       }
       return false;
-    } finally {
-      release();
     }
   }
 
@@ -1404,6 +1327,17 @@ class BLEManager {
    *   失败处理与 writeEaBatch 一致：整包重试 3 次，仍失败则中止（绝不跳过）。
    *   调用方的"全表回读校验"是最后一道防线 —— 真丢帧会被比对出来并报错。
    */
+  /**
+   * 诊断输出口（★ 2026-11-24：服务层不再直接操作 DOM）。
+   * 默认只打 console；UI 层在启动时用 setDiagSink 注册屏幕浮条（ui/diagBar.ts），
+   * 真机上效果与原先完全相同：红色浮条、12s 自动消失。
+   */
+  private _diagSink: (msg: string) => void = (msg) => console.warn('[BLE DIAG]', msg);
+  setDiagSink(sink: (msg: string) => void): void { this._diagSink = sink; }
+  private _diag(msg: string): void {
+    try { this._diagSink(msg); } catch { /* 诊断失败绝不影响主流程 */ }
+  }
+
   async writeToneEBBatch(
     ch: number,
     typ: number,
@@ -1428,7 +1362,7 @@ class BLEManager {
     if (Capacitor.getPlatform() !== 'android') return { ...empty, ok: false };
 
     await this._ensureMtu();
-    const per = this.framesPerPacket;
+    let per = this.framesPerPacket;
 
     const { BleClient, numbersToDataView } = await importBlePlugin();
     if (!BleClient) return { ...empty, ok: false, perPacket: per };
@@ -1437,6 +1371,8 @@ class BLEManager {
     const total = list.length;
     let idx = 0;
     let packets = 0;
+    let firstErr = '';
+    let downshifts = 0;
 
     while (idx < total) {
       const n = Math.min(per, total - idx);
@@ -1460,8 +1396,9 @@ class BLEManager {
                 this._connectedDeviceId, BLE_SERVICE, BLE_WRITE_CHAR, numbersToDataView(buf)),
               WRITE_CALL_TIMEOUT_MS, 'eb packet');
             ok = true;
-          } catch {
-            /* 这包没发出去 → 退回重试（不能丢） */
+          } catch (e) {
+            /* 记下首个错误原因 —— 真机上看不到 console，这个字符串会被送到 UI */
+            if (!firstErr) firstErr = (e as any)?.message || String(e);
             if (attempt < EA_PKT_RETRY - 1) {
               await new Promise((r) => setTimeout(r, EA_PKT_RETRY_DELAY_MS));
             }
@@ -1472,11 +1409,24 @@ class BLEManager {
       }
 
       if (!ok) {
+        /* ★★★ 2026-11-20（真机实测：MTU 247 / 理论 20 帧/包，实耗却 44.5s≈逐帧速度）：
+           首包就失败时**不再直接放弃**，先把包大小减半重试 ——
+           Android 各家 ROM 对 writeWithoutResponse 的单包长度限制并不统一，
+           240 字节即使在 MTU 247 上也可能被 GATT 拒绝。
+           20 → 10 → 5 → 2 → 1，总有一档能过；全失败才真正回退逐帧，
+           并把原因显示到屏幕上（真机看不到 console）。 */
+        if (packets === 0 && per > 1 && downshifts < 6) {
+          per = Math.max(1, Math.floor(per / 2));
+          downshifts++;
+          continue;                       /* idx 不动，用更小的包重发同一段 */
+        }
         this._consecutiveWriteFailures++;
         if (this._consecutiveWriteFailures >= WRITE_FAIL_DISCONNECT_THRESHOLD && this._connectedDeviceId) {
           await this.confirmDeadLink();
         }
-        console.warn(`[EB PACK] 第 ${packets + 1} 包发送失败，已发 ${idx}/${total} 帧`);
+        console.warn(`[EB PACK] 第 ${packets + 1} 包发送失败，已发 ${idx}/${total} 帧，原因=${firstErr}`);
+        this.lastEbBatch = { ok: false, per, packets, err: firstErr };
+        this._diag(`EB 批量写失败（${per} 帧/包）：${firstErr}`);
         return { ok: false, sent: idx, packets, perPacket: per, mtu: this._mtu };
       }
 
@@ -1489,6 +1439,7 @@ class BLEManager {
     }
 
     console.info(`[EB PACK] 完成：${idx} 帧 / ${packets} 包（每包 ${per} 帧，MTU ${this._mtu}）`);
+    this.lastEbBatch = { ok: true, per, packets, err: '' };
     return { ok: true, sent: idx, packets, perPacket: per, mtu: this._mtu };
   }
 
