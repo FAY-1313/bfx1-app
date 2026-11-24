@@ -2667,6 +2667,9 @@ export default function Index() {
     // 目的: 让硬件频道灯与软件预设库保持一致 (硬件端只能顺序切换, 无法主动上报)
     if (id) {
       setTimeout(async () => {
+        /* ★ 2026-11-24：500ms 内若已断开 / 换连了别的设备，这次查询作废 ——
+           否则会对新设备补写 260/2、或把旧设备的频道号套到当前 UI 上。 */
+        if (bleManager.deviceId !== id) return;
         /* ★★★ 2026-10-31：**一次性解除"整机静音"卡死**。
            上一版 APK 把 reg260（DSP 输出静音）写进 duckOn/duckOff，一旦恢复那次
            走了早退分支，260 就永久停在 1 —— 表现是"换固件后彻底没声音，连按键切档也没声"。
@@ -2826,7 +2829,8 @@ export default function Index() {
     regCacheRef.current[3] = regVal;
     setDebugRegTick(t => t + 1);
     if (connectedDeviceId) {
-      bleManager.writeRegister(3, regVal, 0xea, false).catch(() => {});
+      /* 拖动中每个 tick 都会进来：同地址只保留最新值，不堆过时帧 */
+      bleManager.writeRegisterLatest(3, regVal, 0xea).catch(() => {});
     }
     handleKnobDisplay(norm === 0 ? 'IN VOL  -∞ dB' : `IN VOL  ${regVal - 50} dB`);
   }, [connectedDeviceId]);
@@ -2838,7 +2842,8 @@ export default function Index() {
     regCacheRef.current[261] = regVal;
     setDebugRegTick(t => t + 1);
     if (connectedDeviceId) {
-      bleManager.writeRegister(261, regVal, 0xea, false).catch(() => {});
+      /* 拖动中每个 tick 都会进来：同地址只保留最新值，不堆过时帧 */
+      bleManager.writeRegisterLatest(261, regVal, 0xea).catch(() => {});
     }
     /* 总音量 0 = 关闭：与噪声门/激励同一逻辑，0 档同时落输出静音、指示灯熄灭。 */
     const shouldMute = norm <= 0.001;

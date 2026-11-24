@@ -1060,11 +1060,54 @@ class BLEManager {
     //   整模块一次压入(如箱体 35 段)时, 这里会自然摊成 35×20ms, 不再冲垮 GATT 队列。
     const release = await this._acquireWriteSlot(command);
     try {
+      return await this._writeRegisterLocked(regAddr, regValue, command, noResponse);
+    } finally {
+      release();
+    }
+  }
+
+  /** writeRegisterLatest 的待发表：key = regAddr·cmd → 尚未拿到写时隙的那一次（值可被后来者覆盖） */
+  private _latestPending = new Map<string, { value: number; p: Promise<boolean> }>();
+
+  /**
+   * ★ 2026-11-24：「最新值优先」写入 —— 只给**连续拖动类**控件用（总音量 / 输入音量）。
+   *   同一地址已有一次在排队、还没发出去时，不再新增一帧，只把它的值改成最新值。
+   *   旋钮 60–120 Hz 的 pointermove 不再堆出几十帧过时值，松手后硬件不再"追"旧值，
+   *   排在后面的切台 / 开关也不用陪着等。
+   *   ⚠️ 有先后语义的序列（静音 → 切台 → 解静音、EB 落盘）必须继续用 writeRegister（严格 FIFO）。
+   */
+  writeRegisterLatest(regAddr: number, regValue: number, command: number = CMD_WRITE): Promise<boolean> {
+    if (!this._connectedDeviceId) return Promise.resolve(false);
+    if (this._demoMode) return this.writeRegister(regAddr, regValue, command);
+    const key = `${regAddr}:${command}`;
+    const pending = this._latestPending.get(key);
+    if (pending) { pending.value = regValue; return pending.p; }
+    const entry = { value: regValue, p: Promise.resolve(false) };
+    entry.p = (async () => {
+      const release = await this._acquireWriteSlot(command);
+      /* 拿到时隙 = 即将发出：之后的新值另起一帧排队，不能再改这一帧 */
+      this._latestPending.delete(key);
+      try {
+        return await this._writeRegisterLocked(regAddr, entry.value, command, false);
+      } finally {
+        release();
+      }
+    })();
+    this._latestPending.set(key, entry);
+    return entry.p;
+  }
+
+  /** 已持有写时隙时的单帧写入（调用方负责 acquire / release） */
+  private async _writeRegisterLocked(regAddr: number, regValue: number, command: number, noResponse: boolean): Promise<boolean> {
+    try {
       if (!this._connectedDeviceId) return false;   // 排队期间可能已掉线
       const frame = buildFrame(command, regAddr, regValue);
-      const hex = frame.map(b => b.toString(16).padStart(2,'0').toUpperCase()).join(' ');
-      const path = (this._useWebBluetooth && this._writeChar) ? 'WebBLE' : 'Capacitor';
-      console.log(`[BLE WRITE] reg=${regAddr} val=${regValue} cmd=0x${command.toString(16).toUpperCase()} path=${path} frame=${hex}`);
+      /* 每帧 hex 拼接只在 dev 做（生产包 console.log 已被剥离，但参数里的 map/join 仍会执行） */
+      if (import.meta.env.DEV) {
+        const hex = frame.map(b => b.toString(16).padStart(2,'0').toUpperCase()).join(' ');
+        const path = (this._useWebBluetooth && this._writeChar) ? 'WebBLE' : 'Capacitor';
+        console.log(`[BLE WRITE] reg=${regAddr} val=${regValue} cmd=0x${command.toString(16).toUpperCase()} path=${path} frame=${hex}`);
+      }
       if (this._useWebBluetooth && this._writeChar) {
         await withTimeout(this._writeChar.writeValue(new Uint8Array(frame)), WRITE_CALL_TIMEOUT_MS, 'webble write');
       } else {
@@ -1110,8 +1153,6 @@ class BLEManager {
         await this.confirmDeadLink();
       }
       return false;
-    } finally {
-      release();
     }
   }
 
