@@ -4,7 +4,6 @@ import { BluetoothIcon, BluetoothOffIcon, UserCircleIcon, GlobeIcon, BugIcon, Sl
 /* ★★ v3.68：全 App 统一反馈入口（唯一位置 + 覆盖式单条），见 services/feedback.ts */
 import { notifyOk, notifyErr, notifyInfo, notifyDebug, setNotifyDebugMode } from '../services/feedback';
 import { useI18n } from '../i18n';
-import Knob from '../components/Knob';
 import BluetoothPanel from '../components/BluetoothPanel';
 import { MODULES, PlayMode } from '../data/pedalData';
 import { MODULE_PARAM_MAP, MODULE_BYPASS_ADDR } from '../data/parameterMap';
@@ -421,16 +420,15 @@ export default function Index() {
   const [logoPopKey, setLogoPopKey] = useState(0);
   const regCacheRef = useRef<Record<number, number>>({});
   /* ★ 2026-11-24：输入/输出音量与静音 → hooks/useIoLevels.ts。
-     bumpDebugTick / addDebugLog / handleKnobDisplay 在下方才定义，传箭头函数（调用时才取）。 */
+     bumpDebugTick / addDebugLog 在下方才定义，传箭头函数（调用时才取）。 */
   const {
     muted, setMuted, inputVol, setInputVol, outputVol, setOutputVol,
     inputMute, setInputMute, outputMute, setOutputMute,
-    handleInputVolChange, handleOutputVolChange, toggleInputMute, toggleOutputMute,
+    handleOutputVolChange,
   } = useIoLevels({
     connectedDeviceId, regCacheRef,
     bumpDebugTick: () => bumpDebugTick(),
     addDebugLog: (reg, val) => addDebugLog(reg, val),
-    showKnobText: (text) => handleKnobDisplay(text),
   });
   // ★ 2026-10-15：踩钉改用「整段 BYPASS」后，旧的「整组复位前参数缓存」已整体删除
   //   （moduleResetCacheRef / 其切台清空 effect）—— 参数从不被改写，无需缓存。
@@ -1171,7 +1169,6 @@ export default function Index() {
   }, [activePanel]);
   activePanelRef.current = activePanel;
 
-  const [ioOpen] = useState(false);  // IO bar collapse toggle (默认隐藏, 避免影响视觉空间)
 
   // ─── 开机教程 ───
   /* ★★★ 2026-11-03（方案 A）：上传回读校验的"不一致明细"。null = 不显示。
@@ -2661,48 +2658,6 @@ export default function Index() {
             </div>
           )}
 
-          {/* ── IO VOLUME 浮动窗口 (不占布局, 右下角浮动, 展开向上) ── */}
-          {ioOpen && (
-            <div style={{
-              position: 'absolute', right: 8, bottom: 46, zIndex: 7,
-              display: 'flex', alignItems: 'center', gap: 10,
-              padding: '10px 14px', borderRadius: 16,
-              background: 'rgba(28,29,33,0.97)', border: '1px solid #454b55',
-              boxShadow: '0 16px 48px rgba(0,0,0,0.65)',
-              opacity: btConnected ? 1 : 0.4, transition: 'opacity 0.2s',
-              pointerEvents: btConnected ? 'auto' : 'none',
-            }}>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', color: '#4cc9f0', fontFamily: '"Barlow-Regular_2",sans-serif' }}>IN VOL</span>
-                <Knob label="IN VOL" value={inputVol} size={46} accentColor="#4cc9f0" onChange={handleInputVolChange} />
-                <button onClick={toggleInputMute} title="Input Mute" style={{
-                  width: 26, height: 26, borderRadius: '50%',
-                  background: inputMute ? 'rgba(242,86,91,0.22)' : 'rgba(255,255,255,0.05)',
-                  border: `1.5px solid ${inputMute ? 'rgba(242,86,91,0.7)' : '#454b55'}`,
-                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: inputMute ? 'rgb(255,255,255)' : '#c2c9d6',
-                  fontSize: 11, fontWeight: 800,
-                  fontFamily: '"Barlow-Regular_2",sans-serif', flexShrink: 0,
-                  transition: 'all 0.12s',
-                }}>M</button>
-              </div>
-              <div style={{ width: 1, height: 58, background: '#454b55', flexShrink: 0 }} />
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', color: '#F06F21', fontFamily: '"Barlow-Regular_2",sans-serif' }}>OUT VOL</span>
-                <Knob label="OUT VOL" value={outputVol} size={46} accentColor="#F06F21" onChange={handleOutputVolChange} />
-                <button onClick={toggleOutputMute} title="Output Mute" style={{
-                  width: 26, height: 26, borderRadius: '50%',
-                  background: outputMute ? 'rgba(242,86,91,0.22)' : 'rgba(255,255,255,0.05)',
-                  border: `1.5px solid ${outputMute ? 'rgba(242,86,91,0.7)' : '#454b55'}`,
-                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: outputMute ? 'rgb(255,255,255)' : '#c2c9d6',
-                  fontSize: 11, fontWeight: 800,
-                  fontFamily: '"Barlow-Regular_2",sans-serif', flexShrink: 0,
-                  transition: 'all 0.12s',
-                }}>M</button>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* ── PANELS OVERLAY ── */}

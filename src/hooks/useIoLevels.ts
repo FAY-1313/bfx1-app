@@ -12,15 +12,15 @@ function loadState<T>(key: string, fallback: T): T {
 export interface IoLevelsDeps {
   connectedDeviceId: string | null;
   regCacheRef: MutableRefObject<Record<number, number>>;
-  /** 下面三个在 Index 里定义得比本 hook 晚 —— 传箭头函数进来，调用时才取（hook 内部做成引用稳定） */
+  /** 下面两个在 Index 里定义得比本 hook 晚 —— 传箭头函数进来，调用时才取（hook 内部做成引用稳定） */
   bumpDebugTick: () => void;
   addDebugLog: (reg: number, val: number) => void;
-  showKnobText: (text: string) => void;
 }
 
 /**
  * ★ 2026-11-24：输入 / 输出音量与静音（reg 3 / 261 / 2 / 260）从 Index.tsx 抽出。
- * 状态初值、持久化键、四个处理函数的逻辑与原实现逐行一致。
+ * 状态初值、持久化键、handleOutputVolChange 的逻辑与原实现逐行一致。
+ * （输入音量旋钮 / 两个 M 静音键只存在于从不渲染的旧 IO 浮窗里，已随浮窗删除；inputVol 等 state 仍参与存档/载入。）
  */
 export function useIoLevels({ connectedDeviceId, regCacheRef, ...ext }: IoLevelsDeps) {
   const cb = useLatestHandlers(ext);
@@ -36,19 +36,6 @@ export function useIoLevels({ connectedDeviceId, regCacheRef, ...ext }: IoLevels
   useEffect(() => { localStorage.setItem('bfx_outputVol', JSON.stringify(outputVol)); }, [outputVol]);
   useEffect(() => { localStorage.setItem('bfx_inputMute', JSON.stringify(inputMute)); }, [inputMute]);
   useEffect(() => { localStorage.setItem('bfx_outputMute', JSON.stringify(outputMute)); }, [outputMute]);
-
-  const handleInputVolChange = useCallback((norm: number) => {
-    setInputVol(norm);
-    const regVal = Math.round(norm * 50);
-    registerStore.set(3, regVal);
-    regCacheRef.current[3] = regVal;
-    cb.bumpDebugTick();
-    if (connectedDeviceId) {
-      /* 拖动中每个 tick 都会进来：同地址只保留最新值，不堆过时帧 */
-      bleManager.writeRegisterLatest(3, regVal, 0xea).catch(() => {});
-    }
-    cb.showKnobText(norm === 0 ? 'IN VOL  -∞ dB' : `IN VOL  ${regVal - 50} dB`);
-  }, [connectedDeviceId, regCacheRef, cb]);
 
   const handleOutputVolChange = useCallback((norm: number) => {
     setOutputVol(norm);
@@ -73,36 +60,10 @@ export function useIoLevels({ connectedDeviceId, regCacheRef, ...ext }: IoLevels
     }
   }, [connectedDeviceId, muted, regCacheRef, cb]);
 
-  const toggleInputMute = useCallback(() => {
-    const next = !inputMute;
-    setInputMute(next);
-    const regVal = next ? 1 : 0;
-    registerStore.set(2, regVal);
-    regCacheRef.current[2] = regVal;
-    cb.bumpDebugTick();
-    if (connectedDeviceId) {
-      bleManager.writeRegister(2, regVal, 0xea, false).catch(() => {});
-    }
-    cb.showKnobText(`IN ${next ? 'MUTED' : 'UNMUTED'}`);
-  }, [inputMute, connectedDeviceId, regCacheRef, cb]);
-
-  const toggleOutputMute = useCallback(() => {
-    const next = !outputMute;
-    setOutputMute(next);
-    const regVal = next ? 1 : 0;
-    registerStore.set(260, regVal);
-    regCacheRef.current[260] = regVal;
-    cb.bumpDebugTick();
-    if (connectedDeviceId) {
-      bleManager.writeRegister(260, regVal, 0xea, false).catch(() => {});
-    }
-    cb.showKnobText(`OUT ${next ? 'MUTED' : 'UNMUTED'}`);
-  }, [outputMute, connectedDeviceId, regCacheRef, cb]);
-
   return {
     muted, setMuted,
     inputVol, setInputVol, outputVol, setOutputVol,
     inputMute, setInputMute, outputMute, setOutputMute,
-    handleInputVolChange, handleOutputVolChange, toggleInputMute, toggleOutputMute,
+    handleOutputVolChange,
   };
 }
