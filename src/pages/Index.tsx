@@ -16,6 +16,7 @@ import StudioPanel from '../components/StudioPanel';
 import { registerStore } from '../services/registerStore';
 import { getUiSnapshot } from '../services/uiSnapshot';
 import { useLatestHandlers } from '../hooks/useLatestHandlers';
+import { useIoLevels } from '../hooks/useIoLevels';
 /* ★★ 2026-10-17：循环压测模式（仅测试包，正式版 TEST_SWEEP_MODE = false） */
 import { TEST_SWEEP_MODE } from '../config/testMode';
 import { APP_VERSION } from '../config/appVersion';
@@ -368,8 +369,6 @@ export default function Index() {
   /** ★ v8 箱头型号索引（新 UI TonePage 选中的那个，回传到这里）
    *  用途：defaults 构建器要知道当前箱头是哪个，才能写正确的 57-98 */
   const [ampIdxV8, setAmpIdxV8] = useState(0);
-  /** ★ C6（2026-10-15）：静音开关状态 —— 写 reg260，1 = 静音 / 0 = 正常 */
-  const [muted, setMuted] = useState(false);
   /** ★ 2026-10-16：未连接蓝牙的统一拦截提示（节流 2.5s，避免拖动旋钮时刷屏） */
   const notConnWarnRef = useRef(0);
   const warnNotConnected = () => {
@@ -384,10 +383,6 @@ export default function Index() {
     warnNotConnected();
     return false;
   };
-  const [inputVol, setInputVol] = useState(() => loadState('inputVol', 1.0));
-  const [outputVol, setOutputVol] = useState(() => loadState('outputVol', 1.0));
-  const [inputMute, setInputMute] = useState(() => loadState('inputMute', false));
-  const [outputMute, setOutputMute] = useState(() => loadState('outputMute', false));
   /* ★ v3.53（2026-10-22 用户拍板）：切换弱音 / 切换静音两个开关【删除】。
      改为自动判定 —— 只有箱头/箱体换型（整组切换）才静音，同组切换不静音。
      见 needSwitchMute()。旧 state（tsAtten / tsMute）已无消费方，连持久化一起移除。 */
@@ -425,6 +420,18 @@ export default function Index() {
   /* ★ 2026-10-19：LOGO 手势（定义见上方 logoClickRef / logoHoldRef） */
   const [logoPopKey, setLogoPopKey] = useState(0);
   const regCacheRef = useRef<Record<number, number>>({});
+  /* ★ 2026-11-24：输入/输出音量与静音 → hooks/useIoLevels.ts。
+     bumpDebugTick / addDebugLog / handleKnobDisplay 在下方才定义，传箭头函数（调用时才取）。 */
+  const {
+    muted, setMuted, inputVol, setInputVol, outputVol, setOutputVol,
+    inputMute, setInputMute, outputMute, setOutputMute,
+    handleInputVolChange, handleOutputVolChange, toggleInputMute, toggleOutputMute,
+  } = useIoLevels({
+    connectedDeviceId, regCacheRef,
+    bumpDebugTick: () => bumpDebugTick(),
+    addDebugLog: (reg, val) => addDebugLog(reg, val),
+    showKnobText: (text) => handleKnobDisplay(text),
+  });
   // ★ 2026-10-15：踩钉改用「整段 BYPASS」后，旧的「整组复位前参数缓存」已整体删除
   //   （moduleResetCacheRef / 其切台清空 effect）—— 参数从不被改写，无需缓存。
   // A6 (2026-09-23): 踩钉"重新开启某模块"的默认参数恢复函数（定义在组件后段 → 用 ref 保持最新引用,
@@ -446,10 +453,6 @@ export default function Index() {
   useEffect(() => { localStorage.setItem('bfx_playMode', JSON.stringify(playMode)); }, [playMode]);
   useEffect(() => { localStorage.setItem('bfx_moduleEnabled', JSON.stringify(moduleEnabled)); }, [moduleEnabled]);
   useEffect(() => { localStorage.setItem('bfx_subModelNames', JSON.stringify(subModelNames)); }, [subModelNames]);
-  useEffect(() => { localStorage.setItem('bfx_inputVol', JSON.stringify(inputVol)); }, [inputVol]);
-  useEffect(() => { localStorage.setItem('bfx_outputVol', JSON.stringify(outputVol)); }, [outputVol]);
-  useEffect(() => { localStorage.setItem('bfx_inputMute', JSON.stringify(inputMute)); }, [inputMute]);
-  useEffect(() => { localStorage.setItem('bfx_outputMute', JSON.stringify(outputMute)); }, [outputMute]);
 
   // Android back button: 有面板先关面板 (注册/忘记密码页先回登录), 无面板才弹退出框
   const [showExitDialog, setShowExitDialog] = useState(false);
@@ -2183,67 +2186,6 @@ export default function Index() {
      写 35 段 PEQ(108–142)；换箱体额外复位 SPEAKER dynamics(254–259)。
      时长口径同箱头：50ms/旁路条 + 15ms/参数条（loadWindowMs），加 150ms 余量、下限 400ms。 */
 
-  const handleInputVolChange = useCallback((norm: number) => {
-    setInputVol(norm);
-    const regVal = Math.round(norm * 50);
-    registerStore.set(3, regVal);
-    regCacheRef.current[3] = regVal;
-    bumpDebugTick();
-    if (connectedDeviceId) {
-      /* 拖动中每个 tick 都会进来：同地址只保留最新值，不堆过时帧 */
-      bleManager.writeRegisterLatest(3, regVal, 0xea).catch(() => {});
-    }
-    handleKnobDisplay(norm === 0 ? 'IN VOL  -∞ dB' : `IN VOL  ${regVal - 50} dB`);
-  }, [connectedDeviceId, bumpDebugTick]);
-
-  const handleOutputVolChange = useCallback((norm: number) => {
-    setOutputVol(norm);
-    const regVal = Math.round(norm * 50);
-    registerStore.set(261, regVal);
-    regCacheRef.current[261] = regVal;
-    bumpDebugTick();
-    if (connectedDeviceId) {
-      /* 拖动中每个 tick 都会进来：同地址只保留最新值，不堆过时帧 */
-      bleManager.writeRegisterLatest(261, regVal, 0xea).catch(() => {});
-    }
-    /* 总音量 0 = 关闭：与噪声门/激励同一逻辑，0 档同时落输出静音、指示灯熄灭。 */
-    const shouldMute = norm <= 0.001;
-    if (shouldMute !== muted) {
-      setMuted(shouldMute);
-      const muteReg = shouldMute ? 1 : 0;
-      registerStore.set(260, muteReg);
-      regCacheRef.current[260] = muteReg;
-      if (connectedDeviceId) bleManager.writeRegister(260, muteReg, 0xea, false).catch(() => {});
-      addDebugLog(260, muteReg);
-      bumpDebugTick();
-    }
-  }, [addDebugLog, connectedDeviceId, muted, bumpDebugTick]);
-
-  const toggleInputMute = useCallback(() => {
-    const next = !inputMute;
-    setInputMute(next);
-    const regVal = next ? 1 : 0;
-    registerStore.set(2, regVal);
-    regCacheRef.current[2] = regVal;
-    bumpDebugTick();
-    if (connectedDeviceId) {
-      bleManager.writeRegister(2, regVal, 0xea, false).catch(() => {});
-    }
-    handleKnobDisplay(`IN ${next ? 'MUTED' : 'UNMUTED'}`);
-  }, [inputMute, connectedDeviceId, bumpDebugTick]);
-
-  const toggleOutputMute = useCallback(() => {
-    const next = !outputMute;
-    setOutputMute(next);
-    const regVal = next ? 1 : 0;
-    registerStore.set(260, regVal);
-    regCacheRef.current[260] = regVal;
-    bumpDebugTick();
-    if (connectedDeviceId) {
-      bleManager.writeRegister(260, regVal, 0xea, false).catch(() => {});
-    }
-    handleKnobDisplay(`OUT ${next ? 'MUTED' : 'UNMUTED'}`);
-  }, [outputMute, connectedDeviceId, bumpDebugTick]);
 
   // D7 (2026-09-22) 死代码清理: handleApplyPreset 已删除 — 全工程无任何调用者
   //   (原功能 = 按 PresetConfig 生成整图并 EA 全量写硬件; 切台解耦后该职责由
