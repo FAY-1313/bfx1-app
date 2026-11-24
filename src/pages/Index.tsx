@@ -62,6 +62,10 @@ import { localSlotRef, PRESET_GROUPS, CH_LETTER, deriveAllKnobValues, loadChanne
 import PresetsPanel from './parts/PresetsPanel';
 import UserPanel from './parts/UserPanel';
 import PdfViewer from './parts/PdfViewer';
+import { showDiagBar } from '../ui/diagBar';
+
+/* ★ 2026-11-24：BLE 诊断浮条由 UI 层注册（bleService 不再直接操作 DOM） */
+bleManager.setDiagSink(showDiagBar);
 
 /** 连接后的第一次切换必须走全量 —— App 不知道硬件里现在是什么。切完即置 false。 */
 const firstSwitchRef: { current: boolean } = { current: true };

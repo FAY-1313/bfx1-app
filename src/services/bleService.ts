@@ -198,6 +198,7 @@ const EA_PKT_RETRY_DELAY_MS = 6;
 
 // ─── PGA I2C Commands ──────────────────────────────────────────────
 // ─── 协议帧编解码：见 ./protocol/frames.ts（纯函数，2026-11-24 搬出）────────
+import { WriteGate } from './transport/writeGate';
 import { I2C_DEVICE, I2C_REG_PGA, buildI2CFrame, pgaLevelToValue, buildFrame, buildFrameSub, parseFrame } from './protocol/frames';
 export { buildI2CFrame, pgaLevelToValue, calcChecksum, buildFrame, buildFrameSub, parseFrame } from './protocol/frames';
 
@@ -262,11 +263,9 @@ class BLEManager {
   /** 是否已有 connect() 在飞（面板/重连环据此避让，不再另起一条） */
   get connecting(): boolean { return this._connectInFlight !== null; }
 
-  // ─── 写节奏闸门状态 (2026-10-07) ───────────────────────────────────
-  /** 上一次 BLE 写【结束】的时间戳(ms)。闸门据此补足最小间隔。 */
-  private _lastWriteEndAt: number = 0;
-  /** 串行化锁尾: 每个写请求接到链尾, 保证 FIFO 且同一时刻只有一个写在飞。 */
-  private _writeLock: Promise<void> = Promise.resolve();
+  // ─── 写节奏闸门 (2026-10-07；2026-11-24 抽成 transport/writeGate.ts) ─────
+  /** FIFO 串行 + 最小间隔 + 排队超时自愈，见 WriteGate */
+  private _gate = new WriteGate();
   /** 协商后的 ATT MTU（未读到前按 23 保守估计） */
   private _mtu = 23;
   /** 是否已成功读到过 MTU（读到后不再重复请求） */
@@ -282,8 +281,7 @@ class BLEManager {
   private _consecutiveWriteFailures: number = 0;
   /** 会话级重置 */
   private _resetWriteChain(): void {
-    this._writeLock = Promise.resolve();
-    this._lastWriteEndAt = 0;
+    this._gate.reset();
     this._consecutiveWriteFailures = 0;
   }
 
@@ -338,37 +336,11 @@ class BLEManager {
       CALL_TIMEOUT_MS, label);
   }
 
-  /** 写时隙：排队 + 最小间隔（见 _acquireWriteSlot） */
-  private async _acquireWriteSlot(command: number): Promise<() => void> {
-    const gap = command === CMD_SAVE ? EB_WRITE_GAP_MS : MIN_WRITE_GAP_MS;
-    let release!: () => void;
-    const mine = new Promise<void>((res) => { release = res; });
-    const prev = this._writeLock;
-    this._writeLock = prev.then(() => mine);
-
-    /* ★★ v3.75（H5）：排队等待加**硬上限**。
-       若上一个持有者因插件 promise 永不 settle 而没 release，这里原本会永远挂着 →
-       整条写链路死锁（连 duckOff 都发不出去）。超时后重建锁，让本次直接拿到时隙，
-       代价是可能和"失联的上一次写"重叠一次，比永久静音好得多。 */
-    const stuck = await new Promise<boolean>((res) => {
-      const t = setTimeout(() => res(true), WRITE_SLOT_TIMEOUT_MS);
-      prev.then(() => { clearTimeout(t); res(false); });
-    });
-    if (stuck) {
-      console.warn('[BLE] 写时隙等待超时 3s —— 重建锁继续（上一次写已失联）');
-      this._writeLock = mine;
-    }
-
-    const wait = this._lastWriteEndAt + gap - Date.now();
-    if (wait > 0) await new Promise((res) => setTimeout(res, wait)); // ② 补足最小间隔
-    let done = false;
-    return () => {
-      if (done) return;                            // 防重复 release
-      done = true;
-      this._lastWriteEndAt = Date.now();
-      release();
-    };
+  /** 写时隙：排队 + 最小间隔（0xEB 5ms，其余 20ms）。实现见 transport/writeGate.ts */
+  private _acquireWriteSlot(command: number): Promise<() => void> {
+    return this._gate.acquire(command === CMD_SAVE ? EB_WRITE_GAP_MS : MIN_WRITE_GAP_MS, WRITE_SLOT_TIMEOUT_MS);
   }
+
 
   // Web Bluetooth API 适配 (前端 + Capacitor 通用)
   private _bleServer: BluetoothRemoteGATTServer | null = null;
@@ -761,7 +733,6 @@ class BLEManager {
       }
       // ★ 2026-10-07: 新连接 = 干净状态, 复位写节奏闸门
       this._resetWriteChain();
-      this._lastWriteEndAt = 0;
       /* ★ 2026-10-20（C3）：新连接 = 硬件开关状态未知 → 清影子，保证首次对齐为全量写 */
       resetSwitchShadow();
       return true;
@@ -1356,23 +1327,15 @@ class BLEManager {
    *   失败处理与 writeEaBatch 一致：整包重试 3 次，仍失败则中止（绝不跳过）。
    *   调用方的"全表回读校验"是最后一道防线 —— 真丢帧会被比对出来并报错。
    */
-  /** 诊断浮条：真机上看不到 console（release 包不转发），把关键信息直接显示到屏幕上，12s 自动消失 */
+  /**
+   * 诊断输出口（★ 2026-11-24：服务层不再直接操作 DOM）。
+   * 默认只打 console；UI 层在启动时用 setDiagSink 注册屏幕浮条（ui/diagBar.ts），
+   * 真机上效果与原先完全相同：红色浮条、12s 自动消失。
+   */
+  private _diagSink: (msg: string) => void = (msg) => console.warn('[BLE DIAG]', msg);
+  setDiagSink(sink: (msg: string) => void): void { this._diagSink = sink; }
   private _diag(msg: string): void {
-    try {
-      if (typeof document === 'undefined' || !document.body) return;
-      const id = 'bfx-diag-bar';
-      document.getElementById(id)?.remove();
-      const d = document.createElement('div');
-      d.id = id;
-      d.textContent = '⚠ ' + msg;
-      d.style.cssText =
-        'position:fixed;left:8px;right:8px;top:calc(env(safe-area-inset-top,0px) + 60px);' +
-        'z-index:99999;background:rgba(170,28,28,.96);color:#fff;padding:10px 12px;' +
-        'border-radius:10px;font-size:11px;line-height:1.5;word-break:break-all;' +
-        'box-shadow:0 6px 20px rgba(0,0,0,.5)';
-      document.body.appendChild(d);
-      setTimeout(() => d.remove(), 12000);
-    } catch { /* 诊断失败绝不影响主流程 */ }
+    try { this._diagSink(msg); } catch { /* 诊断失败绝不影响主流程 */ }
   }
 
   async writeToneEBBatch(
