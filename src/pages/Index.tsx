@@ -2511,9 +2511,14 @@ export default function Index() {
     endBusy();
     /* ★ 2026-11-19：把「耗时 / MTU / 每包帧数」直接显示出来 ——
        framesPerPacket 为 1 就说明 MTU 还停在 23，批量写等于没生效。 */
+    /* ★ 2026-11-20：显示**实际**生效的每包帧数。
+       framesPerPacket 只是 MTU 算出来的理论值（20），批量若被 GATT 拒绝会自适应
+       降级甚至回退逐帧 —— 只显示理论值会让人误以为"已经在批量了"。 */
     const secs = ((Date.now() - t0) / 1000).toFixed(1);
-    const perf = `MTU${bleManager.mtu}/${bleManager.framesPerPacket}帧`;
-    notifyOk(`已恢复出厂音色 ${done} 格 · 已校验（${secs}s · ${perf}）`, { duration: 6000 });
+    const eb = bleManager.lastEbBatch;
+    const mode = eb.per > 1 ? `批量${eb.per}帧/包` : '逐帧';
+    const perf = `MTU${bleManager.mtu} · ${mode}`;
+    notifyOk(`已恢复出厂音色 ${done} 格 · 已校验（${secs}s · ${perf}）`, { duration: 8000 });
     return true;
   }, [syncChannelToHardware, t]);
 

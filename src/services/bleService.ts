@@ -367,6 +367,13 @@ class BLEManager {
   private _mtu = 23;
   /** 是否已成功读到过 MTU（读到后不再重复请求） */
   private _mtuKnown = false;
+  /**
+   * ★★★ 2026-11-20：EB 批量写的**实际结果**（供 UI 显示，别再让"MTU247/20帧"骗人）。
+   *   per  = 真正发出去的每包帧数（自适应降级后可能小于 framesPerPacket）
+   *   err  = 首包失败的原因（超时 / 被 GATT 拒绝 / 长度超限）
+   */
+  lastEbBatch: { ok: boolean; per: number; packets: number; err: string } =
+    { ok: false, per: 0, packets: 0, err: '' };
   /** 连续写失败计数; 成功即清零, 达 WRITE_FAIL_DISCONNECT_THRESHOLD 才判掉线。 */
   private _consecutiveWriteFailures: number = 0;
   /** 会话级重置 */
@@ -1404,6 +1411,25 @@ class BLEManager {
    *   失败处理与 writeEaBatch 一致：整包重试 3 次，仍失败则中止（绝不跳过）。
    *   调用方的"全表回读校验"是最后一道防线 —— 真丢帧会被比对出来并报错。
    */
+  /** 诊断浮条：真机上看不到 console（release 包不转发），把关键信息直接显示到屏幕上，12s 自动消失 */
+  private _diag(msg: string): void {
+    try {
+      if (typeof document === 'undefined' || !document.body) return;
+      const id = 'bfx-diag-bar';
+      document.getElementById(id)?.remove();
+      const d = document.createElement('div');
+      d.id = id;
+      d.textContent = '⚠ ' + msg;
+      d.style.cssText =
+        'position:fixed;left:8px;right:8px;top:calc(env(safe-area-inset-top,0px) + 60px);' +
+        'z-index:99999;background:rgba(170,28,28,.96);color:#fff;padding:10px 12px;' +
+        'border-radius:10px;font-size:11px;line-height:1.5;word-break:break-all;' +
+        'box-shadow:0 6px 20px rgba(0,0,0,.5)';
+      document.body.appendChild(d);
+      setTimeout(() => d.remove(), 12000);
+    } catch { /* 诊断失败绝不影响主流程 */ }
+  }
+
   async writeToneEBBatch(
     ch: number,
     typ: number,
@@ -1428,7 +1454,7 @@ class BLEManager {
     if (Capacitor.getPlatform() !== 'android') return { ...empty, ok: false };
 
     await this._ensureMtu();
-    const per = this.framesPerPacket;
+    let per = this.framesPerPacket;
 
     const { BleClient, numbersToDataView } = await importBlePlugin();
     if (!BleClient) return { ...empty, ok: false, perPacket: per };
@@ -1437,6 +1463,8 @@ class BLEManager {
     const total = list.length;
     let idx = 0;
     let packets = 0;
+    let firstErr = '';
+    let downshifts = 0;
 
     while (idx < total) {
       const n = Math.min(per, total - idx);
@@ -1460,8 +1488,9 @@ class BLEManager {
                 this._connectedDeviceId, BLE_SERVICE, BLE_WRITE_CHAR, numbersToDataView(buf)),
               WRITE_CALL_TIMEOUT_MS, 'eb packet');
             ok = true;
-          } catch {
-            /* 这包没发出去 → 退回重试（不能丢） */
+          } catch (e) {
+            /* 记下首个错误原因 —— 真机上看不到 console，这个字符串会被送到 UI */
+            if (!firstErr) firstErr = (e as any)?.message || String(e);
             if (attempt < EA_PKT_RETRY - 1) {
               await new Promise((r) => setTimeout(r, EA_PKT_RETRY_DELAY_MS));
             }
@@ -1472,11 +1501,24 @@ class BLEManager {
       }
 
       if (!ok) {
+        /* ★★★ 2026-11-20（真机实测：MTU 247 / 理论 20 帧/包，实耗却 44.5s≈逐帧速度）：
+           首包就失败时**不再直接放弃**，先把包大小减半重试 ——
+           Android 各家 ROM 对 writeWithoutResponse 的单包长度限制并不统一，
+           240 字节即使在 MTU 247 上也可能被 GATT 拒绝。
+           20 → 10 → 5 → 2 → 1，总有一档能过；全失败才真正回退逐帧，
+           并把原因显示到屏幕上（真机看不到 console）。 */
+        if (packets === 0 && per > 1 && downshifts < 6) {
+          per = Math.max(1, Math.floor(per / 2));
+          downshifts++;
+          continue;                       /* idx 不动，用更小的包重发同一段 */
+        }
         this._consecutiveWriteFailures++;
         if (this._consecutiveWriteFailures >= WRITE_FAIL_DISCONNECT_THRESHOLD && this._connectedDeviceId) {
           await this.confirmDeadLink();
         }
-        console.warn(`[EB PACK] 第 ${packets + 1} 包发送失败，已发 ${idx}/${total} 帧`);
+        console.warn(`[EB PACK] 第 ${packets + 1} 包发送失败，已发 ${idx}/${total} 帧，原因=${firstErr}`);
+        this.lastEbBatch = { ok: false, per, packets, err: firstErr };
+        this._diag(`EB 批量写失败（${per} 帧/包）：${firstErr}`);
         return { ok: false, sent: idx, packets, perPacket: per, mtu: this._mtu };
       }
 
@@ -1489,6 +1531,7 @@ class BLEManager {
     }
 
     console.info(`[EB PACK] 完成：${idx} 帧 / ${packets} 包（每包 ${per} 帧，MTU ${this._mtu}）`);
+    this.lastEbBatch = { ok: true, per, packets, err: '' };
     return { ok: true, sent: idx, packets, perPacket: per, mtu: this._mtu };
   }
 
