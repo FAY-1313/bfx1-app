@@ -12,7 +12,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { notifyOk, notifyErr, notifyWarn, notifyInfo } from '../services/feedback';
-import JSZip from 'jszip';
+/* ★ 2026-11-24：jszip 只在解析云端结果 / 全部导出时用 → 按需加载，不进首屏包 */
+const loadJSZip = () => import('jszip').then((m) => m.default);
 import { useI18n } from '../i18n';
 import Waveform from './Waveform';
 import { getSynthCtx } from '../utils/audioSynth';
@@ -292,6 +293,7 @@ export default function StemSplitter({ accentColor, active }: StemSplitterProps)
   // ── 云端 ZIP → 内存 6 轨 (解析并置状态) ──────────────────────────
   const ingestZip = useCallback(async (blob: Blob, onStep?: (done: number, total: number) => void): Promise<boolean> => {
     try {
+      const JSZip = await loadJSZip();
       const zip = await JSZip.loadAsync(blob);
       const buffers = new Map<StemId, AudioBuffer>();
       const waves = {} as Partial<Record<StemId, Float32Array>>;
@@ -660,6 +662,7 @@ export default function StemSplitter({ accentColor, active }: StemSplitterProps)
     if (!buffers) return;
     const base = audioFileRef.current?.name.replace(/\.[^.]+$/, '') || 'stems';
     try {
+      const JSZip = await loadJSZip();
       const zip = new JSZip();
       let n = 0;
       for (const cfg of displayStems) {
