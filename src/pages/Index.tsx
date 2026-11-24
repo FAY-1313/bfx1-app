@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect, useMemo, useSyncExternalStore } from 'react';
+import { useState, useRef, useCallback, useEffect, useMemo, useSyncExternalStore, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { BluetoothIcon, BluetoothOffIcon, AudioWaveformIcon, UserCircleIcon, GlobeIcon, BugIcon, SlidersHorizontalIcon, LayoutGridIcon, HardDriveIcon, TimerIcon, BookOpenIcon, GraduationCapIcon, SmartphoneIcon, RotateCcwIcon } from 'lucide-react';
 /* ★★ v3.68：全 App 统一反馈入口（唯一位置 + 覆盖式单条），见 services/feedback.ts */
@@ -16,6 +16,7 @@ import { presetEdgeCost } from '../data/presetSwitchCost';
 import StudioPanel from '../components/StudioPanel';
 import { registerStore } from '../services/registerStore';
 import { getUiSnapshot } from '../services/uiSnapshot';
+import { useLatestHandlers } from '../hooks/useLatestHandlers';
 /* ★★ 2026-10-17：循环压测模式（仅测试包，正式版 TEST_SWEEP_MODE = false） */
 import { TEST_SWEEP_MODE } from '../config/testMode';
 import { APP_VERSION } from '../config/appVersion';
@@ -51,7 +52,8 @@ import { readLocalAccount, signOutAccount, isLoggedIn } from '../services/accoun
 import { renameUser, validateName, NAME_MAX } from '../services/authLogin';
 import type { Account } from '../services/account';
 import type { LocalPreset } from '../services/localPresets';
-import DebugPanel from '../ui2/DebugPanelV2';
+/* ★ 2026-11-24：调试面板只在工程模式打开 → 按需加载，不进首屏包 */
+const DebugPanel = lazy(() => import('../ui2/DebugPanelV2'));
 import TonePage from '../ui3/tone/TonePage';
 import CenterHint from '../ui2/CenterHint';
 import type { HintPayload, HintKind } from '../ui2/CenterHint';
@@ -1077,6 +1079,12 @@ export default function Index() {
 
   const [debugLogEntries, setDebugLogEntries] = useState<{ time: string; reg: number; val: number }[]>([]);
   const [debugRegTick, setDebugRegTick] = useState(0);
+  /* ★ 2026-11-24：tick 只给调试面板用 —— 面板关着时不 bump，避免每次开关 / 音量 / 预设操作
+     都让整个 Index 多渲染一次。面板打开时是新挂载，会直接读当前寄存器，不会漏。 */
+  /* debugRef 由下方既有的 effect 同步 debugMode（只在事件 / 回调里读，不在渲染期读） */
+  const bumpDebugTick = useCallback(() => {
+    if (debugRef.current) setDebugRegTick(t => t + 1);
+  }, []);
   /** ★ 2026-10-12: 调试面板 → 新 UI 的单寄存器回写同步（tick 变化触发 TonePage 合并） */
   const [extSync, setExtSync] = useState<{ tick: number; module: string; addr: number; value: number } | null>(null);
   const [, setCleanResetTick] = useState(0);
@@ -1513,14 +1521,14 @@ export default function Index() {
         committed = true;                             // 帧全部落盘 → 基准可以前移
       } else {
         committed = true;                             // 无帧可发 = 硬件本来就是目标态
-        setDebugRegTick(t => t + 1);
+        bumpDebugTick();
       }
 
       // 2a. ★ 2026-10-15（C4 口径）：不再硬写分支位 78。
       //     箱头分支级旁路由型号数据决定，开关逻辑一律不碰；此处原先强制写 0
       //     会覆盖 CLEAN 类型号「REG78=1 常闭 OD」的定义。
       if (mySeq !== applySeqRef.current) return committed;   // 被新点击挤掉：已发部分算成功
-      setDebugRegTick(t => t + 1);
+      bumpDebugTick();
 
       // 2a-2. ★★ v3.70：**不再单独调 writeSwitchPlan**。
       //   9 条开关位已在上面合并进同一批次（`switchDiffs(switchPlan(modules))` 的兜底），
@@ -2024,8 +2032,8 @@ export default function Index() {
     registerStore.set(229, d);
     regCacheRef.current[229] = d;
     bleManager.writeRegister(229, d, 0xEA).catch(() => {});
-    setDebugRegTick(t => t + 1);
-  }, []);
+    bumpDebugTick();
+  }, [bumpDebugTick]);
 
   // ─── Debug panel callbacks ────────────────────────────────────────────
   const addDebugLog = useCallback((reg: number, val: number) => {
@@ -2066,8 +2074,8 @@ export default function Index() {
         addDebugLog(addr, v);
       }
     }
-    setDebugRegTick(t => t + 1);
-  }, [addDebugLog]);
+    bumpDebugTick();
+  }, [addDebugLog, bumpDebugTick]);
 
   // D7 (2026-09-22) 死代码清理: handleHardwareSave / syncToHardware 已删除
   //   · handleHardwareSave — 无任何 UI 挂载 (DebugPanel 的 onSavePreset prop 从未传入)
@@ -2590,7 +2598,7 @@ export default function Index() {
       if (!userKnobValuesRef.current['boost']) userKnobValuesRef.current['boost'] = {};
       userKnobValuesRef.current['boost']['BOOST'] = bv;
     }
-    setDebugRegTick(t => t + 1);
+    bumpDebugTick();
     /* ★ 2026-10-20：推给首页的寄存器过禁写过滤 + 开关位补齐（首页 sendAll 以这份为源） */
     pushChannelSync(item);
   };
@@ -2827,20 +2835,20 @@ export default function Index() {
     const regVal = Math.round(norm * 50);
     registerStore.set(3, regVal);
     regCacheRef.current[3] = regVal;
-    setDebugRegTick(t => t + 1);
+    bumpDebugTick();
     if (connectedDeviceId) {
       /* 拖动中每个 tick 都会进来：同地址只保留最新值，不堆过时帧 */
       bleManager.writeRegisterLatest(3, regVal, 0xea).catch(() => {});
     }
     handleKnobDisplay(norm === 0 ? 'IN VOL  -∞ dB' : `IN VOL  ${regVal - 50} dB`);
-  }, [connectedDeviceId]);
+  }, [connectedDeviceId, bumpDebugTick]);
 
   const handleOutputVolChange = useCallback((norm: number) => {
     setOutputVol(norm);
     const regVal = Math.round(norm * 50);
     registerStore.set(261, regVal);
     regCacheRef.current[261] = regVal;
-    setDebugRegTick(t => t + 1);
+    bumpDebugTick();
     if (connectedDeviceId) {
       /* 拖动中每个 tick 都会进来：同地址只保留最新值，不堆过时帧 */
       bleManager.writeRegisterLatest(261, regVal, 0xea).catch(() => {});
@@ -2854,9 +2862,9 @@ export default function Index() {
       regCacheRef.current[260] = muteReg;
       if (connectedDeviceId) bleManager.writeRegister(260, muteReg, 0xea, false).catch(() => {});
       addDebugLog(260, muteReg);
-      setDebugRegTick(t => t + 1);
+      bumpDebugTick();
     }
-  }, [addDebugLog, connectedDeviceId, muted]);
+  }, [addDebugLog, connectedDeviceId, muted, bumpDebugTick]);
 
   const toggleInputMute = useCallback(() => {
     const next = !inputMute;
@@ -2864,12 +2872,12 @@ export default function Index() {
     const regVal = next ? 1 : 0;
     registerStore.set(2, regVal);
     regCacheRef.current[2] = regVal;
-    setDebugRegTick(t => t + 1);
+    bumpDebugTick();
     if (connectedDeviceId) {
       bleManager.writeRegister(2, regVal, 0xea, false).catch(() => {});
     }
     handleKnobDisplay(`IN ${next ? 'MUTED' : 'UNMUTED'}`);
-  }, [inputMute, connectedDeviceId]);
+  }, [inputMute, connectedDeviceId, bumpDebugTick]);
 
   const toggleOutputMute = useCallback(() => {
     const next = !outputMute;
@@ -2877,12 +2885,12 @@ export default function Index() {
     const regVal = next ? 1 : 0;
     registerStore.set(260, regVal);
     regCacheRef.current[260] = regVal;
-    setDebugRegTick(t => t + 1);
+    bumpDebugTick();
     if (connectedDeviceId) {
       bleManager.writeRegister(260, regVal, 0xea, false).catch(() => {});
     }
     handleKnobDisplay(`OUT ${next ? 'MUTED' : 'UNMUTED'}`);
-  }, [outputMute, connectedDeviceId]);
+  }, [outputMute, connectedDeviceId, bumpDebugTick]);
 
   // D7 (2026-09-22) 死代码清理: handleApplyPreset 已删除 — 全工程无任何调用者
   //   (原功能 = 按 PresetConfig 生成整图并 EA 全量写硬件; 切台解耦后该职责由
@@ -2903,6 +2911,134 @@ export default function Index() {
     const m = AMP_MODELS.find((x) => x.key === k) ?? AMP_MODELS.find((x) => x.name === raw);
     return m?.limit ?? 40;
   }, [subModelNames]);
+
+  /* ★ 2026-11-24：TonePage 的事件回调 —— 引用稳定（配合 React.memo(TonePage)），
+     调用时永远执行本次渲染的最新闭包，行为与原先内联箭头函数一致。 */
+  const closeStudio = useCallback(() => { setStudioOnly(null); setActivePanel(null); }, []);
+
+  const toneHandlers = useLatestHandlers<Required<Pick<React.ComponentProps<typeof TonePage>,
+    'onParam' | 'onSubModelsChange' | 'onMuteGuard' | 'onBypass' | 'onMuteToggle'>>>({
+    onParam: async (reg, value, modId, keepBusy) => {
+                  /* ★ 2026-10-16：未连接蓝牙一律不写（禁止离线使用，防误操作） */
+                  if (!guardConnected()) return false;
+                  /* ★★ v3.58：批次写入期间禁止单帧插入 —— 否则会打断包顺序。
+                     ★ v3.69：`keepBusy` = 首页 sendAll 自己发的整批下发，它已经持有
+                     LOADING 遮罩，必须放行；只有「遮罩期间用户另起的单帧写入」才拦。 */
+                  if (isBusy() && !keepBusy) return false;
+                  /* ★★ v3.77：非有限值一律丢弃（NaN / Infinity）。
+                     一个 NaN 写进 registerStore 就等于把这个地址永久写坏 ——
+                     后续所有整表导出、上传、切换包都会带着它，且 UI 显示为空。
+                     旧版这条警告挂在 v3.77 已删的批量写函数里（那是死代码），
+                     活路径反而没守卫，这里补上。 */
+                  if (typeof value !== 'number' || !Number.isFinite(value)) {
+                    console.warn('[BFX1] 丢弃非有限值寄存器写入', modId, reg, value);
+                    return false;
+                  }
+                  if (typeof reg === 'number') {
+                    // ★★ 2026-10-03 修复 P2：必须同步 registerStore + regCacheRef，
+                    //    否则调试模式的 PEQ 图示读不到新值（重绘了但缓存没变）。
+                    registerStore.set(reg, value);
+                    regCacheRef.current[reg] = value;
+                    /* ★★ v3.70：记一笔「App 改过这个地址」—— 本地库切换时按目标格补写一遍，
+                       否则预存的差异包里没有它，切走后会停在这个手拧值上。成本 O(1)。 */
+                    markDrift(reg);
+                  }
+                  /* ★ WO-01：把写入结果回传给首页（失败 → 卡片红点 + 告警条），不再静默吞掉 */
+                  let ok = false;
+                  try {
+                    if (reg === 'PGA') {
+                      ok = await bleManager.writePGA(value);
+                      /* ★★ v3.88（同 v3.88 的保存口径）：写入成功就把档位记进 ref。
+                         ref 是三条链路共用的「当前激励档位」：
+                           ① 关闭激励后再开启（onBypass 读它算 lv）；
+                           ② 预设库切档（getBoostKnob）；
+                           ③ 保存音色时的兜底值。
+                         旧实现只发帧不记账 → 用户在首页拧完激励，App 自己不知道新档位，
+                         「关掉再打开」就跳回上一次载入音色的档位。 */
+                      if (ok) {
+                        if (!userKnobValuesRef.current['boost']) userKnobValuesRef.current['boost'] = {};
+                        userKnobValuesRef.current['boost']['BOOST'] =
+                          Math.max(0, Math.min(10, Math.round(value))) / 10;
+                      }
+                    } else {
+                      ok = await bleManager.writeRegister(reg, value, 0xEA);
+                    }
+                  } catch (e) {
+                    console.warn('[BFX1] 参数写入失败', modId, reg, value, e);
+                    ok = false;
+                  }
+                  addDebugLog(typeof reg === 'number' ? reg : -1, value);
+                  bumpDebugTick();
+                  return !!ok;
+                },
+    onSubModelsChange: (sm) => {
+                  setSubModelNames((prev) => {
+                    let same = true;
+                    for (const k of Object.keys(sm)) { if (prev[k] !== sm[k]) { same = false; break; } }
+                    return same ? prev : { ...prev, ...sm };
+                  });
+                },
+    onMuteGuard: async (on) => {
+                  if (on) { await duckOn(); } else { await duckOff(); }
+                },
+    onBypass: (modId, on) => {
+                  /* ★★ v3.58：批次写入期间禁止开关写入 */
+                  if (isBusy()) return;
+                  /* ★★ 2026-10-26（P2 修复）：**先判连接，再改状态**。
+                     旧实现先 `setModuleEnabled`（会写 localStorage）再 `guardConnected()`，
+                     断线时点灯条 → UI 与持久化都改成 ON，硬件一个字节没写；
+                     重连后首页灯是亮的、固件其实还旁路，而且这个错误状态已经存盘。
+                     2026-10-20 那条注释要回写的 moduleEnabled 逻辑保留，只是挪到守卫之后。 */
+                  if (!guardConnected()) return;
+                  setModuleEnabled((prev) => (prev[modId] === on ? prev : { ...prev, [modId]: on }));
+                  // ★ boost 走 PGA（无寄存器）：开启 = 当前档位，关闭 = 归零
+                  if (modId === 'boost') {
+                    const lv = Math.round((userKnobValuesRef.current['boost']?.['BOOST'] ?? 0.5) * 10);
+                    bleManager.writePGA(on ? lv : 0).catch(() => {});
+                    return;
+                  }
+                  /* ★ 2026-10-17（用户要求）：箱头 / 箱体新增开关。
+                     它们不在 MODULE_ON_OFF 里（原设计为常开），此处单独处理，
+                     不改 MODULE_ON_OFF —— 那张表被预设上传时的模块裁剪逻辑依赖。
+                     箱头 = 整块旁通 A(57) + 整块旁通 B(72) 两处一起写（缺一个仍会出声）；
+                     箱体 = M1 库旁路(107)（105 落在保留区 99–106，不可写）。 */
+                  if (modId === 'amp-head' || modId === 'cabinet') {
+                    const regs = modId === 'amp-head' ? [57, 72] : [107];
+                    const v = on ? 0 : 1;
+                    for (const r of regs) {
+                      registerStore.set(r, v);
+                      regCacheRef.current[r] = v;
+                      bleManager.writeRegister(r, v, 0xEA).catch(() => {});
+                      addDebugLog(r, v);
+                    }
+                    bumpDebugTick();
+                    return;
+                  }
+                  /* ★ 2026-10-20（用户拍板）：混响开关改回 reg 224（0 开 / 1 旁路），
+                     与其他模块走同一条 MODULE_ON_OFF 路径 —— MIX(229) 归预设自己管，
+                     切档不再被强制改成 20。开启时若 MIX 仍为 0，补一个默认值。 */
+                  if (modId === 'reverb' && on) ensureReverbMix();
+                  const spec = MODULE_ON_OFF[modId];
+                  if (!spec || spec.reg < 0) return;   // ★ 箱头 / 箱体已移出开关表 → 常开，不写
+                  registerStore.set(spec.reg, on ? spec.on : spec.off);
+                  regCacheRef.current[spec.reg] = on ? spec.on : spec.off;
+                  bleManager.writeRegister(spec.reg, on ? spec.on : spec.off, 0xEA).catch(() => {});
+                  addDebugLog(spec.reg, on ? spec.on : spec.off);
+                  bumpDebugTick();
+                },
+    onMuteToggle: () => {
+                  /* ★ 2026-10-16：未连接蓝牙不写（禁止离线使用） */
+                  if (!guardConnected()) return;
+                  const nv = !muted;
+                  const val = nv ? MUTE_ON_OFF.on : MUTE_ON_OFF.off;
+                  setMuted(nv);
+                  registerStore.set(MUTE_ON_OFF.reg, val);
+                  regCacheRef.current[MUTE_ON_OFF.reg] = val;
+                  bleManager.writeRegister(MUTE_ON_OFF.reg, val, 0xEA).catch(() => {});
+                  addDebugLog(MUTE_ON_OFF.reg, val);
+                  bumpDebugTick();
+                },
+  });
 
   return (
     <div
@@ -3204,59 +3340,7 @@ export default function Index() {
             <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', opacity: uiConnected ? 1 : 0.4, transition: 'opacity 0.2s' }}>
               {!uiConnected && <div onClick={(e) => showConnectHint(e)} style={{ position: 'absolute', inset: 0, zIndex: 3, cursor: 'pointer' }} />}
               <TonePage
-                onParam={async (reg, value, modId, keepBusy) => {
-                  /* ★ 2026-10-16：未连接蓝牙一律不写（禁止离线使用，防误操作） */
-                  if (!guardConnected()) return false;
-                  /* ★★ v3.58：批次写入期间禁止单帧插入 —— 否则会打断包顺序。
-                     ★ v3.69：`keepBusy` = 首页 sendAll 自己发的整批下发，它已经持有
-                     LOADING 遮罩，必须放行；只有「遮罩期间用户另起的单帧写入」才拦。 */
-                  if (isBusy() && !keepBusy) return false;
-                  /* ★★ v3.77：非有限值一律丢弃（NaN / Infinity）。
-                     一个 NaN 写进 registerStore 就等于把这个地址永久写坏 ——
-                     后续所有整表导出、上传、切换包都会带着它，且 UI 显示为空。
-                     旧版这条警告挂在 v3.77 已删的批量写函数里（那是死代码），
-                     活路径反而没守卫，这里补上。 */
-                  if (typeof value !== 'number' || !Number.isFinite(value)) {
-                    console.warn('[BFX1] 丢弃非有限值寄存器写入', modId, reg, value);
-                    return false;
-                  }
-                  if (typeof reg === 'number') {
-                    // ★★ 2026-10-03 修复 P2：必须同步 registerStore + regCacheRef，
-                    //    否则调试模式的 PEQ 图示读不到新值（重绘了但缓存没变）。
-                    registerStore.set(reg, value);
-                    regCacheRef.current[reg] = value;
-                    /* ★★ v3.70：记一笔「App 改过这个地址」—— 本地库切换时按目标格补写一遍，
-                       否则预存的差异包里没有它，切走后会停在这个手拧值上。成本 O(1)。 */
-                    markDrift(reg);
-                  }
-                  /* ★ WO-01：把写入结果回传给首页（失败 → 卡片红点 + 告警条），不再静默吞掉 */
-                  let ok = false;
-                  try {
-                    if (reg === 'PGA') {
-                      ok = await bleManager.writePGA(value);
-                      /* ★★ v3.88（同 v3.88 的保存口径）：写入成功就把档位记进 ref。
-                         ref 是三条链路共用的「当前激励档位」：
-                           ① 关闭激励后再开启（onBypass 读它算 lv）；
-                           ② 预设库切档（getBoostKnob）；
-                           ③ 保存音色时的兜底值。
-                         旧实现只发帧不记账 → 用户在首页拧完激励，App 自己不知道新档位，
-                         「关掉再打开」就跳回上一次载入音色的档位。 */
-                      if (ok) {
-                        if (!userKnobValuesRef.current['boost']) userKnobValuesRef.current['boost'] = {};
-                        userKnobValuesRef.current['boost']['BOOST'] =
-                          Math.max(0, Math.min(10, Math.round(value))) / 10;
-                      }
-                    } else {
-                      ok = await bleManager.writeRegister(reg, value, 0xEA);
-                    }
-                  } catch (e) {
-                    console.warn('[BFX1] 参数写入失败', modId, reg, value, e);
-                    ok = false;
-                  }
-                  addDebugLog(typeof reg === 'number' ? reg : -1, value);
-                  setDebugRegTick(t => t + 1);
-                  return !!ok;
-                }}
+                onParam={toneHandlers.onParam}
                 sync={channelSync}
                 /* ★ 2026-10-17：断线保存 / 重连后把当前参数写回硬件 */
                 btConnected={btConnected}
@@ -3265,82 +3349,19 @@ export default function Index() {
                    不回传的后果：Index 的 subModelNames 停在旧值 → 保存出来的音色与当前型号
                    被判定成「换型」→ 静音 + 全量发送 → 用户听到中断。
                    这里做等值短路，型号没变就不 setState（HomePanel 每次参数变动都会回调）。 */
-                onSubModelsChange={(sm) => {
-                  setSubModelNames((prev) => {
-                    let same = true;
-                    for (const k of Object.keys(sm)) { if (prev[k] !== sm[k]) { same = false; break; } }
-                    return same ? prev : { ...prev, ...sm };
-                  });
-                }}
+                onSubModelsChange={toneHandlers.onSubModelsChange}
                 /* ★★ v3.75（H1）：首页换箱头/箱体的静音保护。
                    复用这里的 duckOn / duckOff —— 它们负责 duckOnRef、恢复 261、还原 reg2，
                    首页自己写 reg2 会绕开这套记账（正是 H6 那类「永久静音」）。 */
-                onMuteGuard={async (on) => {
-                  if (on) { await duckOn(); } else { await duckOff(); }
-                }}
-                onBypass={(modId, on) => {
-                  /* ★★ v3.58：批次写入期间禁止开关写入 */
-                  if (isBusy()) return;
-                  /* ★★ 2026-10-26（P2 修复）：**先判连接，再改状态**。
-                     旧实现先 `setModuleEnabled`（会写 localStorage）再 `guardConnected()`，
-                     断线时点灯条 → UI 与持久化都改成 ON，硬件一个字节没写；
-                     重连后首页灯是亮的、固件其实还旁路，而且这个错误状态已经存盘。
-                     2026-10-20 那条注释要回写的 moduleEnabled 逻辑保留，只是挪到守卫之后。 */
-                  if (!guardConnected()) return;
-                  setModuleEnabled((prev) => (prev[modId] === on ? prev : { ...prev, [modId]: on }));
-                  // ★ boost 走 PGA（无寄存器）：开启 = 当前档位，关闭 = 归零
-                  if (modId === 'boost') {
-                    const lv = Math.round((userKnobValuesRef.current['boost']?.['BOOST'] ?? 0.5) * 10);
-                    bleManager.writePGA(on ? lv : 0).catch(() => {});
-                    return;
-                  }
-                  /* ★ 2026-10-17（用户要求）：箱头 / 箱体新增开关。
-                     它们不在 MODULE_ON_OFF 里（原设计为常开），此处单独处理，
-                     不改 MODULE_ON_OFF —— 那张表被预设上传时的模块裁剪逻辑依赖。
-                     箱头 = 整块旁通 A(57) + 整块旁通 B(72) 两处一起写（缺一个仍会出声）；
-                     箱体 = M1 库旁路(107)（105 落在保留区 99–106，不可写）。 */
-                  if (modId === 'amp-head' || modId === 'cabinet') {
-                    const regs = modId === 'amp-head' ? [57, 72] : [107];
-                    const v = on ? 0 : 1;
-                    for (const r of regs) {
-                      registerStore.set(r, v);
-                      regCacheRef.current[r] = v;
-                      bleManager.writeRegister(r, v, 0xEA).catch(() => {});
-                      addDebugLog(r, v);
-                    }
-                    setDebugRegTick(t => t + 1);
-                    return;
-                  }
-                  /* ★ 2026-10-20（用户拍板）：混响开关改回 reg 224（0 开 / 1 旁路），
-                     与其他模块走同一条 MODULE_ON_OFF 路径 —— MIX(229) 归预设自己管，
-                     切档不再被强制改成 20。开启时若 MIX 仍为 0，补一个默认值。 */
-                  if (modId === 'reverb' && on) ensureReverbMix();
-                  const spec = MODULE_ON_OFF[modId];
-                  if (!spec || spec.reg < 0) return;   // ★ 箱头 / 箱体已移出开关表 → 常开，不写
-                  registerStore.set(spec.reg, on ? spec.on : spec.off);
-                  regCacheRef.current[spec.reg] = on ? spec.on : spec.off;
-                  bleManager.writeRegister(spec.reg, on ? spec.on : spec.off, 0xEA).catch(() => {});
-                  addDebugLog(spec.reg, on ? spec.on : spec.off);
-                  setDebugRegTick(t => t + 1);
-                }}
+                onMuteGuard={toneHandlers.onMuteGuard}
+                onBypass={toneHandlers.onBypass}
                 /* ★ C6（2026-10-15）：MASTER 模块静音开关 → 写 reg260 */
                 /* ★ v73（核定表）：首页 ④ 区「总音量」= reg 261（M1OutVolume），
                    与箱头模块自己的 MASTER（reg 239）是两个寄存器 */
                 outVol={outputVol}
                 onOutVol={handleOutputVolChange}
                 muted={muted}
-                onMuteToggle={() => {
-                  /* ★ 2026-10-16：未连接蓝牙不写（禁止离线使用） */
-                  if (!guardConnected()) return;
-                  const nv = !muted;
-                  const val = nv ? MUTE_ON_OFF.on : MUTE_ON_OFF.off;
-                  setMuted(nv);
-                  registerStore.set(MUTE_ON_OFF.reg, val);
-                  regCacheRef.current[MUTE_ON_OFF.reg] = val;
-                  bleManager.writeRegister(MUTE_ON_OFF.reg, val, 0xEA).catch(() => {});
-                  addDebugLog(MUTE_ON_OFF.reg, val);
-                  setDebugRegTick(t => t + 1);
-                }}
+                onMuteToggle={toneHandlers.onMuteToggle}
               />
             </div>
           )}
@@ -3413,7 +3434,7 @@ export default function Index() {
           borderTop: activePanel ? '1px solid #454b55' : 'none',
           pointerEvents: activePanel ? 'auto' : 'none',
         }}>
-          <StudioPanel visible={activePanel === 'studio'} onlyTab={studioOnly ?? undefined} onClose={() => { setStudioOnly(null); setActivePanel(null); }} />
+          <StudioPanel visible={activePanel === 'studio'} onlyTab={studioOnly ?? undefined} onClose={closeStudio} />
           {/* ★ 2026-10-16（用户要求）：开机即进蓝牙连接框 —— 未连接时强制显示且不可关闭 */}
           <BluetoothPanel
             visible={activePanel === 'bluetooth' || (!btConnected && !IS_WEB_PREVIEW)}
@@ -3424,7 +3445,7 @@ export default function Index() {
             onConnectFail={handleBleConnectFail}
             locked={!btConnected && !IS_WEB_PREVIEW}
           />
-          <PresetsPanel visible={activePanel === 'presets'} onClose={() => setActivePanel(null)} presetRev={presetRev} connectedDeviceId={connectedDeviceId} registerStore={registerStore} bleManager={bleManager} buildFrame={buildFrame} moduleEnabled={moduleEnabled} subModelNames={subModelNames} playMode={playMode} setPlayMode={setPlayMode} setModuleEnabled={setModuleEnabled} setSubModelNames={setSubModelNames} setLoadedKnobValues={setLoadedKnobValues} getBoostKnob={() => userKnobValuesRef.current['boost']?.['BOOST']} onRestoreBoostKnob={(v) => { if (!userKnobValuesRef.current['boost']) userKnobValuesRef.current['boost'] = {}; userKnobValuesRef.current['boost']['BOOST'] = v; }} ampIdxV8={ampIdxV8} setAmpIdxV8={setAmpIdxV8} inputVol={inputVol} outputVol={outputVol} inputMute={inputMute} outputMute={outputMute} setInputVol={setInputVol} setOutputVol={setOutputVol} setInputMute={setInputMute} setOutputMute={setOutputMute} setCleanResetTick={setCleanResetTick} activeSlot={activeSlot} setActiveSlot={setActiveSlot} regCacheRef={regCacheRef} bumpDebugRegTick={() => setDebugRegTick(t => t + 1)} onSyncChannel={pushChannelSync} onOpenMetronome={() => { setStudioOnly('metro'); setActivePanel('studio'); }} onOpenTuner={() => { setStudioOnly('tuner'); setActivePanel('studio'); }} />
+          <PresetsPanel visible={activePanel === 'presets'} onClose={() => setActivePanel(null)} presetRev={presetRev} connectedDeviceId={connectedDeviceId} registerStore={registerStore} bleManager={bleManager} buildFrame={buildFrame} moduleEnabled={moduleEnabled} subModelNames={subModelNames} playMode={playMode} setPlayMode={setPlayMode} setModuleEnabled={setModuleEnabled} setSubModelNames={setSubModelNames} setLoadedKnobValues={setLoadedKnobValues} getBoostKnob={() => userKnobValuesRef.current['boost']?.['BOOST']} onRestoreBoostKnob={(v) => { if (!userKnobValuesRef.current['boost']) userKnobValuesRef.current['boost'] = {}; userKnobValuesRef.current['boost']['BOOST'] = v; }} ampIdxV8={ampIdxV8} setAmpIdxV8={setAmpIdxV8} inputVol={inputVol} outputVol={outputVol} inputMute={inputMute} outputMute={outputMute} setInputVol={setInputVol} setOutputVol={setOutputVol} setInputMute={setInputMute} setOutputMute={setOutputMute} setCleanResetTick={setCleanResetTick} activeSlot={activeSlot} setActiveSlot={setActiveSlot} regCacheRef={regCacheRef} bumpDebugRegTick={bumpDebugTick} onSyncChannel={pushChannelSync} onOpenMetronome={() => { setStudioOnly('metro'); setActivePanel('studio'); }} onOpenTuner={() => { setStudioOnly('tuner'); setActivePanel('studio'); }} />
           {/* User profile panel (new) */}
           {activePanel === 'user' && (
             <div className="panel-enter" style={{ position: 'absolute', inset: 0 }}>
@@ -3706,6 +3727,7 @@ export default function Index() {
 
     {/* ── DEBUG MODE PANEL ── */}
     {debugMode && (
+      <Suspense fallback={null}>
       <DebugPanel
         visible={debugMode}
         onClose={() => setDebugMode(false)}
@@ -3718,6 +3740,7 @@ export default function Index() {
         ampKey={subModelNames['amp-head']}
         cabKey={subModelNames['cabinet']}
       />
+      </Suspense>
     )}
 
     {/* ── Exit confirmation dialog ── */}

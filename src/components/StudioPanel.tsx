@@ -5,7 +5,7 @@
 // BPM 提升到此层统一: 节拍器/鼓机/循环共用同一 bpm (各自界面仍可调),
 // 持久化到 localStorage `bfx_bpm`.
 
-import { useEffect, useRef, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import { useI18n } from '../i18n';
 import { PanelHeader } from '../ui/PanelHeader';
 import TunerPanel from './TunerPanel';
@@ -45,7 +45,7 @@ const TABS: Array<{ id: TabId; labelKey: string; panelKey: string; accent: strin
   { id: 'stem',  labelKey: 'studio.stem',    panelKey: 'panel.stem',      accent: '#b450ff' },
 ];
 
-export default function StudioPanel({ visible, onClose, openTab, openTabSeq, onlyTab }: StudioPanelProps) {
+function StudioPanel({ visible, onClose, openTab, openTabSeq, onlyTab }: StudioPanelProps) {
   const { t } = useI18n();
   // C2 (2026-09-02): 记住上次所在面板 — 会话内常驻挂载本就不丢, 这里补跨会话 (localStorage)
   const [tab, setTab] = useState<TabId>(() => {
@@ -159,3 +159,6 @@ function PanelSlot({ show, children }: { show: boolean; children: React.ReactNod
     </div>
   );
 }
+
+/* ★ 2026-11-24：memo 隔离 —— Index 每次重渲染（音量拖动、调试、预设操作…）不再连带整页重跑 */
+export default memo(StudioPanel);

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useI18n } from '../../i18n';
 import { EA_WRITE_MS } from '../../config/writeTiming';
@@ -189,7 +189,7 @@ function regsToStrings(src: Record<number, number>): Record<string, number> {
   return out;
 }
 
-export default function TonePage({
+function TonePage({
   onParam, onBypass, sync, muted, onMuteToggle, outVol, onOutVol,
   btConnected, onSubModelsChange, onMuteGuard,
 }: Props) {
@@ -1147,3 +1147,6 @@ export default function TonePage({
     </div>
   );
 }
+
+/* ★ 2026-11-24：memo 隔离 —— Index 每次重渲染（音量拖动、调试、预设操作…）不再连带整页重跑 */
+export default memo(TonePage);
