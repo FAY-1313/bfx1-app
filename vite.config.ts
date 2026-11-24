@@ -48,6 +48,12 @@ export default defineConfig({
       enableBuild: true,
     }),
   ],
+  // 生产包（minify 阶段）去掉 console.log/info/debug —— Capacitor 会把 console 桥接到 logcat，
+  // BLE 写入热路径每帧一条 log 有实际开销。保留 warn/error 供诊断；dev 不 minify，不受影响。
+  esbuild: {
+    pure: ["console.log", "console.info", "console.debug"],
+    drop: ["debugger"],
+  },
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
